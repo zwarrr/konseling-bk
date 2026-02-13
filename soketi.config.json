@@ -1,0 +1,18 @@
+{
+  "host": "127.0.0.1",
+  "port": 6001,
+  "debug": true,
+  "appManager": {
+    "driver": "array",
+    "apps": [
+      {
+        "id": "konseling",
+        "key": "konseling",
+        "secret": "konseling",
+        "name": "konseling",
+        "enableClientMessages": false,
+        "enableStatistics": false
+      }
+    ]
+  }
+}
