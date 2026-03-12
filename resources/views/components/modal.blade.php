@@ -1,46 +1,75 @@
 @props([
   'id',
   'title',
-  'subtitle' => null,
+  'subtitle' => 'Pemberitahuan',
   'tone' => 'info', // info|success|warning|error
 ])
 
 @php
-  $toneTitleClass = match ($tone) {
-    'success' => 'text-emerald-700',
-    'warning' => 'text-amber-700',
-    'error' => 'text-red-700',
-    default => 'text-slate-900',
+  $topBar       = match ($tone) {
+    'success' => 'bg-emerald-600',
+    'warning' => 'bg-amber-500',
+    'error'   => 'bg-red-600',
+    default   => 'bg-blue-600',
+  };
+  $iconBg       = match ($tone) {
+    'success' => 'bg-emerald-100',
+    'warning' => 'bg-amber-100',
+    'error'   => 'bg-red-100',
+    default   => 'bg-blue-100',
+  };
+  $iconColor    = match ($tone) {
+    'success' => 'text-emerald-600',
+    'warning' => 'text-amber-600',
+    'error'   => 'text-red-600',
+    default   => 'text-blue-600',
+  };
+  $icon         = match ($tone) {
+    'success' => 'fa-circle-check',
+    'warning' => 'fa-triangle-exclamation',
+    'error'   => 'fa-circle-xmark',
+    default   => 'fa-circle-info',
+  };
+  $badgeBg      = match ($tone) {
+    'success' => 'bg-emerald-50 border-emerald-200 text-emerald-800',
+    'warning' => 'bg-amber-50 border-amber-200 text-amber-800',
+    'error'   => 'bg-red-50 border-red-200 text-red-800',
+    default   => 'bg-blue-50 border-blue-200 text-blue-800',
+  };
+  $btnClass     = match ($tone) {
+    'success' => 'bg-emerald-600 hover:bg-emerald-700',
+    'warning' => 'bg-amber-600 hover:bg-amber-700',
+    'error'   => 'bg-red-600 hover:bg-red-700',
+    default   => 'bg-blue-600 hover:bg-blue-700',
   };
 @endphp
 
 <div id="{{ $id }}" class="fixed inset-0 z-50 hidden">
-  <div class="absolute inset-0 bg-black/40" data-close-modal="{{ $id }}"></div>
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" data-close-modal="{{ $id }}"></div>
   <div class="absolute inset-0 flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xl">
-      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-        <div>
-          @if($subtitle)
-            <div class="text-xs text-slate-500">{{ $subtitle }}</div>
-          @endif
-          <div class="text-lg font-semibold {{ $toneTitleClass }}">{{ $title }}</div>
-        </div>
-        <button type="button" class="w-9 h-9 rounded-xl border border-slate-200 hover:bg-slate-50 transition" data-close-modal="{{ $id }}">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+    <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-8 text-center">
+
+      <div class="w-16 h-16 rounded-full {{ $iconBg }} flex items-center justify-center mx-auto mb-5">
+        <i class="fa-solid {{ $icon }} text-2xl {{ $iconColor }}"></i>
       </div>
 
-      <div class="p-6">
+      <div class="text-xl font-bold text-slate-900 mb-2">{{ $title }}</div>
+
+      {{-- Message slot --}}
+      <div class="text-sm text-slate-500 mb-8 leading-relaxed">
         {{ $slot }}
-
-        <div class="pt-4 flex justify-end">
-          @isset($footer)
-            {{ $footer }}
-          @else
-            <button type="button" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-600/90 transition" data-close-modal="{{ $id }}">Oke</button>
-          @endisset
-        </div>
       </div>
+
+      <div>
+        @isset($footer)
+          {{ $footer }}
+        @else
+          <button type="button"
+            class="w-full py-2.5 rounded-xl {{ $btnClass }} text-white text-sm font-semibold transition"
+            data-close-modal="{{ $id }}">Oke</button>
+        @endisset
+      </div>
+
     </div>
   </div>
 </div>

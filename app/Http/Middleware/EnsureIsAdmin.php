@@ -9,7 +9,7 @@ class EnsureIsAdmin
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!$request->user() || ($request->user()->role ?? '') !== 'admin') {
+        if (!\Auth::guard('admin')->check()) {
             abort(403, 'Akses ditolak.');
         }
 

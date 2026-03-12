@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\AdminAccount;
+use App\Models\BkAccount;
+use App\Models\SiswaAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -11,20 +13,14 @@ class AuthController extends Controller
 {
     public function showLogin(Request $request)
     {
-        $routeName = (string) ($request->route()?->getName() ?? '');
-
-        // Guard-aware redirect: block access to the login page if that guard is already authenticated.
-        if ($routeName === 'admin.login') {
-            if (Auth::guard('admin')->check()) {
-                return redirect()->route('admin.dashboard.index');
-            }
-        } else {
-            if (Auth::guard('web')->check()) {
-                $role = Auth::guard('web')->user()?->role;
-                return ($role === 'guru')
-                    ? redirect()->route('bk.chat')
-                    : redirect()->route('siswa.chat');
-            }
+        if (Auth::guard('admin')->check()) {
+            return redirect()->route('admin.dashboard.index');
+        }
+        if (Auth::guard('bk')->check()) {
+            return redirect()->route('bk.home');
+        }
+        if (Auth::guard('siswa')->check()) {
+            return redirect()->route('siswa.home');
         }
 
         return view('auth.login');
@@ -33,44 +29,63 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validated = $request->validate([
-            'id' => ['required', 'regex:/^\d+$/'],
-            'password' => ['required', 'regex:/^\d+$/'],
+            'id'       => ['required', 'string'],
+            'password' => ['required', 'min:6', 'max:18'],
         ]);
 
-        $id = (int) $validated['id'];
+        $id = $validated['id'];
 
-        $user = User::query()->where('account_id_nip_nis', $id)->first();
-
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
-            return back()->withErrors([
-                'id' => 'ID / password tidak valid.',
-            ])->withInput();
-        }
-
-        $targetGuard = (($user->role ?? null) === 'admin') ? 'admin' : 'web';
-        $guard = Auth::guard($targetGuard);
-
-        // Only switch/logout within the same guard. Keep the other guard logged in.
-        if ($guard->check() && (int) $guard->id() !== (int) $user->id) {
-            $guard->logout();
-        }
-
-        $guard->login($user);
-        $request->session()->regenerate();
-
-        if (($user->role ?? null) === 'admin') {
+        // ── Cek admin dulu ────────────────────────────────────────────────
+        $admin = AdminAccount::where('login_id', $id)->first();
+        if ($admin && Hash::check($validated['password'], $admin->password)) {
+            Auth::guard('admin')->login($admin, false);
+            $request->session()->regenerate();
             return redirect()->route('admin.dashboard.index');
         }
 
-        return ($user->role ?? null) === 'guru'
-            ? redirect()->route('bk.chat')
-            : redirect()->route('siswa.chat');
+        // ── BK / Siswa login ──────────────────────────────────────────────
+        // 18 digit angka = NIP (BK), selainnya = NIS (Siswa)
+        $idLength = strlen(preg_replace('/\D/', '', $id));
+
+        if ($idLength === 18) {
+            $user  = BkAccount::where('login_id', $id)->first();
+            $guard = 'bk';
+        } else {
+            $user = SiswaAccount::where('login_id', $id)->first();
+            if (!$user) {
+                $user  = BkAccount::where('login_id', $id)->first();
+                $guard = 'bk';
+            } else {
+                $guard = 'siswa';
+            }
+        }
+
+        if (!$user || !Hash::check($validated['password'], $user->password)) {
+            return back()->withErrors(['id' => 'ID / password tidak valid.'])->withInput();
+        }
+
+        $authGuard = Auth::guard($guard);
+        if ($authGuard->check() && (int) $authGuard->id() !== (int) $user->id) {
+            $authGuard->logout();
+        }
+
+        $authGuard->login($user, true);
+        $request->session()->regenerate();
+
+        if ($user->must_change_password) {
+            return redirect()->route('user.setup');
+        }
+
+        return ($guard === 'bk')
+            ? redirect()->route('bk.home')
+            : redirect()->route('siswa.home');
     }
 
     public function logout(Request $request)
     {
-        // Web logout only; keep admin session if any.
-        Auth::guard('web')->logout();
+        Auth::guard('bk')->logout();
+        Auth::guard('siswa')->logout();
+        $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return response()->json(['success' => true]);
@@ -78,9 +93,15 @@ class AuthController extends Controller
 
     public function logoutAdmin(Request $request)
     {
-        // Admin logout only; keep web session if any.
         Auth::guard('admin')->logout();
+        $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        // During maintenance, redirect to the secret admin URL instead of normal login
+        if (\App\Models\AppSetting::maintenanceMode()) {
+            $secret = trim(\App\Models\AppSetting::get('maintenance_admin_url', 'ginlogin'), '/ ');
+            return response()->json(['success' => true, 'redirect' => url('auth/' . $secret)]);
+        }
 
         return response()->json(['success' => true]);
     }

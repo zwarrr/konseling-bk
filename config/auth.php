@@ -14,8 +14,8 @@ return [
     */
 
     'defaults' => [
-        'guard' => env('AUTH_GUARD', 'web'),
-        'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
+        'guard'     => env('AUTH_GUARD', 'bk'),
+        'passwords' => env('AUTH_PASSWORD_BROKER', 'bk_accounts'),
     ],
 
     /*
@@ -36,14 +36,28 @@ return [
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
+        // Guru BK guard
+        'bk' => [
+            'driver'   => 'session',
+            'provider' => 'bk_accounts',
         ],
 
+        // Siswa guard
+        'siswa' => [
+            'driver'   => 'session',
+            'provider' => 'siswa_accounts',
+        ],
+
+        // Admin panel guard
         'admin' => [
-            'driver' => 'session',
-            'provider' => 'users',
+            'driver'   => 'session',
+            'provider' => 'admin_accounts',
+        ],
+
+        // 'web' kept as alias → bk (fallback for any unguarded auth()->user() calls)
+        'web' => [
+            'driver'   => 'session',
+            'provider' => 'bk_accounts',
         ],
     ],
 
@@ -65,15 +79,20 @@ return [
     */
 
     'providers' => [
-        'users' => [
+        'bk_accounts' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
+            'model'  => App\Models\BkAccount::class,
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'siswa_accounts' => [
+            'driver' => 'eloquent',
+            'model'  => App\Models\SiswaAccount::class,
+        ],
+
+        'admin_accounts' => [
+            'driver' => 'eloquent',
+            'model'  => App\Models\AdminAccount::class,
+        ],
     ],
 
     /*

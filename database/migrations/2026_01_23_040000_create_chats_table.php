@@ -4,36 +4,56 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Chats table — one row per message.
+ *
+ * Key columns:
+ *  room_id            — 12-char readable ID: RC + 2-char siswa initials + 2-char guru initials + 2-digit seq (e.g. RCSIGURU01)
+ *  siswa_account_id   — account_id of the siswa (e.g. SSWAI01)
+ *  guru_account_id    — account_id of the guru  (e.g. BK01)
+ *  sender_account_id  — account_id of the sender (string, matches users.account_id)
+ *  sender_role        — snapshot of role at send time (guru / siswa / user)
+ *  message_type       — 'text' | 'image' | 'video' | 'document'
+ *  attachment         — relative storage path when message_type ≠ 'text'
+ *  status             — 'unread' → 'read'  (drives the blue-tick read receipt)
+ */
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('chats', function (Blueprint $table) {
             $table->id();
-            $table->string('wa_message_id')->nullable()->unique();
-            $table->string('sender_name')->default('Anonymous');
-            $table->string('phone_number')->nullable(); // Store full JID: 122879031136511@lid
-            $table->string('room_name')->nullable(); // Store full JID
-            $table->enum('direction', ['incoming', 'outgoing'])->default('incoming');
+
+            // Room identification — readable format e.g. RCSIGURU01
+            $table->string('room_id', 12)->nullable()->index();
+
+            // Participants (account_id strings, not numeric ids)
+            $table->string('siswa_account_id', 20)->nullable()->index();
+            $table->string('guru_account_id',  20)->nullable()->index();
+
+            // Sender — account_id string (e.g. SSWAI01, BK01)
+            $table->string('sender_account_id', 20)->nullable();
+            $table->string('sender_role', 20)->nullable();   // 'guru' | 'siswa' | 'user'
+
+            // Payload
             $table->text('message');
-            $table->string('message_type')->default('text'); // Changed to string for flexibility
-            $table->string('attachment')->nullable();
-            $table->enum('status', ['pending', 'sent', 'delivered', 'read', 'failed'])->default('sent');
-            $table->boolean('is_read')->default(false);
+            $table->string('message_type', 30)->default('text'); // text|image|video|document
+            $table->string('attachment')->nullable();             // storage path
+
+            // Read-receipt — 'unread' → 'read' (blue tick)
+            $table->enum('status', ['unread', 'read'])->default('unread');
+
             $table->timestamps();
-            
-            // Index untuk query lebih cepat
-            $table->index(['room_name', 'created_at']);
-            $table->index('phone_number');
+
+            // Efficient polls: GET /api/chat/{roomId}/messages?after={lastId}
+            $table->index(['room_id', 'id']);
+            // Quick participant lookup
+            $table->index(['siswa_account_id', 'guru_account_id']);
+            // Quick unread count per room
+            $table->index(['room_id', 'status']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('chats');

@@ -6,33 +6,50 @@ use Illuminate\Database\Eloquent\Model;
 
 class Chat extends Model
 {
+    protected $table = 'chats';
+
     protected $fillable = [
-        'api_ref',
-        'wa_message_id',
-        'sender_name',
+        'room_id',
+        'siswa_account_id',
+        'guru_account_id',
+        'sender_account_id',
         'sender_role',
-        'phone_number',
-        'room_name',
-        'direction',
         'message',
         'message_type',
-        'status',
-        'error_message',
         'attachment',
-        'is_read'
+        'status',
     ];
 
     protected $casts = [
-        'is_read' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
 
-    /**
-     * Mark message as read
-     */
-    public function markAsRead()
+    /** Mark this message as read (blue tick). */
+    public function markAsRead(): void
     {
-        $this->update(['is_read' => true]);
+        if ($this->status !== 'read') {
+            $this->update(['status' => 'read']);
+        }
+    }
+
+    /**
+     * Mark all messages in a room that were sent by others as read.
+     *
+     * @param  string  $roomId
+     * @param  string  $readerAccountId  account_id of the reader (e.g. SSWAI01)
+     */
+    public static function markRoomRead(string $roomId, string $readerAccountId): void
+    {
+        static::where('room_id', $roomId)
+              ->where('sender_account_id', '!=', $readerAccountId)
+              ->where('status', 'unread')
+              ->update(['status' => 'read']);
+    }
+
+    /** Is this message unread? */
+    public function isUnread(): bool
+    {
+        return $this->status === 'unread';
     }
 }
