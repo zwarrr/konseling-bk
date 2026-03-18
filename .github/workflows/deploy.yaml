@@ -1,0 +1,40 @@
+name: Deploy ke Server
+
+on:
+  push:
+    branches:
+      - Zwar   # Ganti sesuai branch utama kamu
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup SSH connection
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Deploy to server via SSH
+      run: |
+        ssh -p 21032 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+            eval \$(ssh-agent -s)
+            ssh-add ~/.ssh/zwar
+            ssh -T git@github.com
+            ssh -T git@github.com
+            cd web
+            git pull origin Zwar
+            composer install
+            composer dump-autoload
+            npm install
+            npm run build
+            php artisan migrate --force
+            php artisan db:seed --force
+            php artisan optimize
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+        "
