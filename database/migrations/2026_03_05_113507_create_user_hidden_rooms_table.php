@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('user_hidden_rooms', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->string('user_type', 10)->default('siswa'); // 'bk' | 'siswa'
+            $table->enum('user_type', ['bk', 'siswa'])->default('siswa'); // bk|siswa
             $table->string('room_key');   // room_id for direct chats, "kelas:{id}" for classrooms
             $table->timestamp('hidden_at')->useCurrent();
             $table->unique(['user_id', 'room_key']);

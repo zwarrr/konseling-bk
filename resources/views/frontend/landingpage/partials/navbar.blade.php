@@ -1,10 +1,10 @@
 <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-100 transition-all duration-300">
-  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center">
 
     {{-- Logo (kiri) --}}
-    <a href="{{ route('landing') }}" class="flex items-center gap-3 mr-auto">
+    <a href="{{ route('landing') }}" class="flex items-center gap-3 mr-auto min-w-0">
       <img src="{{ asset('favicon.png') }}" alt="Logo" class="w-9 h-9 rounded-lg">
-      <span class="text-xl font-bold text-blue-700" id="logo-bikasi">BIKASI</span>
+      <span class="text-lg sm:text-xl font-bold text-blue-700 truncate" id="logo-ekonseling">E-Konseling</span>
     </a>
 
     {{-- Desktop Nav (kanan, sebelum CTA) --}}
@@ -16,7 +16,7 @@
         <a href="{{ request()->routeIs('landing') ? '#layanan' : url('/').'#layanan' }}" @if(!request()->routeIs('landing')) data-splash-nav @endif class="nav-link text-gray-600 hover:text-blue-700 transition font-semibold">Layanan</a>
       </li>
       <li>
-        <a href="{{ request()->routeIs('landing') ? '#agenda' : url('/').'#agenda' }}" @if(!request()->routeIs('landing')) data-splash-nav @endif class="nav-link text-gray-600 hover:text-blue-700 transition font-semibold">Agenda</a>
+        <a href="{{ request()->routeIs('landing') ? '#program' : url('/').'#program' }}" @if(!request()->routeIs('landing')) data-splash-nav @endif class="nav-link text-gray-600 hover:text-blue-700 transition font-semibold">Program</a>
       </li>
       {{-- Dropdown: Lainnya --}}
       <li class="relative" id="dropdown-li">
@@ -49,10 +49,10 @@
   </div>
 
   {{-- Mobile Menu --}}
-  <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 px-6 py-4 space-y-1 text-sm font-medium">
+  <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 px-4 sm:px-6 py-4 space-y-1 text-sm font-medium">
     <a href="{{ request()->routeIs('landing') ? '#beranda' : url('/').'#beranda' }}" @if(!request()->routeIs('landing')) data-splash-nav @endif class="block py-2.5 border-b border-gray-100 text-gray-600 hover:text-blue-700 transition mobile-nav-link">Beranda</a>
     <a href="{{ request()->routeIs('landing') ? '#layanan' : url('/').'#layanan' }}" @if(!request()->routeIs('landing')) data-splash-nav @endif class="block py-2.5 border-b border-gray-100 text-gray-600 hover:text-blue-700 transition mobile-nav-link">Layanan</a>
-    <a href="{{ request()->routeIs('landing') ? '#agenda' : url('/').'#agenda' }}" @if(!request()->routeIs('landing')) data-splash-nav @endif class="block py-2.5 border-b border-gray-100 text-gray-600 hover:text-blue-700 transition mobile-nav-link">Agenda</a>
+    <a href="{{ request()->routeIs('landing') ? '#program' : url('/').'#program' }}" @if(!request()->routeIs('landing')) data-splash-nav @endif class="block py-2.5 border-b border-gray-100 text-gray-600 hover:text-blue-700 transition mobile-nav-link">Program</a>
     <a href="{{ route('landing.team') }}" data-splash-nav class="block py-2.5 border-b border-gray-100 text-gray-600 hover:text-blue-700 transition">
       <i class="fa-solid fa-users mr-2 text-gray-400"></i> Tim BK
     </a>

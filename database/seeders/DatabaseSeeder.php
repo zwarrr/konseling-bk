@@ -22,8 +22,9 @@ class DatabaseSeeder extends Seeder
             AboutFeatureSeeder::class,
             ServiceSectionSeeder::class,
             ServiceSeeder::class,
-            AgendaSectionSeeder::class,
-            AgendaSeeder::class,
+            ProgramSectionSeeder::class,
+            ProgramBidangSeeder::class,
+            ProgramSeeder::class,
             BkNewsSeeder::class,
             TeamMemberSeeder::class,
         ]);

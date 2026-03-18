@@ -3,7 +3,7 @@
 /**
  * routes/public.php
  * ──────────────────
- * Publicly accessible routes: landing page, auth, agenda detail.
+ * Publicly accessible routes: landing page, auth, program detail.
  * Required by routes/web.php.
  */
 
@@ -33,6 +33,8 @@ Route::get('/', function () {
 // ─── Landing sub-pages ────────────────────────────────────────────────
 Route::get('/kontak', fn () => view('frontend.landingpage.sections.contact'))->name('landing.contact');
 Route::get('/tim-bk', fn () => view('frontend.landingpage.sections.team'))->name('landing.team');
+Route::get('/copyright-team', fn () => view('frontend.landingpage.sections.copyright_team'))
+    ->name('landing.copyright_team');
 
 Route::get('/berita', function () {
     $news = \App\Models\BkNews::published()->paginate(9);
@@ -45,39 +47,39 @@ Route::get('/berita/{slug}', function ($slug) {
     return view('frontend.landingpage.pages.berita-detail', compact('item', 'related'));
 })->where('slug', '[a-z0-9\-]+')->name('landing.berita.detail');
 
-use App\Models\AgendaReview;
+use App\Models\ProgramReview;
 
-Route::get('/agenda/{slug}', function ($slug) {
-    $agenda        = \App\Models\Agenda::where('status', 'publish')->where('slug', $slug)->firstOrFail();
-    $allAgendas    = \App\Models\Agenda::where('status', 'publish')->orderByDesc('date')->get();
-    $reviews       = AgendaReview::where('agenda_id', $agenda->id)->latest()->paginate(5);
-    $reviewsCount  = AgendaReview::where('agenda_id', $agenda->id)->count();
-    $reviewsAvg    = (float) (AgendaReview::where('agenda_id', $agenda->id)->avg('rating') ?? 0);
-    $firstReview   = AgendaReview::where('agenda_id', $agenda->id)->oldest()->first();
+Route::get('/program/{slug}', function ($slug) {
+    $program        = \App\Models\Program::where('status', 'publish')->where('slug', $slug)->firstOrFail();
+    $allPrograms    = \App\Models\Program::where('status', 'publish')->orderByDesc('date')->get();
+    $reviews        = ProgramReview::where('program_id', $program->id)->latest()->paginate(5);
+    $reviewsCount   = ProgramReview::where('program_id', $program->id)->count();
+    $reviewsAvg     = (float) (ProgramReview::where('program_id', $program->id)->avg('rating') ?? 0);
+    $firstReview    = ProgramReview::where('program_id', $program->id)->oldest()->first();
     $firstReviewId = $firstReview?->id;
     $isAuth = false;
-    return view('shared.sections.agenda-detail', compact(
-        'agenda', 'allAgendas', 'reviews', 'reviewsCount', 'reviewsAvg', 'firstReviewId', 'isAuth'
+    return view('shared.sections.program-detail', compact(
+        'program', 'allPrograms', 'reviews', 'reviewsCount', 'reviewsAvg', 'firstReviewId', 'isAuth'
     ));
-})->name('landing.agenda.detail');
+})->name('landing.program.detail');
 
-Route::post('/agenda/{slug}/reviews', function ($slug, \Illuminate\Http\Request $request) {
-    $agenda = \App\Models\Agenda::where('status', 'publish')->where('slug', $slug)->firstOrFail();
+Route::post('/program/{slug}/reviews', function ($slug, \Illuminate\Http\Request $request) {
+    $program = \App\Models\Program::where('status', 'publish')->where('slug', $slug)->firstOrFail();
     $request->validate([
         'name'    => 'required|string|max:100',
         'rating'  => 'required|integer|min:1|max:5',
         'comment' => 'nullable|string|max:500',
     ]);
-    AgendaReview::create([
-        'agenda_id' => $agenda->id,
+    ProgramReview::create([
+        'program_id' => $program->id,
         'name'      => $request->name,
         'rating'    => $request->rating,
         'comment'   => $request->comment,
     ]);
     return back()->with('review_success', 'Terima kasih! Ulasan Anda telah disimpan.');
-})->name('landing.agenda.reviews.store');
+})->name('landing.program.reviews.store');
 
 // Section scroll aliases — same landing view, JS scrolls on load
 Route::get('/{section}', fn () => view('frontend.landingpage.landingpage'))
-    ->where('section', 'beranda|slider-news-bk|tentang|statistik|layanan|agenda|cta')
+    ->where('section', 'beranda|slider-news-bk|tentang|statistik|layanan|program|cta')
     ->name('landing.section');

@@ -65,6 +65,8 @@
 @php
     $authUser = auth()->user();
     $isGuru   = ($mode ?? '') === 'guru';
+    $activeFilter = $activeFilter ?? (request()->query('filter') === 'groups' ? 'groups' : 'all');
+    $groupsCount  = (int) ($groupsCount ?? 0);
 @endphp
 
 <div id="chatShell" class="bg-white">
@@ -78,7 +80,7 @@
              style="padding-top: env(safe-area-inset-top, 0px)">
             {{-- Normal title row --}}
             <div id="headerNormalBar" class="px-5 pt-4 pb-2 flex items-center justify-between">
-                <h1 class="text-xl font-extrabold text-slate-800 leading-tight">BIKASI Chats</h1>
+                <h1 class="text-xl font-extrabold text-slate-800 leading-tight">E-Konseling Chats</h1>
                 <div class="relative">
                     <button id="headerKebabBtn"
                             class="w-8 h-8 flex items-center justify-center rounded-full
@@ -135,17 +137,6 @@
                                 </svg>
                                 Hapus
                             </button>
-                            <button id="btnDoLeaveKelas"
-                                    class="hidden w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
-                                           text-red-500 hover:bg-red-50 transition"
-                                    style="white-space:nowrap">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none"
-                                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                                </svg>
-                                Keluar dari kelas
-                            </button>
                             <div id="selectDropdownDivider" class="hidden border-t border-slate-100 my-1"></div>
                             <button id="btnDoBatal"
                                     class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium
@@ -169,6 +160,23 @@
                     <input id="chatSearch" type="text" placeholder="Cari percakapan..."
                            class="flex-1 text-sm bg-transparent outline-none text-slate-600 placeholder-slate-400">
                 </div>
+            </div>
+
+            {{-- Filter badge (single: Groups) --}}
+            <div class="px-4 pb-3 -mt-2">
+                <a href="{{ $activeFilter === 'groups'
+                            ? request()->fullUrlWithoutQuery(['filter'])
+                            : request()->fullUrlWithQuery(['filter' => 'groups']) }}"
+                   class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition"
+                   style="{{ $activeFilter === 'groups'
+                                ? 'background:#0F4C9A;color:#fff;border-color:transparent'
+                                : 'background:#fff;color:#334155;border-color:#e2e8f0' }}">
+                    Groups
+                    <span class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-extrabold"
+                          style="{{ $activeFilter === 'groups' ? 'background:rgba(255,255,255,.25);color:#fff' : 'background:#f1f5f9;color:#64748b' }}">
+                        {{ $groupsCount }}
+                    </span>
+                </a>
             </div>
         </div>
 
@@ -250,12 +258,23 @@
                                          style="width:13px;height:13px;flex-shrink:0;color:{{ ($conv['last_status'] ?? '') === 'read' ? '#0F4C9A' : '#94a3b8' }}"
                                          fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round"
-                                              d="M4.5 12.75l4 4 8.5-8.5M9 12.75l4 4 8.5-8.5" />
+                                              d="{{ ($conv['last_status'] ?? '') === 'read' ? 'M4.5 12.75l4 4 8.5-8.5M9 12.75l4 4 8.5-8.5' : 'M5 13l4 4L19 7' }}" />
                                     </svg>
                                 @endif
                                 @php $lmt = $conv['last_message_type'] ?? 'text'; @endphp
                                 @if($lmt === 'system')
-                                    <span class="min-w-0 truncate italic">{{ ($conv['last_is_mine'] ?? false) ? 'Kamu bergabung ke grup ini' : Str::limit($conv['last_message'], 45) }}</span>
+                                    @php
+                                        $rawSys = (string) ($conv['last_message'] ?? '');
+                                        if (($conv['last_is_mine'] ?? false)) {
+                                            if (str_contains($rawSys, 'keluar dari grup ini'))      $sysText = 'Kamu keluar dari grup ini';
+                                            elseif (str_contains($rawSys, 'membubarkan grup'))      $sysText = 'Kamu membubarkan grup ini';
+                                            elseif (str_contains($rawSys, 'bergabung ke grup ini')) $sysText = 'Kamu bergabung ke grup ini';
+                                            else                                                     $sysText = Str::limit($rawSys, 45);
+                                        } else {
+                                            $sysText = Str::limit($rawSys, 45);
+                                        }
+                                    @endphp
+                                    <span class="min-w-0 truncate italic">{{ $sysText }}</span>
                                 @elseif($lmt === 'image')
                                     <svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     <span class="min-w-0 truncate">Foto</span>
@@ -414,10 +433,14 @@
 
     function openRoom(href, activeEl) {
         // update iframe src (append ?embed=1)
-        const url = href + (href.includes('?') ? '&' : '?') + 'embed=1';
+        let url = href + (href.includes('?') ? '&' : '?') + 'embed=1';
         chatFrame.src = url;
         chatFrame.style.display = 'block';
         if (placeholder) placeholder.style.display = 'none';
+
+        // Hide kelas FAB while a room is open in the panel
+        const fabEl = document.getElementById('chatKelasBtn');
+        if (fabEl) fabEl.style.display = 'none';
 
         // persist selected room in URL so refresh restores it
         const pageUrl = new URL(window.location.href);
@@ -440,6 +463,10 @@
     function resetPanel() {
         if (chatFrame) { chatFrame.src = ''; chatFrame.style.display = 'none'; }
         if (placeholder) placeholder.style.display = '';
+
+        // Restore kelas FAB
+        const fabEl = document.getElementById('chatKelasBtn');
+        if (fabEl) fabEl.style.display = '';
         if (convList) {
             convList.querySelectorAll('.conv-item').forEach(el => {
                 el.style.background = '';
@@ -457,6 +484,7 @@
         convList.addEventListener('click', (e) => {
             if (!isDesktop()) return; // mobile: navigate normally
             if (e.target.closest('.kelas-members-btn')) return; // members btn handled separately
+
             const link = e.target.closest('.conv-item');
             if (!link) return;
             e.preventDefault();
@@ -488,13 +516,6 @@
 
     // On load: restore room from URL param (e.g. after refresh)
     if (isDesktop()) {
-        @if(isset($kelasJoinedId))
-        // Freshly joined a kelas — open its room with ?joined=1 flag
-        const joinedRoomUrl = @json(route('kelas.chat.room', $kelasJoinedId));
-        openRoom(joinedRoomUrl + '?joined=1', null);
-        // Clean kelas_joined from URL
-        (() => { const u = new URL(window.location.href); u.searchParams.delete('kelas_joined'); history.replaceState(null,'',u.toString()); })();
-        @else
         const initRoom = new URL(window.location.href).searchParams.get('room');
         if (initRoom && convList) {
             const match = convList.querySelector(`.conv-item[href="${CSS.escape ? initRoom : initRoom}"]`)
@@ -506,23 +527,18 @@
                 openRoom(initRoom, null);
             }
         }
-        @endif
     }
 })();
-
-@if(isset($kelasJoinedId))
-// Mobile: no iframe — navigate straight to the room
-if (window.innerWidth < 1024) {
-    window.location.href = @json(route('kelas.chat.room', $kelasJoinedId)) + '?joined=1';
-}
-@endif
 
 /* ── Real-time conversation list polling (every 3 s) ── */
 (() => {
     const convListEl = document.getElementById('convList');
     if (!convListEl) return;
 
-    const POLL_URL = @json(route('chat.conversations'));
+    const ACTIVE_FILTER = @json($activeFilter ?? 'all');
+    let pollUrl = @json(route('chat.conversations'));
+    if (ACTIVE_FILTER === 'groups') pollUrl += '?filter=groups';
+    const POLL_URL = pollUrl;
 
     // Format a Unix timestamp the same way PHP does on the server
     function fmtTime(ts) {
@@ -539,21 +555,32 @@ if (window.innerWidth < 1024) {
     const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;');
 
     // SVG icons (same as Blade)
-    const TICK_SVG  = (color) => `<svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;flex-shrink:0;color:${color}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l4 4 8.5-8.5M9 12.75l4 4 8.5-8.5"/></svg>`;
+    const TICK_SVG  = (color, isRead = false) => `<svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;flex-shrink:0;color:${color}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="${isRead ? 'M4.5 12.75l4 4 8.5-8.5M9 12.75l4 4 8.5-8.5' : 'M5 13l4 4L19 7'}"/></svg>`;
     const IMG_SVG   = `<svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`;
     const VID_SVG   = `<svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M4 8h8a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4a2 2 0 012-2z"/></svg>`;
     const DOC_SVG   = `<svg xmlns="http://www.w3.org/2000/svg" style="width:13px;height:13px;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0119 9.414V19a2 2 0 01-2 2z"/></svg>`;
     const KELAS_GROUP_SVG = `<svg xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;color:#0F4C9A" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>`;
+
+    function systemPreview(conv) {
+        const raw = String(conv.last_message || '');
+        if (!conv.last_is_mine) return esc(raw.substring(0, 45));
+        if (raw.includes('keluar dari grup ini')) return 'Kamu keluar dari grup ini';
+        if (raw.includes('membubarkan grup')) return 'Kamu membubarkan grup ini';
+        if (raw.includes('bergabung ke grup ini')) return 'Kamu bergabung ke grup ini';
+        return esc(raw.substring(0, 45));
+    }
 
     function buildMsgInner(conv) {
         if (!conv.last_message && !conv.last_time_ts)
             return `<span class="italic text-slate-300">Belum ada pesan</span>`;
         let html = '';
         const lmt = conv.last_message_type || 'text';
-        if (conv.last_is_mine && lmt !== 'system')
-            html += TICK_SVG(conv.last_status === 'read' ? '#0F4C9A' : '#94a3b8');
+        if (conv.last_is_mine && lmt !== 'system') {
+            const isRead = conv.last_status === 'read';
+            html += TICK_SVG(isRead ? '#0F4C9A' : '#94a3b8', isRead);
+        }
         if      (lmt === 'image')    html += IMG_SVG + `<span class="min-w-0 truncate">Foto</span>`;
-        else if (lmt === 'system')   html += `<span class="min-w-0 truncate" style="font-style:italic">${conv.last_is_mine ? 'Kamu bergabung ke grup ini' : esc(conv.last_message?.substring(0, 45))}</span>`;
+        else if (lmt === 'system')   html += `<span class="min-w-0 truncate" style="font-style:italic">${systemPreview(conv)}</span>`;
         else if (lmt === 'video')    html += VID_SVG + `<span class="min-w-0 truncate">Video</span>`;
         else if (lmt === 'document') html += DOC_SVG + `<span class="min-w-0 truncate">${esc(conv.last_message?.substring(0, 30))}</span>`;
         else                         html += `<span class="min-w-0 truncate">${esc(conv.last_message?.substring(0, 45))}</span>`;
@@ -570,6 +597,8 @@ if (window.innerWidth < 1024) {
 
             data.forEach(conv => {
                 let el = convListEl.querySelector(`[data-room-id="${CSS.escape(String(conv.id))}"]`);
+
+                if (ACTIVE_FILTER === 'groups' && !conv.is_classroom) return;
 
                 // ── New room appeared after page load — inject it ──────
                 if (!el && conv.last_time_ts && conv.name) {
@@ -619,6 +648,9 @@ if (window.innerWidth < 1024) {
                 }
 
                 if (!el) return;
+
+                // ── Update _lastTs for correct reordering ──────────────
+                if (conv.last_time_ts) el._lastTs = conv.last_time_ts;
 
                 // ── Time ──────────────────────────────────────────────
                 let timeEl = el.querySelector('[data-conv-time]');
@@ -702,6 +734,10 @@ if (window.innerWidth < 1024) {
     window.addEventListener('message', (e) => {
         if (e.data === 'chat-new-message') pollConvList();
     });
+    // Reload if restored from bfcache (mobile back-navigation shows stale page)
+    window.addEventListener('pageshow', (e) => {
+        if (e.persisted) window.location.reload();
+    });
 })();
 </script>
 
@@ -760,9 +796,6 @@ if (window.innerWidth < 1024) {
             <button id="deleteConfirmYes"
                     class="hidden w-full py-2.5 rounded-xl text-sm font-semibold text-white mb-2"
                     style="background:#ef4444">Hapus Chats</button>
-            <button id="leaveKelasYes"
-                    class="hidden w-full py-2.5 rounded-xl text-sm font-semibold text-white mb-2"
-                    style="background:#f97316">Keluar dari kelas</button>
             <button id="deleteConfirmNo"
                     class="w-full py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100">Batal</button>
         </div>
@@ -811,7 +844,6 @@ document.addEventListener('DOMContentLoaded', function () {
     var countLabel     = document.getElementById('selectCountLabel');
     var btnEnter       = document.getElementById('btnEnterSelect');
     var btnDoHapus     = document.getElementById('btnDoHapus');
-    var btnDoLeave     = document.getElementById('btnDoLeaveKelas');
     var btnDoBatal     = document.getElementById('btnDoBatal');
     var selDivider     = document.getElementById('selectDropdownDivider');
     var delSheet       = document.getElementById('deleteConfirmSheet');
@@ -819,7 +851,6 @@ document.addEventListener('DOMContentLoaded', function () {
     var delForAllWrap  = document.getElementById('deleteForAllWrap');
     var delForAllCheck = document.getElementById('deleteForAllCheck');
     var delYes         = document.getElementById('deleteConfirmYes');
-    var leaveKelasBtn  = document.getElementById('leaveKelasYes');
     var delNo          = document.getElementById('deleteConfirmNo');
     var inSelectMode   = false;
 
@@ -829,16 +860,13 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateCount() {
         var selected  = getSelected();
         var n         = selected.length;
-        var hasKelas  = selected.some(function (el) { return el.dataset.isClassroom === '1'; });
         var hasDirect = selected.some(function (el) { return el.dataset.isClassroom !== '1'; });
         if (countLabel) countLabel.textContent = n + ' dipilih';
         // Update dropdown options visibility
         if (btnDoHapus) hasDirect && n > 0 ? btnDoHapus.classList.remove('hidden') : btnDoHapus.classList.add('hidden');
-        if (btnDoLeave) hasKelas  && n > 0 ? btnDoLeave.classList.remove('hidden') : btnDoLeave.classList.add('hidden');
         // Show divider only when there is at least one action button above Batal
-        if (selDivider) (n > 0) ? selDivider.classList.remove('hidden') : selDivider.classList.add('hidden');
-        // Hide "hapus untuk semua" if any classroom selected
-        if (delForAllWrap) hasKelas ? delForAllWrap.classList.add('hidden') : delForAllWrap.classList.remove('hidden');
+        var anyActionVisible = btnDoHapus && !btnDoHapus.classList.contains('hidden');
+        if (selDivider) anyActionVisible ? selDivider.classList.remove('hidden') : selDivider.classList.add('hidden');
     }
     function enterSelectMode() {
         inSelectMode = true;
@@ -869,38 +897,14 @@ document.addEventListener('DOMContentLoaded', function () {
             closeSelectDropdown();
             var selected = getSelected();
             var hasDirect = selected.some(function (el) { return el.dataset.isClassroom !== '1'; });
-            var hasKelas  = selected.some(function (el) { return el.dataset.isClassroom === '1'; });
             var nDirect   = selected.filter(function (el) { return el.dataset.isClassroom !== '1'; }).length;
-            var nKelas    = selected.filter(function (el) { return el.dataset.isClassroom === '1'; }).length;
             var parts = [];
             if (nDirect) parts.push(nDirect + ' percakapan');
-            if (nKelas)  parts.push(nKelas + ' kelas');
             var title = document.getElementById('deleteConfirmTitle');
             var desc  = document.getElementById('deleteConfirmDesc');
             if (title) title.textContent = 'Hapus ' + parts.join(' & ') + '?';
             if (desc)  desc.textContent  = 'Chat yang dihapus tidak bisa dikembalikan.';
             if (delYes)        hasDirect ? delYes.classList.remove('hidden')        : delYes.classList.add('hidden');
-            if (leaveKelasBtn) hasKelas  ? leaveKelasBtn.classList.remove('hidden') : leaveKelasBtn.classList.add('hidden');
-            if (delForAllWrap) hasKelas  ? delForAllWrap.classList.add('hidden')    : delForAllWrap.classList.remove('hidden');
-            if (delForAllCheck) delForAllCheck.checked = false;
-            delSheet && delSheet.classList.remove('hidden');
-        });
-    }
-
-    /* Keluar dari kelas option in select dropdown — route through confirm modal */
-    if (btnDoLeave) {
-        btnDoLeave.addEventListener('click', function () {
-            closeSelectDropdown();
-            var kelasItems = getSelected().filter(function (el) { return el.dataset.isClassroom === '1'; });
-            var n = kelasItems.length;
-            if (!n) return;
-            var title = document.getElementById('deleteConfirmTitle');
-            var desc  = document.getElementById('deleteConfirmDesc');
-            if (title) title.textContent = 'Keluar dari ' + n + ' kelas?';
-            if (desc)  desc.textContent  = 'Kamu akan dikeluarkan dari kelas yang dipilih. Aksi ini tidak bisa dibatalkan.';
-            if (delYes)        delYes.classList.add('hidden');
-            if (leaveKelasBtn) leaveKelasBtn.classList.remove('hidden');
-            if (delForAllWrap) delForAllWrap.classList.add('hidden');
             if (delForAllCheck) delForAllCheck.checked = false;
             delSheet && delSheet.classList.remove('hidden');
         });
@@ -962,60 +966,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (leaveKelasBtn) {
-        leaveKelasBtn.addEventListener('click', function () {
-            var kelasItems = getSelected().filter(function (el) { return el.dataset.isClassroom === '1'; });
-            if (!kelasItems.length) { closeDelSheet(); return; }
-
-            // — loading state —
-            leaveKelasBtn.disabled = true;
-            leaveKelasBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i>Memproses...';
-            if (delNo)       delNo.disabled = true;
-            if (delBackdrop) delBackdrop.style.pointerEvents = 'none';
-
-            var fetches = kelasItems.map(function (el) {
-                var kelasId = (el.dataset.roomKey || '').replace('kelas:', '');
-                if (!kelasId) return Promise.resolve();
-                return fetch('/api/kelas/' + kelasId + '/leave', {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                });
-            });
-
-            Promise.all(fetches).then(function () {
-                // Mark as ex-member visually
-                kelasItems.forEach(function (el) {
-                    el.dataset.isExMember = '1';
-                    var nameSpan = el.querySelector('.font-semibold.text-sm');
-                    if (nameSpan && !nameSpan.querySelector('.ex-member-badge')) {
-                        var badge = document.createElement('span');
-                        badge.className = 'ex-member-badge shrink-0 text-[9px] font-semibold px-1.5 py-0.5 rounded-full';
-                        badge.style.cssText = 'background:#f1f5f9;color:#94a3b8;white-space:nowrap';
-                        badge.textContent = 'Sudah keluar';
-                        nameSpan.appendChild(badge);
-                    }
-                });
-                leaveKelasBtn.disabled = false;
-                leaveKelasBtn.innerHTML = 'Keluar dari kelas';
-                if (delNo)       delNo.disabled = false;
-                if (delBackdrop) delBackdrop.style.pointerEvents = '';
-                closeDelSheet();
-                exitSelectMode();
-                var n = kelasItems.length;
-                if (window.showFlashModal) {
-                    window.showFlashModal('success', 'Berhasil keluar dari ' + n + ' kelas.');
-                }
-            }).catch(function () {
-                leaveKelasBtn.disabled = false;
-                leaveKelasBtn.innerHTML = 'Keluar dari kelas';
-                if (delNo)       delNo.disabled = false;
-                if (delBackdrop) delBackdrop.style.pointerEvents = '';
-                if (window.showFlashModal) {
-                    window.showFlashModal('error', 'Gagal keluar dari kelas. Coba lagi.');
-                }
-            });
-        });
-    }
 
     /* Intercept conv item clicks in select mode */
     if (convList) {
@@ -1037,43 +987,13 @@ document.addEventListener('DOMContentLoaded', function () {
 @if($isGuru ?? false)
 <a href="{{ route('bk.kelas') }}"
    id="chatKelasBtn"
-   class="fixed bottom-20 right-5 z-50 w-14 h-14 rounded-full flex items-center justify-center
+   class="fixed bottom-20 right-5 z-[999] w-14 h-14 rounded-full flex items-center justify-center
           shadow-xl active:scale-95 transition-all duration-200
           hover:shadow-2xl hover:-translate-y-0.5"
    style="background:linear-gradient(135deg,#0f4c9a,#1a6fd4);box-shadow:0 6px 22px rgba(15,76,154,0.4)"
    title="Kelola Kelas">
     <i class="fa-solid fa-chalkboard-user text-white text-xl"></i>
-    {{-- Pending-count badge --}}
-    <span id="chatKelasBtn_badge"
-          class="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full
-                 text-[10px] font-bold flex items-center justify-center px-1 hidden"
-          style="background:#f97316;color:#fff"></span>
 </a>
-<script>
-(function () {
-    var badge = document.getElementById('chatKelasBtn_badge');
-    if (!badge) return;
-    function poll() {
-        fetch(@json(route('kelas.verifikasi.pendingCount')), {
-            credentials: 'same-origin',
-            headers: { 'Accept': 'application/json' }
-        }).then(function(r){ return r.ok ? r.json() : null; })
-          .then(function(d) {
-              if (!d) return;
-              if (d.count > 0) { badge.textContent = d.count; badge.classList.remove('hidden'); }
-              else              { badge.classList.add('hidden'); }
-          }).catch(function(){});
-    }
-    poll();
-    setInterval(poll, 30000);
-}());
-</script>
 @endif
 
 @endsection
-
-@isset($joinKelas)
-@push('modals')
-    @include('users.partials.join-kelas-modal')
-@endpush
-@endisset

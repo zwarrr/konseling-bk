@@ -11,7 +11,7 @@
       <div class="splash-ripple splash-ripple-2"></div>
       <div class="splash-ripple splash-ripple-3"></div>
       <div class="relative z-10 w-24 h-24 rounded-[28px] bg-white flex items-center justify-center splash-icon-box" style="box-shadow: 0 16px 48px rgba(15,76,154,0.18), 0 2px 8px rgba(15,76,154,0.10);">
-        <img src="/favicon.png" alt="BIKASI" class="w-16 h-16 object-contain">
+        <img src="/favicon.png" alt="E-Konseling" class="w-16 h-16 object-contain">
         {{-- Notification dot --}}
         <span class="absolute -top-2 -right-2 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center splash-dot" style="background:#f97316;">
           <span class="w-2 h-2 bg-white rounded-full block"></span>
@@ -21,7 +21,7 @@
 
     {{-- App name --}}
     <div class="text-center splash-text">
-      <h1 id="splashTitle" class="text-3xl font-bold tracking-tight leading-none" style="color:#0F4C9A;">BIKASI</h1>
+      <h1 id="splashTitle" class="text-3xl font-bold tracking-tight leading-none" style="color:#0F4C9A;">E-Konseling</h1>
       <p id="splashSubtitle" class="text-gray-500 text-sm mt-1.5 font-medium tracking-wide">Bimbingan &amp; Konseling Digital</p>
       <p id="splashMessage" class="text-gray-600 text-xs mt-2 font-medium tracking-wide hidden"></p>
     </div>
@@ -220,7 +220,7 @@
         var period  = h < 10 ? 'Pagi' : h < 14 ? 'Siang' : h < 18 ? 'Sore' : 'Malam';
         var name    = (typeof _splashUserName === 'string' && _splashUserName) ? _splashUserName : '';
         var account = (typeof _splashUserAccount !== 'undefined' && _splashUserAccount) ? ' (' + _splashUserAccount + ')' : '';
-        if (title) title.textContent = 'BIKASI';
+        if (title) title.textContent = 'E-Konseling';
         message.textContent = 'Halo, Selamat ' + period + (name ? ', ' + name : '') + '! Selamat menggunakan layanan kami.';
         message.classList.remove('hidden');
       } else if (mode === 'farewell') {

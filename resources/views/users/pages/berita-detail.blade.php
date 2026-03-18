@@ -6,7 +6,7 @@
 @php
     $authUser    = auth()->user();
     $pfx         = ($authUser->role ?? 'siswa') === 'guru' ? 'bk' : 'siswa';
-    $authorName  = $item->author ?? 'Tim BK BIKASI';
+    $authorName  = $item->author ?? 'Tim BK E-Konseling';
     $contentRaw  = (string) ($item->description ?? '');
     $coverImage  = $item->img_card
         ? (str_starts_with($item->img_card, 'http') ? $item->img_card : asset($item->img_card))

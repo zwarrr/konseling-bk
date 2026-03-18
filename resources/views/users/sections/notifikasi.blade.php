@@ -9,9 +9,16 @@
     $authUser = auth()->user();
     $pfx      = ($authUser->role ?? 'siswa') === 'guru' ? 'bk' : 'siswa';
     $typeIcon = [
-        'agenda'              => ['icon' => 'fa-calendar-days', 'color' => '#0F4C9A', 'bg' => '#e8f0fe'],
+        'program'             => ['icon' => 'fa-calendar-days', 'color' => '#0F4C9A', 'bg' => '#e8f0fe'],
         'news'                => ['icon' => 'fa-newspaper',     'color' => '#0d9488', 'bg' => '#ccfbf1'],
         'kelas_join_request'  => ['icon' => 'fa-user-check',   'color' => '#0F4C9A', 'bg' => '#e8f0fe'],
+        'program_booking_approved'      => ['icon' => 'fa-circle-check',  'color' => '#16a34a', 'bg' => '#dcfce7'],
+        'program_booking_rejected'      => ['icon' => 'fa-circle-xmark',  'color' => '#dc2626', 'bg' => '#fee2e2'],
+        'program_booking_reminder_lead' => ['icon' => 'fa-bell',          'color' => '#0F4C9A', 'bg' => '#e8f0fe'],
+        'program_booking_reminder_24h'  => ['icon' => 'fa-clock',         'color' => '#0F4C9A', 'bg' => '#e8f0fe'],
+        'program_booking_reminder_1h'   => ['icon' => 'fa-bell',          'color' => '#0F4C9A', 'bg' => '#e8f0fe'],
+        'group_approved'      => ['icon' => 'fa-circle-check',  'color' => '#16a34a', 'bg' => '#dcfce7'],
+        'group_rejected'      => ['icon' => 'fa-circle-xmark',  'color' => '#dc2626', 'bg' => '#fee2e2'],
         'kelas_approved'      => ['icon' => 'fa-circle-check',  'color' => '#16a34a', 'bg' => '#dcfce7'],
         'kelas_rejected'      => ['icon' => 'fa-circle-xmark',  'color' => '#dc2626', 'bg' => '#fee2e2'],
     ];
@@ -20,7 +27,7 @@
 {{-- ── Page header ──────────────────────────────────────────────── --}}
 <div class="sticky top-0 z-40"
      style="background:linear-gradient(135deg,#0f4c9a,#1a6fd4);padding-top:env(safe-area-inset-top,0px)">
-    <div class="px-4 py-3 flex items-center gap-3 max-w-2xl mx-auto md:max-w-3xl">
+    <div class="px-4 py-3 flex items-center gap-3">
         <a href="{{ route($pfx.'.home') }}"
            class="w-9 h-9 rounded-full flex items-center justify-center shrink-0
                   bg-white/15 border border-white/25 active:scale-95 transition">
@@ -33,15 +40,21 @@
 </div>
 
 {{-- ── Notification list ─────────────────────────────────────────── --}}
-<div class="max-w-2xl mx-auto px-4 pt-4 pb-8" id="notifList">
+<div class="px-3 pt-3 pb-8 sm:max-w-lg sm:mx-auto sm:px-4" id="notifList">
 
     @forelse($notifs as $notif)
     @php
-        $ti = $typeIcon[$notif->type] ?? $typeIcon['agenda'];
+        $ti = $typeIcon[$notif->type] ?? $typeIcon['program'];
         $isUnread = $notif->read_at === null;
+        $bookingId = null;
+        if (is_string($notif->related_type) && str_starts_with($notif->related_type, 'program_booking:')) {
+            $bookingId = (int) substr($notif->related_type, strlen('program_booking:'));
+        }
+        $booking = ($bookingId && isset($bookingMeta)) ? ($bookingMeta[$bookingId] ?? null) : null;
+        $showChatAction = $booking && ($booking->method ?? null) === 'chat' && ($booking->booking_type ?? null) === 'individu';
     @endphp
-    <div class="flex items-start gap-3 bg-white rounded-2xl p-4 mb-2 transition cursor-pointer
-                {{ $isUnread ? 'shadow-md' : 'shadow-sm' }}"
+    <div class="flex items-start gap-3 bg-white rounded-2xl px-3 py-3 mb-2 transition cursor-pointer
+                {{ $isUnread ? 'shadow-md' : 'shadow-sm border border-slate-100' }}"
          data-notif-id="{{ $notif->id }}">
 
         {{-- Icon circle --}}
@@ -59,7 +72,16 @@
                 <p class="text-sm font-semibold text-slate-800 leading-snug">{{ $notif->title }}</p>
             </div>
             @if($notif->body)
-            <p class="text-xs text-slate-500 leading-relaxed mt-0.5">{{ $notif->body }}</p>
+            <p class="text-xs text-slate-500 leading-relaxed mt-0.5 whitespace-pre-line">{{ $notif->body }}</p>
+            @endif
+
+            @if($showChatAction)
+            <a href="{{ route($pfx.'.chat') }}"
+               class="inline-flex items-center gap-2 mt-2 text-xs font-semibold text-white px-3 py-1.5 rounded-xl active:scale-95 transition"
+               style="background:#0F4C9A">
+                <i class="fa-solid fa-comments text-[11px]"></i>
+                Buka Chat
+            </a>
             @endif
             <p class="text-[10px] text-slate-400 mt-1.5 font-medium">
                 {{ $notif->created_at->diffForHumans() }}
@@ -75,7 +97,7 @@
             <i class="fa-solid fa-bell-slash text-2xl" style="color:#0F4C9A;"></i>
         </div>
         <p class="text-slate-700 font-semibold text-base">Belum ada notifikasi</p>
-        <p class="text-slate-400 text-sm mt-1">Notifikasi agenda & info terbaru akan muncul di sini</p>
+        <p class="text-slate-400 text-sm mt-1">Notifikasi program & kegiatan & info terbaru akan muncul di sini</p>
     </div>
     @endforelse
 

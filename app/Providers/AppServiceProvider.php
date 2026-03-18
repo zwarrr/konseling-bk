@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\BkAccount;
 use App\Models\Classroom;
 use App\Models\Kelas;
 use App\Models\SiswaAccount;
@@ -9,6 +10,7 @@ use App\Observers\ClassroomObserver;
 use App\Observers\KelasObserver;
 use App\Observers\SiswaAccountObserver;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,6 +22,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Relation::morphMap([
+            'bk'    => BkAccount::class,
+            'siswa' => SiswaAccount::class,
+        ]);
+
         Carbon::setLocale('id');
         \Illuminate\Support\Facades\Date::setLocale('id');
 

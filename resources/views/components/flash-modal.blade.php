@@ -1,7 +1,7 @@
 {{--
   Flash Modal Component
   Reads server sessions: success, error, warning, svc_success, svc_error,
-                         feat_success, feat_error, agenda_success, agenda_error
+                         feat_success, feat_error, program_success, program_error
   Also exposes: window.showFlashModal(type, message, onCloseCb)
   Usage: <x-flash-modal />
 --}}
@@ -17,8 +17,8 @@
   elseif (session('svc_success'))     { $flashType = 'success'; $flashMessage = session('svc_success'); }
   elseif (session('feat_error'))      { $flashType = 'error';   $flashMessage = session('feat_error'); }
   elseif (session('feat_success'))    { $flashType = 'success'; $flashMessage = session('feat_success'); }
-  elseif (session('agenda_error'))    { $flashType = 'error';   $flashMessage = session('agenda_error'); }
-  elseif (session('agenda_success'))  { $flashType = 'success'; $flashMessage = session('agenda_success'); }
+  elseif (session('program_error'))   { $flashType = 'error';   $flashMessage = session('program_error'); }
+  elseif (session('program_success')) { $flashType = 'success'; $flashMessage = session('program_success'); }
 @endphp
 
 {{-- Modal HTML: always rendered so JS can also trigger it --}}

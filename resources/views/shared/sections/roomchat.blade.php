@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>{{ ($isKelas ?? false) ? (($kelas->name ?? '') . ' — Chat Kelas') : ('Chat — ' . ($other->name ?? 'Chat')) }}</title>
+    <title>{{ ($isKelas ?? false) ? (($kelas->name ?? '') . ' — Chat Kelas') : ('Chat — ' . ($other->name ?? 'Chat')) }} — {{ config('app.name', 'E-Konseling') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
@@ -70,8 +70,8 @@
         </div>
     </div>
 
-    {{-- Members button --}}
-    <button id="btnShowMembers" class="text-slate-400 hover:text-blue-600 transition shrink-0 p-1">
+    {{-- Group members button --}}
+    <button id="btnShowGroupMembers" class="text-slate-400 hover:text-blue-600 transition shrink-0 p-1">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
              viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -126,7 +126,7 @@
                 <span style="font-size:11px;font-weight:700;color:#0F4C9A;">{{ $kelas->name }}</span>
             </div>
             <p style="font-size:10px;line-height:1.5;color:#64748b;margin:0;">
-                Pesan dapat dilihat oleh semua anggota kelas dan BK.
+                Pesan dapat dilihat oleh semua anggota grup dan BK.
             </p>
         </div>
     </div>
@@ -140,11 +140,12 @@
 
     @forelse($messages as $msg)
         @php
-            $isMine     = $msg->user_id === $authUser->id;
+            $myType     = $authUser->role === 'guru' ? 'bk' : 'siswa';
+            $isMine     = (int) $msg->user_id === (int) $authUser->id && ($msg->user_type ?? '') === $myType;
             $type       = $msg->message_type ?? 'text';
             $attUrl     = $msg->attachment ? asset('storage/' . $msg->attachment) : null;
-            $senderName = $msg->sender?->name ?? '—';
-            $senderRole = $msg->sender?->role ?? '';
+            $senderName = $msg->sender?->name ?? ($msg->user_type === 'bk' ? 'Guru BK' : '—');
+            $senderRole = $msg->sender?->role ?? ($msg->user_type === 'bk' ? 'guru' : 'siswa');
         @endphp
         @if($type === 'system')
         {{-- System pill: for self, replace name with "Kamu" based on message type --}}
@@ -187,8 +188,21 @@
                 @else
                     <p class="text-sm leading-snug whitespace-pre-wrap px-3 pt-2 pb-0">{{ $msg->message }}</p>
                 @endif
-                <span class="text-[10px] opacity-60 flex justify-end px-2 pb-1 mt-0.5 select-none">
-                    {{ $msg->created_at->format('H:i') }}
+                <span class="text-[10px] opacity-80 flex items-center justify-end gap-0.5 px-2 pb-1 mt-0.5 select-none">
+                    <span>{{ $msg->created_at->format('H:i') }}</span>
+                    @php
+                        $isRead    = $isMine && $msg->id <= ($maxOtherRead ?? 0);
+                        $tickColor = $isRead ? '#60a5fa' : 'rgba(255,255,255,0.6)';
+                        $tickPath  = $isRead
+                            ? 'M4.5 12.75l4 4 8.5-8.5M9 12.75l4 4 8.5-8.5'
+                            : 'M5 13l4 4L19 7';
+                    @endphp
+                    <svg data-tick="1" xmlns="http://www.w3.org/2000/svg"
+                         style="width:14px;height:14px;color:{{ $tickColor }};flex-shrink:0"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="{{ $tickPath }}" />
+                    </svg>
                 </span>
             </div>
         </div>
@@ -258,11 +272,21 @@
         </div>
     </div>
 
+    @php
+        $isSystemRoom = ($guruAccountId ?? '') === 'EKON';
+    @endphp
+
     @forelse($messages as $msg)
         @php
             $isMine = $msg->sender_account_id === $authUser->account_id;
             $type   = $msg->message_type ?? 'text';
             $attUrl = $msg->attachment ? asset('storage/' . $msg->attachment) : null;
+            $plainMsg = (string) ($msg->message ?? '');
+            $ekonConfirmBookingId = null;
+            if ($isSystemRoom && preg_match('/\[\[EKON_CONFIRM:(\d+)\]\]/', $plainMsg, $mm)) {
+                $ekonConfirmBookingId = (int) ($mm[1] ?? 0);
+                $plainMsg = trim(preg_replace('/\s*\[\[EKON_CONFIRM:\d+\]\]\s*/', '', $plainMsg));
+            }
         @endphp
         @if($isMine)
         {{-- Sent (mine) --}}
@@ -281,15 +305,22 @@
                         <a href="{{ $attUrl }}" target="_blank" rel="noopener" class="text-sm truncate max-w-[160px] underline underline-offset-2">{{ $msg->message }}</a>
                     </div>
                 @else
-                    <p class="text-sm leading-normal whitespace-pre-wrap text-left px-3 pt-2 pb-0">{{ $msg->message }}</p>
+                    <p class="text-sm leading-normal whitespace-pre-wrap text-left px-3 pt-2 pb-0">{{ $plainMsg }}</p>
                 @endif
                 <span class="text-[10px] opacity-80 flex items-center justify-end gap-0.5 px-2 pb-1 mt-0.5 select-none">
                     <span>{{ $msg->created_at->format('H:i') }}</span>
+                    @php
+                        $isRead    = $msg->status === 'read';
+                        $tickColor = $isRead ? '#60a5fa' : 'rgba(255,255,255,0.6)';
+                        $tickPath  = $isRead
+                            ? 'M4.5 12.75l4 4 8.5-8.5M9 12.75l4 4 8.5-8.5'
+                            : 'M5 13l4 4L19 7';
+                    @endphp
                     <svg data-tick="1" xmlns="http://www.w3.org/2000/svg"
-                         style="width:14px;height:14px;color:{{ $msg->status==='read' ? '#60a5fa' : 'rgba(255,255,255,0.6)' }};flex-shrink:0"
+                         style="width:14px;height:14px;color:{{ $tickColor }};flex-shrink:0"
                          fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                         <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M4.5 12.75l4 4 8.5-8.5M9 12.75l4 4 8.5-8.5" />
+                              d="{{ $tickPath }}" />
                     </svg>
                 </span>
             </div>
@@ -297,7 +328,8 @@
         @else
         {{-- Received --}}
         <div class="flex justify-start" data-msg-id="{{ $msg->id }}">
-            <div class="flex flex-col bg-gray-100 rounded-3xl rounded-bl-md shadow break-words overflow-hidden" style="max-width:min(65%,260px)">
+            <div class="flex flex-col bg-gray-100 rounded-3xl rounded-bl-md shadow break-words overflow-hidden"
+                 style="max-width:{{ $isSystemRoom ? 'min(100%,720px)' : 'min(65%,260px)' }}">
                 @if($type === 'image' && $attUrl)
                     <img src="{{ $attUrl }}" class="w-full h-auto" style="display:block;border-radius:inherit" />
                     @if(!empty($msg->message))
@@ -311,7 +343,18 @@
                         <a href="{{ $attUrl }}" target="_blank" rel="noopener" class="text-sm text-gray-700 truncate max-w-[160px] underline underline-offset-2">{{ $msg->message }}</a>
                     </div>
                 @else
-                    <p class="text-sm text-gray-700 leading-normal whitespace-pre-wrap text-left px-3 pt-2 pb-0">{{ $msg->message }}</p>
+                    <p class="text-sm text-gray-700 leading-normal whitespace-pre-wrap text-left px-3 pt-2 pb-0">{{ $plainMsg }}</p>
+                    @if($isSystemRoom && $ekonConfirmBookingId)
+                        <div class="flex gap-2 mt-2 px-3 pb-2" data-ekon-actions data-booking-id="{{ $ekonConfirmBookingId }}">
+                            <button type="button"
+                                    class="px-3 py-1.5 rounded-xl text-xs font-semibold text-white active:scale-95 transition"
+                                    style="background:#0F4C9A"
+                                    data-ekon-reconfirm="yes">Ya</button>
+                            <button type="button"
+                                    class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 bg-white border border-slate-200 active:scale-95 transition"
+                                    data-ekon-reconfirm="no">Tidak</button>
+                        </div>
+                    @endif
                 @endif
                 <span class="text-[10px] text-gray-400 flex items-center justify-end px-2 pb-1 mt-0.5 select-none">{{ $msg->created_at->format('H:i') }}</span>
             </div>
@@ -358,13 +401,10 @@
             </div>
             <p class="text-xs text-slate-500 truncate">Kamu sudah keluar dari kelas ini</p>
         </div>
-        <a href="{{ route('siswa.chat') }}?join={{ $kelas->join_token ?? '' }}"
-           class="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg"
-           style="background:#EEF2FF;color:#0F4C9A">Bergabung kembali</a>
     </div>
 </div>
 
-@include('shared.partials.kelas-members-page', ['isAgendaKelas' => $isAgendaKelas ?? false])
+@include('shared.partials.group-members-page', ['isProgramKelas' => $isProgramKelas ?? false])
 
 {{-- ── Pending media preview ── all inline styles so node can be lifted to parent body ── --}}
 <div id="kelasMediaPending"
@@ -418,10 +458,14 @@
     const SEND_MEDIA_URL  = @json(route('kelas.chat.sendMedia', $kelas->id));
     const KELAS_CAMERA_URL = @json(route('kelas.camera', $kelas->id));
     const MESSAGES_URL   = @json(route('kelas.chat.messages', $kelas->id));
-    const STUDENTS_URL   = @json(route('kelas.chat.members', $kelas->id));
+    const GROUP_MEMBERS_URL = @json(route('kelas.chat.members', $kelas->id));
     const MARK_READ_URL  = @json(route('kelas.chat.markRead', $kelas->id));
     const authUserId   = @json($authUser->id);
     const myAccountId  = @json($authUser->account_id);
+    const IS_MEMBER    = @json($isMember ?? true);
+
+    let isReadOnly = !IS_MEMBER;
+    let pollTimer  = null;
 
     // Expose for camera-modal
     window.__CHAT__ = { sendMediaUrl: SEND_MEDIA_URL, csrf: CSRF };
@@ -506,6 +550,12 @@
         const readOnly = document.getElementById('readOnlyBar');
         if (inputBar) inputBar.style.display = 'none';
         if (readOnly) readOnly.classList.remove('hidden');
+
+        isReadOnly = true;
+        if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+        }
     };
 
     function renderMsg(m) {
@@ -549,7 +599,14 @@
         } else if (hasCaption) {
             textHtml = `<p class="text-sm whitespace-pre-wrap px-3 pt-1 pb-0 text-left">${esc(m.message)}</p>`;
         }
-        const timeHtml = `<span class="text-[10px] opacity-60 flex justify-end px-2 pb-1 mt-0.5 select-none">${esc(m.time)}</span>`;
+        const tickColor = m.read ? '#60a5fa' : 'rgba(255,255,255,0.6)';
+        const tickPath  = m.read
+            ? 'M4.5 12.75l4 4 8.5-8.5M9 12.75l4 4 8.5-8.5'
+            : 'M5 13l4 4L19 7';
+        const tickSvg = m.is_mine
+            ? `<svg data-tick="1" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:${tickColor};flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="${tickPath}"/></svg>`
+            : '';
+        const timeHtml = `<span class="text-[10px] ${m.is_mine ? 'opacity-80' : 'opacity-60'} flex items-center justify-end gap-0.5 px-2 pb-1 mt-0.5 select-none">${esc(m.time)}${tickSvg}</span>`;
 
         if (m.is_mine) {
             wrap.classList.add('flex', 'justify-end');
@@ -600,12 +657,15 @@
         finally { btnSend.disabled = false; }
     }
 
-    btnSend.addEventListener('click', sendMessage);
-    msgInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-    });
+    if (btnSend && msgInput && !isReadOnly) {
+        btnSend.addEventListener('click', sendMessage);
+        msgInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+        });
+    }
 
     async function pollMessages() {
+        if (isReadOnly) return;
         try {
             const url = MESSAGES_URL + (lastMsgId ? `?since=${lastMsgId}` : '');
             const res = await fetch(url, {
@@ -625,9 +685,28 @@
                 fetch(MARK_READ_URL, { method: 'POST', credentials: 'same-origin',
                     headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' } }).catch(() => {});
             }
+            // Sync tick state for already-rendered own bubbles
+            if (typeof data.max_other_read === 'number') {
+                chatArea.querySelectorAll('[data-msg-id]').forEach(el => {
+                    const msgId  = parseInt(el.dataset.msgId, 10);
+                    const tickEl = el.querySelector('[data-tick]');
+                    if (!tickEl) return;
+                    const nowRead = msgId <= data.max_other_read;
+                    const pathEl  = tickEl.querySelector('path');
+                    const newD    = nowRead
+                        ? 'M4.5 12.75l4 4 8.5-8.5M9 12.75l4 4 8.5-8.5'
+                        : 'M5 13l4 4L19 7';
+                    if (pathEl && pathEl.getAttribute('d') !== newD) {
+                        pathEl.setAttribute('d', newD);
+                        tickEl.style.color = nowRead ? '#60a5fa' : 'rgba(255,255,255,0.6)';
+                    }
+                });
+            }
         } catch(_) {}
     }
-    setInterval(pollMessages, 3000);
+    if (!isReadOnly) {
+        pollTimer = setInterval(pollMessages, 3000);
+    }
 
     /* ── File / media upload helpers ─────────────────────────────────── */
     function now() {
@@ -816,9 +895,9 @@
         }
     });
 
-    /* ── Members full page ── */
-    const overlay     = document.getElementById('membersPage');
-    const membersBody = document.getElementById('membersBody');
+    /* ── Group members full page ── */
+    const overlay = document.getElementById('groupMembersPage');
+    const membersBody = document.getElementById('groupMembersBody');
     const isEmbedded  = window.parent && window.parent !== window;
 
     function buildMemberRow(s) {
@@ -870,25 +949,26 @@
         return html;
     }
 
-    document.getElementById('btnShowMembers').addEventListener('click', async () => {
+    document.getElementById('btnShowGroupMembers').addEventListener('click', async () => {
         // Show full-page panel
         overlay.classList.add('open');
         document.body.style.overflow = 'hidden';
         membersBody.innerHTML = '<p class="text-sm text-slate-400 text-center py-6">Memuat...</p>';
-        document.getElementById('membersPageCount').textContent = '—';
+        document.getElementById('groupMembersCount').textContent = '—';
         try {
-            const res  = await fetch(STUDENTS_URL, {
+            const res  = await fetch(GROUP_MEMBERS_URL, {
                 credentials: 'same-origin',
                 headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
             });
             if (!res.ok) throw new Error('HTTP ' + res.status);
             const data    = await res.json();
             const members = data.members ?? [];
-            document.getElementById('membersPageCount').textContent = members.length;
-            document.getElementById('headerMemberCount').textContent = members.length;
+            const memberCount = Number(data.member_count ?? members.filter(s => s.role !== 'guru').length) || 0;
+            document.getElementById('groupMembersCount').textContent = memberCount;
+            document.getElementById('headerMemberCount').textContent = memberCount;
             membersBody.innerHTML = buildMemberHtml(members);
         } catch(err) {
-            console.error('[Members] fetch error:', err);
+            console.error('[GroupMembers] fetch error:', err);
             membersBody.innerHTML = '<p class="text-sm text-red-400 text-center py-6">Gagal memuat. ' + err.message + '</p>';
         }
     });
@@ -897,10 +977,10 @@
         overlay.classList.remove('open');
         document.body.style.overflow = '';
     }
-    function closeMembersModal() {
+    function closeGroupMembersModal() {
         closeLocalModal();
     }
-    document.getElementById('closeMembersSheet').addEventListener('click', closeMembersModal);
+    document.getElementById('closeGroupMembersSheet').addEventListener('click', closeGroupMembersModal);
 })();
 </script>
 
@@ -923,7 +1003,20 @@
 
 @else
 {{-- ── Input Bar (Regular) ─────────────────────────────────────────── --}}
-<x-chat-input-bar camera-url="{{ route('chat.camera', $roomId) }}" />
+@php
+    $isSystemRoom = ($guruAccountId ?? '') === 'EKON';
+@endphp
+
+@if($isSystemRoom)
+    <!-- <div class="mx-auto max-w-3xl px-4 pb-2">
+        <div class="text-xs text-gray-500 text-center">
+            E-Konseling hanya mengirim pengingat otomatis.
+        </div>
+    </div> -->
+    <div class="h-4"></div>
+@else
+    <x-chat-input-bar camera-url="{{ route('chat.camera', $roomId) }}" />
+@endif
 
 {{-- ── Data injection ───────────────────────────────────────────────── --}}
 <script>
@@ -935,6 +1028,7 @@ window.__CHAT__ = {
     sendUrl:      @json(route('chat.send', $roomId)),
     sendMediaUrl: @json(route('chat.sendMedia', $roomId)),
     pollUrl:   @json(url('/api/chat/' . $roomId . '/messages')),
+    reconfirmBase: @json(url('/api/program/booking')),
     csrf:      document.querySelector('meta[name="csrf-token"]')?.content || '',
 };
 </script>
@@ -945,6 +1039,7 @@ window.__CHAT__ = {
     const chatArea   = document.getElementById('chatArea');
     const msgInput   = document.getElementById('messageInput');
     const sendBtn    = document.getElementById('sendBtn');
+    const hasComposer = !!(msgInput && sendBtn);
     let lastId       = C.lastMsgId;
     let atBottom     = true;
     const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;');
@@ -971,6 +1066,7 @@ window.__CHAT__ = {
 
     /* ── Pending photo from mobile camera page ── */
     (function checkPendingPhoto() {
+        if (!hasComposer) return;
         const key     = 'chatPendingPhoto_' + C.roomId;
         const capKey  = 'chatPendingCaption_' + C.roomId;
         const data    = sessionStorage.getItem(key);
@@ -1035,15 +1131,27 @@ window.__CHAT__ = {
             bubble.style.maxWidth = 'min(75%, 300px)';
         } else {
             bubble.className = 'flex flex-col bg-gray-100 rounded-3xl rounded-bl-md shadow break-words overflow-hidden';
-            bubble.style.maxWidth = 'min(65%, 260px)';
+            bubble.style.maxWidth = (C.guruAccountId === 'EKON') ? 'min(100%, 720px)' : 'min(65%, 260px)';
         }
 
         const type      = m.message_type || 'text';
         const tickColor = (m.read ? '#60a5fa' : 'rgba(255,255,255,0.6)');
+        const tickPath  = (m.read ? 'M4.5 12.75l4 4 8.5-8.5M9 12.75l4 4 8.5-8.5' : 'M5 13l4 4L19 7');
         const tickSvg   = m.is_mine
-            ? `<svg data-tick="1" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:${tickColor};flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l4 4 8.5-8.5M9 12.75l4 4 8.5-8.5"/></svg>`
+            ? `<svg data-tick="1" xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;color:${tickColor};flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="${tickPath}"/></svg>`
             : '';
         const tsHtml = `<span class="text-[10px] flex items-center justify-end gap-0.5 px-2 pb-1 mt-0.5 select-none ${m.is_mine ? 'opacity-80' : 'text-gray-400'}"><span>${m.time}</span>${tickSvg}</span>`;
+
+        // EKON: hidden reconfirm token in message text
+        let msgText = String(m.message ?? '');
+        let ekonBookingId = null;
+        if (C.guruAccountId === 'EKON') {
+            const mm = msgText.match(/\[\[EKON_CONFIRM:(\d+)\]\]/);
+            if (mm && mm[1]) {
+                ekonBookingId = mm[1];
+                msgText = msgText.replace(mm[0], '').trim();
+            }
+        }
 
         if (type === 'image' && m.url) {
             const captionText = (m.caption !== undefined && m.caption !== null) ? m.caption : (m.message || '');
@@ -1062,14 +1170,51 @@ window.__CHAT__ = {
                 `<a href="${m.url}" target="_blank" rel="noopener" class="text-sm truncate max-w-[160px] underline underline-offset-2">${esc(m.filename || m.message)}</a></div>` +
                 tsHtml;
         } else {
+                        const actionsHtml = (!m.is_mine && ekonBookingId)
+                                ? `<div class="flex gap-2 mt-2 px-3 pb-2" data-ekon-actions data-booking-id="${esc(ekonBookingId)}">` +
+                                    `<button type="button" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-white active:scale-95 transition" style="background:#0F4C9A" data-ekon-reconfirm="yes">Ya</button>` +
+                                    `<button type="button" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 bg-white border border-slate-200 active:scale-95 transition" data-ekon-reconfirm="no">Tidak</button>` +
+                                    `</div>`
+                                : '';
             bubble.innerHTML =
-                `<p class="text-sm leading-normal whitespace-pre-wrap text-left px-3 pt-2 pb-0 ${m.is_mine ? '' : 'text-gray-700'}">${esc(m.message)}</p>` +
-                tsHtml;
+                                `<p class="text-sm leading-normal whitespace-pre-wrap text-left px-3 pt-2 pb-0 ${m.is_mine ? '' : 'text-gray-700'}">${esc(msgText)}</p>` +
+                                actionsHtml +
+                                tsHtml;
         }
 
         wrap.appendChild(bubble);
         return wrap;
     }
+
+    // EKON Ya/Tidak reconfirm handler (event delegation)
+    chatArea.addEventListener('click', async (e) => {
+        const btn = e.target?.closest?.('[data-ekon-reconfirm]');
+        if (!btn) return;
+
+        const actions = btn.closest('[data-ekon-actions]');
+        const bookingId = actions?.dataset?.bookingId;
+        const answer = btn.getAttribute('data-ekon-reconfirm');
+        if (!bookingId || !answer) return;
+
+        actions.querySelectorAll('button').forEach(b => b.disabled = true);
+
+        try {
+            const res = await fetch(`${C.reconfirmBase}/${bookingId}/chat-reconfirm`, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'X-CSRF-TOKEN': C.csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ answer }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (data && data.redirect) {
+                window.location.href = data.redirect;
+                return;
+            }
+            actions.remove();
+        } catch (_) {
+            actions.querySelectorAll('button').forEach(b => b.disabled = false);
+        }
+    });
 
     /* ── Track IDs of my own recently-sent messages to avoid poll duplicates ── */
     const sentIds = new Set();
@@ -1089,6 +1234,7 @@ window.__CHAT__ = {
 
     /* ── Send message ── */
     async function sendMessage() {
+        if (!hasComposer) return;
         const text = msgInput.value.trim();
         if (!text || sendBtn.disabled) return;
 
@@ -1138,20 +1284,25 @@ window.__CHAT__ = {
         }
     }
 
-    sendBtn.addEventListener('click', sendMessage);
-    msgInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-    });
-    // Auto-grow textarea
-    msgInput.addEventListener('input', () => {
-        msgInput.style.height = 'auto';
-        msgInput.style.height = Math.min(msgInput.scrollHeight, 144) + 'px';
-    });
+    if (hasComposer) {
+        sendBtn.addEventListener('click', sendMessage);
+        msgInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+        });
+        // Auto-grow textarea
+        msgInput.addEventListener('input', () => {
+            msgInput.style.height = 'auto';
+            msgInput.style.height = Math.min(msgInput.scrollHeight, 144) + 'px';
+        });
+    }
 
-    /* ── When other person is polling, they mark my msgs as read → flip ticks blue ── */
+    /* ── When other person is polling, they mark my msgs as read → flip ticks to double-blue ── */
     function markAllTicksRead() {
+        const doublePath = 'M4.5 12.75l4 4 8.5-8.5M9 12.75l4 4 8.5-8.5';
         chatArea.querySelectorAll('svg[data-tick]').forEach(svg => {
             svg.style.color = '#60a5fa';
+            const pathEl = svg.querySelector('path');
+            if (pathEl) pathEl.setAttribute('d', doublePath);
         });
     }
 
@@ -1185,7 +1336,7 @@ window.__CHAT__ = {
     const fileDoc   = document.getElementById('fileDoc');
 
     /* Foto & Video */
-    fileMedia.addEventListener('change', async () => {
+    if (fileMedia) fileMedia.addEventListener('change', async () => {
         const file = fileMedia.files[0];
         if (!file) return;
         fileMedia.value = '';
@@ -1228,7 +1379,7 @@ window.__CHAT__ = {
     });
 
     /* Dokumen */
-    fileDoc.addEventListener('change', async () => {
+    if (fileDoc) fileDoc.addEventListener('change', async () => {
         const file = fileDoc.files[0];
         if (!file) return;
         fileDoc.value = '';
@@ -1334,6 +1485,17 @@ window.__CHAT__ = {
 @include('shared.partials.camera-modal')
 
 @include('shared.partials.chat-profile-sheet')
+
+{{-- ── Kelas mgmt FAB for BK (mobile full-page navigation) ──────────── --}}
+@if(($isKelas ?? false) && ($pfx ?? '') === 'bk')
+<a href="{{ route('bk.kelas') }}"
+   class="fixed bottom-20 right-5 z-50 w-14 h-14 rounded-full flex items-center justify-center
+          shadow-xl active:scale-95 transition-all duration-200 hover:shadow-2xl hover:-translate-y-0.5"
+   style="background:linear-gradient(135deg,#0f4c9a,#1a6fd4);box-shadow:0 6px 22px rgba(15,76,154,0.4)"
+   title="Kelola Kelas">
+    <i class="fa-solid fa-chalkboard-user text-white text-xl"></i>
+</a>
+@endif
 
 {{-- ── Embed mode: back button posts message to parent instead of navigating ── --}}
 <script>

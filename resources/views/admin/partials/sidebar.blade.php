@@ -41,7 +41,7 @@
     <div class="sb-text flex items-center gap-3 min-w-0">
       <img src="/favicon.png" alt="logo" class="w-9 h-9 object-contain flex-shrink-0">
       <div class="sb-text min-w-0">
-        <h2 class="text-sm font-semibold text-slate-900 leading-tight whitespace-nowrap">BIKASI</h2>
+        <h2 class="text-sm font-semibold text-slate-900 leading-tight whitespace-nowrap">E-Konseling</h2>
         <p class="text-xs text-slate-500 whitespace-nowrap">Admin Panel</p>
       </div>
     </div>
@@ -57,7 +57,7 @@
       <span class="font-medium sb-text">Dashboard</span>
     </a>
 
-        @php $landingOpen = request()->routeIs('admin.landing.home*', 'admin.landing.about*', 'admin.landing.service*', 'admin.landing.agenda*'); @endphp
+        @php $landingOpen = request()->routeIs('admin.landing.home*', 'admin.landing.about*', 'admin.landing.service*', 'admin.landing.program*'); @endphp
     <div>
       <button type="button" id="landingNavToggle"
         class="w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl transition {{ $landingOpen ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
@@ -71,7 +71,7 @@
             ['route' => 'admin.landing.home*',    'href' => route('admin.landing.home'),    'label' => 'Beranda', 'icon' => 'fa-house'],
             ['route' => 'admin.landing.about*',   'href' => route('admin.landing.about'),   'label' => 'Tentang', 'icon' => 'fa-circle-info'],
             ['route' => 'admin.landing.service*', 'href' => route('admin.landing.service'), 'label' => 'Layanan', 'icon' => 'fa-list-check'],
-            ['route' => 'admin.landing.agenda*',  'href' => route('admin.landing.agenda'),  'label' => 'Agenda',  'icon' => 'fa-calendar-days'],
+            ['route' => 'admin.landing.program*',  'href' => route('admin.landing.program'),  'label' => 'Program',  'icon' => 'fa-calendar-days'],
           ];
         @endphp
         @foreach($lLinks as $ll)
@@ -88,7 +88,7 @@
       </div>
     </div>
 
-        @php $kelolaOpen = request()->routeIs('admin.accounts.*', 'admin.kelas.*'); @endphp
+        @php $kelolaOpen = request()->routeIs('admin.accounts.*', 'admin.kelas.*', 'admin.programKategori.*'); @endphp
     <div>
       <button type="button" id="kelolaNavToggle"
         class="w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl transition {{ $kelolaOpen ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
@@ -101,6 +101,11 @@
            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('admin.accounts.*') ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
           <i class="fa-solid fa-users w-5 text-center flex-shrink-0"></i>
           <span class="font-medium text-sm sb-text">Kelola Akun</span>
+        </a>
+          <a href="{{ route('admin.programKategori.index') }}"
+            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('admin.programKategori.*') ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+          <i class="fa-solid fa-tags w-5 text-center flex-shrink-0"></i>
+          <span class="font-medium text-sm sb-text">Kategori Program</span>
         </a>
         <a href="{{ route('admin.kelas.index') }}"
            class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('admin.kelas.*') ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
@@ -120,6 +125,12 @@
        class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('admin.landing.team*') ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
       <i class="fa-solid fa-users-line w-5 text-center flex-shrink-0"></i>
       <span class="font-medium sb-text">Tim BK</span>
+    </a>
+
+    <a href="{{ route('admin.booking.index') }}"
+       class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('admin.booking.*') ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+      <i class="fa-solid fa-table-list w-5 text-center flex-shrink-0"></i>
+      <span class="font-medium sb-text">Data Booking</span>
     </a>
 
     <a href="{{ route('admin.settings') }}"

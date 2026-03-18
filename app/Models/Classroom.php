@@ -15,11 +15,9 @@ class Classroom extends Model
     public $incrementing = false;
     protected $keyType   = 'string';
 
-    protected $fillable  = ['id', 'name', 'description', 'join_token', 'bk_account_id', 'class_id'];
+    protected $fillable  = ['id', 'name', 'description', 'bk_account_id', 'class_id'];
 
-    /**
-     * Auto-generate id (KLS01, KLS02, …), join_token, and bk_account_id on creation.
-     */
+    /** Auto-generate id (KLS01, KLS02, …) and bk_account_id on creation. */
     protected static function boot(): void
     {
         parent::boot();
@@ -33,15 +31,6 @@ class Classroom extends Model
 
                 $next      = $last ? ((int) substr($last, 3)) + 1 : 1;
                 $kelas->id = 'KLS' . str_pad($next, 2, '0', STR_PAD_LEFT);
-            }
-
-            // Unique join token
-            if (empty($kelas->join_token)) {
-                do {
-                    $token = Str::random(12);
-                } while (static::where('join_token', $token)->exists());
-
-                $kelas->join_token = $token;
             }
 
             // Auto-set BK account owner
@@ -66,19 +55,19 @@ class Classroom extends Model
     /** Messages in this classroom's group chat. */
     public function messages(): HasMany
     {
-        return $this->hasMany(ClassroomMessage::class, 'classroom_id', 'id');
+        return $this->hasMany(GroupMessage::class, 'classroom_id', 'id');
     }
 
     /** Sub-groups (pembagian kelompok) defined by BK. */
     public function groups(): HasMany
     {
-        return $this->hasMany(ClassroomGroup::class, 'classroom_id', 'id');
+        return $this->hasMany(GroupSection::class, 'classroom_id', 'id');
     }
 
     /** Only groups that have been activated by BK. */
     public function activeGroups(): HasMany
     {
-        return $this->hasMany(ClassroomGroup::class, 'classroom_id', 'id')->where('is_active', true);
+        return $this->hasMany(GroupSection::class, 'classroom_id', 'id')->where('is_active', true);
     }
 
     /** Class data this classroom is based on. */

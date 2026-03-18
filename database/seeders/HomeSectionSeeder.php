@@ -12,7 +12,7 @@ class HomeSectionSeeder extends Seeder
         HomeSection::firstOrCreate([], [
             'title'       => 'Tumbuh Bersama',
             'subtitle'    => 'Bimbingan & Konseling',
-            'description' => 'Platform digital BIKASI yang menghubungkan siswa dengan guru konselor secara mudah, privat, dan profesional — kapan saja, di mana saja.',
+            'description' => 'Platform digital E-Konseling yang menghubungkan siswa dengan guru konselor secara mudah, privat, dan profesional — kapan saja, di mana saja.',
             'img'         => null,
         ]);
     }

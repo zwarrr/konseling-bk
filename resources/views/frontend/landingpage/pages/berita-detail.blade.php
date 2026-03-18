@@ -24,10 +24,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="csrf-token" content="{{ csrf_token() }}" />
   <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png">
-  <title>{{ $item->title }} — {{ config('app.name', 'BIKASI') }}</title>
+  <title>{{ $item->title }} — {{ config('app.name', 'E-Konseling') }}</title>
   {{-- Open Graph for richer FB / X / WA previews --}}
   <meta property="og:title"       content="{{ $item->title }}">
-  <meta property="og:description" content="Ada berita terbaru dari BIKASI — {{ Str::limit(strip_tags($item->description ?? ''), 120) }}">
+  <meta property="og:description" content="Ada berita terbaru dari E-Konseling — {{ Str::limit(strip_tags($item->description ?? ''), 120) }}">
   <meta property="og:url"         content="{{ url()->current() }}">
   <meta property="og:type"        content="article">
   @if($ogImage)
@@ -35,7 +35,7 @@
   @endif
   <meta name="twitter:card"        content="summary_large_image">
   <meta name="twitter:title"       content="{{ $item->title }}">
-  <meta name="twitter:description" content="Ada berita terbaru dari BIKASI — {{ Str::limit(strip_tags($item->description ?? ''), 120) }}">
+  <meta name="twitter:description" content="Ada berita terbaru dari E-Konseling — {{ Str::limit(strip_tags($item->description ?? ''), 120) }}">
   @if($ogImage)
   <meta name="twitter:image"       content="{{ $ogImage }}">
   @endif
@@ -65,7 +65,7 @@
   <div class="min-h-screen">
     <main class="max-w-6xl mx-auto px-4 pt-28 pb-12">
 
-      <!-- {{-- BIKASI news announcement badge --}}
+      <!-- {{-- E-Konseling news announcement badge --}}
       <div class="mb-4 flex items-center gap-2">
         <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
               style="background:#e8f1fb;color:#0F4C9A">
@@ -73,7 +73,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
           </svg>
-          Berita Terbaru dari BIKASI
+          Berita Terbaru dari E-Konseling
         </span>
       </div> -->
 
@@ -283,7 +283,7 @@
           {{-- Social buttons --}}
           @php
             $shareUrl   = urlencode(url()->current());
-            $shareTitle = urlencode('Ada berita terbaru dari BIKASI — ' . $item->title);
+            $shareTitle = urlencode('Ada berita terbaru dari E-Konseling — ' . $item->title);
             $sharePlain = urlencode($item->title . ' — ' . url()->current());
           @endphp
           <div class="grid grid-cols-4 gap-2">
@@ -371,7 +371,7 @@
       if (navigator.share) {
         navigator.share({
           title: document.title,
-          text: 'Ada berita terbaru dari BIKASI \u2014 ' + document.title,
+          text: 'Ada berita terbaru dari E-Konseling \u2014 ' + document.title,
           url: window.location.href
         }).catch(function() {});
       } else {

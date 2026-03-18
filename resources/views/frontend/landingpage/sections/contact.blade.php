@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kontak — BIKASI</title>
+  <title>Kontak — {{ config('app.name', 'E-Konseling') }}</title>
   <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
   <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -47,7 +47,7 @@
 
   {{-- Hero header --}}
   <div class="pt-28 pb-12 bg-white border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-6 text-center">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 text-center">
       <!-- <div class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 rounded-full px-4 py-1.5 text-sm font-semibold mb-4">
         <i class="fa-solid fa-envelope text-xs"></i> Kontak Kami
       </div> -->
@@ -55,13 +55,13 @@
         Ada yang Ingin <span class="text-brand">Ditanyakan?</span>
       </h1>
       <p class="text-gray-500 text-lg max-w-xl mx-auto">
-        Tim BK BIKASI siap membantu. Hubungi kami melalui salah satu kanal di bawah ini.
+        Tim BK E-Konseling siap membantu. Hubungi kami melalui salah satu kanal di bawah ini.
       </p>
     </div>
   </div>
 
-  <main class="py-20 bg-white">
-    <div class="max-w-6xl mx-auto px-6">
+  <main class="py-14 sm:py-20 bg-white">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
 
@@ -81,7 +81,7 @@
               <div class="w-11 h-11 shrink-0 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl flex items-center justify-center text-base">
                 <i class="fa-solid {{ $icon }}"></i>
               </div>
-              <div>
+              <div class="min-w-0">
                 <h3 class="font-bold text-gray-900 text-sm mb-0.5">{{ $title }}</h3>
                 <p class="text-gray-500 text-sm leading-relaxed">{!! $content !!}</p>
               </div>
@@ -90,7 +90,7 @@
         </div>
 
         {{-- Kanan: Formulir kontak --}}
-        <div class="reveal bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
+        <div class="reveal bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
           <h3 class="text-2xl font-extrabold text-gray-900 mb-2">Kirim Pesan</h3>
           <p class="text-gray-500 text-sm mb-6">Ada pertanyaan? Tim BK kami siap menjawab.</p>
 

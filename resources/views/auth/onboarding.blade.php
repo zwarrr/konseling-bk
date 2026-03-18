@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Selamat Datang — BIKASI</title>
+  <title>Selamat Datang — {{ config('app.name', 'E-Konseling') }}</title>
+  @include('shared.partials.pwa')
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -76,7 +77,7 @@
           Temukan jawaban<br>atas masalahmu.
         </h2>
         <p class="text-sm text-slate-500 leading-relaxed">
-          BIKASI hadir sebagai ruang konseling digital antara siswa dan Guru BK — aman, privat, dan mudah diakses kapan saja.
+          E-Konseling hadir sebagai ruang konseling digital antara siswa dan Guru BK — aman, privat, dan mudah diakses kapan saja.
         </p>
       </div>
     </div>
@@ -169,7 +170,7 @@
           Siap memulai<br>perjalananmu?
         </h2>
         <p class="text-sm text-slate-500 leading-relaxed">
-          Bergabung bersama siswa dan Guru BK di BIKASI. Mulai konseling, raih prestasi, dan wujudkan potensi terbaikmu.
+          Bergabung bersama siswa dan Guru BK di E-Konseling. Mulai konseling, raih prestasi, dan wujudkan potensi terbaikmu.
         </p>
       </div>
     </div>
@@ -233,6 +234,7 @@
   })();
   </script>
   @include('shared.partials.submit-loading')
+  @include('shared.partials.pwa-install-banner')
 
 </body>
 </html>

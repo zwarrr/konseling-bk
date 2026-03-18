@@ -10,7 +10,7 @@ class UserNotification extends Model
     protected $fillable = [
         'user_id',
         'user_type',   // 'bk' | 'siswa'
-        'type',        // 'agenda' | 'news'
+        'type',        // 'program_*' | 'news'
         'title',
         'body',
         'related_id',

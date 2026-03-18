@@ -81,7 +81,7 @@
         <div class="flex items-center bg-white rounded-2xl px-4 py-3.5 gap-3
                     shadow-lg shadow-blue-900/20">
             <i class="fa-solid fa-magnifying-glass text-slate-300 text-sm shrink-0"></i>
-            <input type="text" placeholder="Cari agenda, info layanan..."
+            <input type="text" placeholder="Cari program dan kegiatan, info layanan..."
                    class="flex-1 text-sm text-slate-600 bg-transparent outline-none placeholder-slate-300 leading-none">
         </div>
     </div>
@@ -243,22 +243,22 @@ function homeSlider() {
 @endif
 
 {{-- ══════════════════════════════════════════════════════════════
-     AGENDA
+    PROGRAM DAN KEGIATAN
      ══════════════════════════════════════════════════════════════ --}}
 @php
-    $homeAgendas = \App\Models\Agenda::where('status', 'publish')
+    $homePrograms = \App\Models\Program::where('status', 'publish')
         ->orderByDesc('date')
         ->take(4)
         ->get();
 @endphp
-@if($homeAgendas->count())
+@if($homePrograms->count())
 <div class="px-4 md:px-6 pb-6 mt-6">
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-base font-extrabold text-gray-900">Kegiatan & Program <span class="text-blue-700">BK</span></h2>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        @foreach($homeAgendas as $ha)
-        <a href="{{ route($pfx . '.agenda.detail', $ha->slug) }}"
+        @foreach($homePrograms as $ha)
+        <a href="{{ route($pfx . '.program.detail', $ha->slug) }}"
            class="group flex gap-3 bg-white border border-gray-100 rounded-2xl p-3 shadow-sm
                   hover:shadow-md hover:border-blue-200 transition-all duration-200">
             {{-- Thumbnail --}}

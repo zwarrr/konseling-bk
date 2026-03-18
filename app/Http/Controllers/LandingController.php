@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 /**
  * @deprecated All section methods have been moved to App\Http\Controllers\Admin\Landing\*
  *
- * - AgendaController   � agendas, create, store, edit, update, destroy, toggle
+ * - ProgramController  – program items (store, update, destroy, toggle)
  * - ServiceController  � services
  * - FeatureController  � features
  * - SliderController   � sliders
@@ -18,6 +18,6 @@ class LandingController extends Controller
 {
     public function index()
     {
-        return redirect()->route('admin.landing.agendas');
+        return redirect()->route('admin.landing.program');
     }
 }

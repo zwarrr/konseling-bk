@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('push_subscriptions', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->index();
-            $table->string('user_type', 10)->default('siswa'); // 'bk' | 'siswa'
+            $table->enum('user_type', ['bk', 'siswa'])->default('siswa'); // bk|siswa
             $table->text('endpoint');
             // MD5 hash of endpoint used for uniqueness (TEXT can't be directly indexed)
             $table->string('endpoint_hash', 32)->unique();

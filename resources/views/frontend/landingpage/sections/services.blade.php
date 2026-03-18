@@ -1,9 +1,9 @@
 {{-- =====================================================
    SECTION: LAYANAN
    ===================================================== --}}
-<section id="layanan" class="py-24 bg-white overflow-hidden">
+<section id="layanan" class="py-16 sm:py-20 lg:py-24 bg-white overflow-hidden">
 
-  <div class="max-w-7xl mx-auto px-6">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
 
     @php
       $svcSection    = \App\Models\ServiceSection::singleton();
@@ -49,9 +49,8 @@
         <div class="absolute w-[300px] h-[300px] rounded-full border-2 border-dashed border-blue-300 opacity-80" style="animation: spin 20s linear infinite;"></div>
         <img
           src="{{ $svcSection->img ? asset($svcSection->img) : asset('assets/img/iPhone.png') }}"
-          alt="BIKASI App"
-          class="relative z-10 float select-none pointer-events-none drop-shadow-2xl"
-          style="width: 450px; max-width:none;"
+          alt="E-Konseling App"
+          class="relative z-10 float select-none pointer-events-none drop-shadow-2xl w-[280px] sm:w-[360px] md:w-[420px] lg:w-[450px] max-w-full"
           draggable="false"
         >
       </div>

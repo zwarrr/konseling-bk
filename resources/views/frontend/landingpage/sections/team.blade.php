@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tim BK — BIKASI</title>
+  <title>Tim BK — {{ config('app.name', 'E-Konseling') }}</title>
   <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
   <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -40,7 +40,7 @@
   @include('frontend.landingpage.partials.navbar')
 
   {{-- ── HERO ─────────────────────────────────────────────────────────── --}}
-  <section class="pt-36 pb-16 px-6 text-center" style="background:#fff">
+  <section class="pt-28 sm:pt-32 lg:pt-36 pb-12 sm:pb-16 px-4 sm:px-6 text-center" style="background:#fff">
     <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4" style="color:#0f172a">
       Bertemu dengan <span style="color:#0F4C9A">Tim</span> BK
     </h1>
@@ -50,7 +50,7 @@
   </section>
 
   {{-- ── TEAM GRID ────────────────────────────────────────────────────── --}}
-  <main class="pb-24 px-6" style="background:#fff">
+  <main class="pb-24 px-4 sm:px-6" style="background:#fff">
     <div class="max-w-5xl mx-auto">
 
       @php $members = \App\Models\TeamMember::orderBy('sort_order')->get(); @endphp
@@ -64,7 +64,7 @@
         </defs>
       </svg>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         @foreach($members as $m)
         {{-- drop-shadow follows the clip-path shape (including concave notch) --}}
         <div class="reveal group" style="filter:drop-shadow(0 8px 24px rgba(0,0,0,.22))">
@@ -107,7 +107,7 @@
       @endif
 
       {{-- ── CTA ──────────────────────────────────────────────────────── --}}
-      <div class="reveal mt-20 relative overflow-hidden rounded-3xl px-8 py-16 text-center" style="background:linear-gradient(135deg,#0F4C9A 0%,#1a6fd4 50%,#0e3f82 100%)">
+      <div class="reveal mt-20 relative overflow-hidden rounded-3xl px-6 sm:px-8 py-12 sm:py-16 text-center" style="background:linear-gradient(135deg,#0F4C9A 0%,#1a6fd4 50%,#0e3f82 100%)">
         {{-- decorative blobs --}}
         <div class="absolute -top-10 -left-10 w-48 h-48 rounded-full opacity-10" style="background:#fff"></div>
         <div class="absolute -bottom-12 -right-8 w-64 h-64 rounded-full opacity-10" style="background:#fff"></div>

@@ -14,7 +14,7 @@
     }
   </style>
 
-  <div class="max-w-7xl mx-auto px-6">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
     @php
       $dbSlides = \App\Models\BkNews::published()->get()->map(fn($s) => [
           'title' => $s->title,
@@ -25,7 +25,7 @@
           $dbSlides = [
               ['title' => 'Layanan BK Online',      'image' => '/img/slider/slide1.svg'],
               ['title' => 'Konseling Profesional',  'image' => '/img/slider/slide2.svg'],
-              ['title' => 'Tumbuh Bersama BIKASI',  'image' => '/img/slider/slide3.svg'],
+            ['title' => 'Tumbuh Bersama E-Konseling',  'image' => '/img/slider/slide3.svg'],
           ];
       }
       $slidesJson = json_encode($dbSlides, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT);

@@ -5,6 +5,7 @@
     'attachId'   => 'attachBtn',
     'placeholder' => 'Message...',
     'withAttach' => true,
+    'disabled'   => false,
     'cameraUrl'  => '',
 ])
 
@@ -81,7 +82,8 @@
 
         {{-- Emoji button --}}
         <button id="{{ $emojiId }}" type="button" aria-label="Emoji"
-                class="text-gray-500 hover:text-gray-700 transition shrink-0">
+            @disabled($disabled)
+            class="text-gray-500 hover:text-gray-700 transition shrink-0 disabled:opacity-40">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"
                  stroke-linecap="round" stroke-linejoin="round">
@@ -95,7 +97,8 @@
         @if($withAttach)
         {{-- Attachment / Plus button --}}
         <button id="{{ $attachId }}" type="button" aria-label="Attachment"
-                class="text-gray-500 hover:text-gray-700 transition shrink-0">
+            @disabled($disabled)
+            class="text-gray-500 hover:text-gray-700 transition shrink-0 disabled:opacity-40">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -106,12 +109,14 @@
         {{-- Textarea (auto-grows) --}}
         <textarea id="{{ $inputId }}" rows="1"
                   placeholder="{{ $placeholder }}"
+                @disabled($disabled)
                   class="flex-1 bg-transparent text-gray-700 text-sm placeholder-gray-400
                          focus:outline-none resize-none leading-normal max-h-28 overflow-y-auto"></textarea>
 
         {{-- Send --}}
         <button id="{{ $sendId }}" type="button" aria-label="Send"
-                class="text-gray-400 hover:text-gray-600 transition shrink-0 disabled:opacity-40">
+            @disabled($disabled)
+            class="text-gray-400 hover:text-gray-600 transition shrink-0 disabled:opacity-40">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />

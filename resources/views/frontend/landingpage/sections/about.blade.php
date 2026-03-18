@@ -2,8 +2,8 @@
    SECTION: TENTANG BK
    ===================================================== --}}
 @php $about = \App\Models\AboutSection::singleton(); @endphp
-<section id="tentang" class="py-24 bg-white">
-  <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<section id="tentang" class="py-16 sm:py-20 lg:py-24 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
     {{-- Kiri: 2x2 foto grid --}}
     <div class="reveal">
@@ -37,7 +37,7 @@
       @php
         $feats = \App\Models\AboutFeature::orderBy('sort_order')->get();
       @endphp
-      <ul class="grid grid-cols-2 gap-3">
+      <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         @foreach($feats as $feat)
           @if($feat->title)
           <li class="flex gap-3 items-start p-3.5 rounded-xl bg-blue-50/50 border border-blue-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
@@ -51,7 +51,7 @@
         @endforeach
       </ul>
 
-      <div class="flex justify-end mt-8">
+      <div class="flex justify-center sm:justify-end mt-8">
         <a href="{{ route('landing.team') }}"
            class="btn-raise shrink-0 inline-flex items-center gap-2 text-blue-700 hover:text-white bg-transparent hover:bg-blue-700 border border-blue-200 hover:border-blue-700 rounded-full px-6 py-3 text-sm font-semibold transition">
           Kenali Semua Guru BK <i class="fa-solid fa-arrow-right text-xs"></i>

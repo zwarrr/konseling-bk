@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Login BK / Siswa</title>
+  <title>Login BK / Siswa — {{ config('app.name', 'E-Konseling') }}</title>
+  @include('shared.partials.pwa')
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   @if($errors->any())
@@ -18,12 +19,11 @@
     <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
       <div class="flex items-center gap-3 mb-6">
         <div class="w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shadow-sm">
-          <img src="/favicon.png" alt="BIKASI" class="w-8 h-8 object-contain"
-               onerror="this.outerHTML='<i class=&quot;fa-solid fa-comments text-blue-600&quot;></i>'">
+          <img src="/favicon.png" alt="E-Konseling" class="w-8 h-8 object-contain">
         </div>
         <div>
           <p class="text-xs text-slate-500">Selamat Datang Kembali !</p>
-          <h1 class="text-lg font-bold text-slate-900">BIKASI LOGIN</h1>
+          <h1 class="text-lg font-bold text-slate-900">E-Konseling LOGIN</h1>
         </div>
       </div>
 
@@ -87,6 +87,12 @@
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
           </svg>
         </button>
+
+        <div class="pt-2 text-center text-xs text-slate-400">
+          &copy; {{ date('Y') }}
+          <a href="{{ route('landing.copyright_team') }}" class="text-blue-600 font-semibold hover:text-blue-600/80 transition">Selenium</a>.
+          Seluruh hak cipta dilindungi.
+        </div>
 
       </form>
     </div>
@@ -217,5 +223,6 @@
 
   <x-flash-modal />
   @include('shared.partials.submit-loading')
+  @include('shared.partials.pwa-install-banner')
 </body>
 </html>

@@ -11,7 +11,7 @@ class ServiceSectionSeeder extends Seeder
     {
         ServiceSection::firstOrCreate([], [
             'title'       => 'Kelola Semua Kebutuhan BK',
-            'subtitle'    => 'Gunakan BIKASI untuk',
+            'subtitle'    => 'Gunakan E-Konseling untuk',
             'description' => 'Platform digital konseling yang dirancang untuk mendukung perkembangan siswa secara menyeluruh — kapan saja, di mana saja.',
             'img'         => null,
         ]);

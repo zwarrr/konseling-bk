@@ -71,7 +71,7 @@ class PushNotificationService
     /**
      * Send a push notification to a specific user.
      */
-    public function sendToUser(int $userId, string $title, string $body = '', array $data = []): void
+    public function sendToUser(int $userId, string $title, string $body = '', array $data = [], ?string $userType = null): void
     {
         $payload = json_encode([
             'title' => $title,
@@ -79,7 +79,10 @@ class PushNotificationService
             'data'  => $data,
         ]);
 
-        $subs = PushSubscription::where('user_id', $userId)->get();
+        $subs = PushSubscription::query()
+            ->where('user_id', $userId)
+            ->when($userType, fn($q) => $q->where('user_type', $userType))
+            ->get();
 
         foreach ($subs as $sub) {
             try {

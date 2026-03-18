@@ -10,14 +10,15 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\User\UserHomeController;
 use App\Http\Controllers\User\UserProfileController;
-use App\Http\Controllers\User\UserAgendaController;
+use App\Http\Controllers\User\UserProgramController;
 use App\Http\Controllers\User\UserNotificationController;
 use App\Http\Controllers\User\UserChatController;
 use App\Http\Controllers\User\UserKelasController;
-use App\Http\Controllers\User\ClassroomChatController;
+use App\Http\Controllers\User\GroupChatController;
 use App\Http\Controllers\Admin\AdminKelasController;
 use App\Http\Controllers\User\SetupController;
 use App\Http\Controllers\User\UserKelasVerifikasiController;
+use App\Http\Controllers\User\UserProgramBookingController;
 use App\Http\Controllers\User\UserBeritaController;
 
 Route::middleware(['auth:bk,siswa', 'maintenance', 'must.setup'])->group(function () {
@@ -30,31 +31,33 @@ Route::middleware(['auth:bk,siswa', 'maintenance', 'must.setup'])->group(functio
     Route::get('/bk/home',    [UserHomeController::class, 'index'])->name('bk.home')->middleware('bk.only');
     Route::get('/siswa/home', [UserHomeController::class, 'index'])->name('siswa.home');
 
-    // ─── Agenda ──────────────────────────────────────────────────────────
-    Route::get('/bk/agenda',              [UserAgendaController::class, 'index'])->name('bk.agenda');
-    Route::get('/siswa/agenda',           [UserAgendaController::class, 'index'])->name('siswa.agenda');
+    // ─── Program ─────────────────────────────────────────────────────────
+    Route::get('/bk/program',              [UserProgramController::class, 'index'])->name('bk.program');
+    Route::get('/siswa/program',           [UserProgramController::class, 'index'])->name('siswa.program');
 
     // BK CRUD (must be before {slug} wildcard routes)
-    Route::get('/bk/agenda/kelola',          [UserAgendaController::class, 'kelola'])->name('bk.agenda.kelola')->middleware('bk.only');
-    Route::get('/bk/agenda-create',          [UserAgendaController::class, 'create'])->name('bk.agenda.create')->middleware('bk.only');
-    Route::get('/bk/agenda/verifikasi',      [UserKelasVerifikasiController::class, 'index'])->name('bk.agenda.verifikasi')->middleware('bk.only');
-    Route::get('/bk/agenda/{slug}/grup',     [UserAgendaController::class, 'grup'])->name('bk.agenda.grup')->middleware('bk.only');
+    Route::get('/bk/program/kelola',          [UserProgramController::class, 'kelola'])->name('bk.program.kelola')->middleware('bk.only');
+    Route::get('/bk/program/create',          [UserProgramController::class, 'create'])->name('bk.program.create')->middleware('bk.only');
+    Route::get('/bk/program/acc',             [UserKelasVerifikasiController::class, 'index'])->name('bk.program.acc')->middleware('bk.only');
 
-    Route::get('/bk/agenda/{slug}',       [UserAgendaController::class, 'detail'])->name('bk.agenda.detail');
-    Route::get('/siswa/agenda/{slug}',    [UserAgendaController::class, 'detail'])->name('siswa.agenda.detail');
+    // Siswa: booking individu (date-time picker)
+    Route::post('/siswa/program/{slug}/booking', [UserProgramBookingController::class, 'store'])->name('siswa.program.booking.store');
+
+    Route::get('/bk/program/{slug}',       [UserProgramController::class, 'detail'])->name('bk.program.detail');
+    Route::get('/siswa/program/{slug}',    [UserProgramController::class, 'detail'])->name('siswa.program.detail');
 
     // ─── Berita ───────────────────────────────────────────────────────────
     Route::get('/bk/berita',              [UserBeritaController::class, 'index']) ->name('bk.berita');
     Route::get('/siswa/berita',           [UserBeritaController::class, 'index']) ->name('siswa.berita');
     Route::get('/bk/berita/{slug}',       [UserBeritaController::class, 'detail'])->name('bk.berita.detail');
     Route::get('/siswa/berita/{slug}',    [UserBeritaController::class, 'detail'])->name('siswa.berita.detail');
-    Route::post('/bk/agenda/{slug}/reviews',   [UserAgendaController::class, 'storeReview'])->name('bk.agenda.reviews.store');
-    Route::post('/siswa/agenda/{slug}/reviews',[UserAgendaController::class, 'storeReview'])->name('siswa.agenda.reviews.store');
-    Route::post('/bk/agenda',                [UserAgendaController::class, 'store'])->name('bk.agenda.store');
-    Route::get('/bk/agenda/{slug}/edit',     [UserAgendaController::class, 'edit'])->name('bk.agenda.edit');
-    Route::put('/bk/agenda/{slug}',          [UserAgendaController::class, 'update'])->name('bk.agenda.update');
-    Route::patch('/bk/agenda/{slug}/toggle', [UserAgendaController::class, 'toggle'])->name('bk.agenda.toggle');
-    Route::delete('/bk/agenda/{slug}',       [UserAgendaController::class, 'destroy'])->name('bk.agenda.destroy');
+    Route::post('/bk/program/{slug}/reviews',   [UserProgramController::class, 'storeReview'])->name('bk.program.reviews.store');
+    Route::post('/siswa/program/{slug}/reviews',[UserProgramController::class, 'storeReview'])->name('siswa.program.reviews.store');
+    Route::post('/bk/program',                 [UserProgramController::class, 'store'])->name('bk.program.store');
+    Route::get('/bk/program/{slug}/edit',      [UserProgramController::class, 'edit'])->name('bk.program.edit');
+    Route::put('/bk/program/{slug}',           [UserProgramController::class, 'update'])->name('bk.program.update');
+    Route::patch('/bk/program/{slug}/toggle',  [UserProgramController::class, 'toggle'])->name('bk.program.toggle');
+    Route::delete('/bk/program/{slug}',        [UserProgramController::class, 'destroy'])->name('bk.program.destroy');
 
     // ─── Profile ─────────────────────────────────────────────────────────
     Route::get('/bk/profile',    [UserProfileController::class, 'show'])->name('bk.profile');
@@ -93,7 +96,6 @@ Route::middleware(['auth:bk,siswa', 'maintenance', 'must.setup'])->group(functio
     Route::get('/api/kelas/{id}/students',                   [UserKelasController::class, 'students'])->name('kelas.students');
     Route::post('/api/kelas/{id}/students/assign',           [UserKelasController::class, 'assignStudent'])->name('kelas.assign');
     Route::post('/api/kelas/{id}/students/remove',           [UserKelasController::class, 'removeStudent'])->name('kelas.remove');
-    Route::post('/api/kelas/{id}/leave',                     [UserKelasController::class, 'leaveKelas'])->name('kelas.leave');
 
     // ─── Kelompok Kelas (BK only) ────────────────────────────────────────
     Route::get('/api/kelas/{id}/groups',                     [UserKelasController::class, 'groups'])->name('kelas.groups.index');
@@ -102,29 +104,21 @@ Route::middleware(['auth:bk,siswa', 'maintenance', 'must.setup'])->group(functio
     Route::patch('/api/kelas/{id}/groups/{gid}/toggle',      [UserKelasController::class, 'toggleGroup'])->name('kelas.groups.toggle');
     Route::delete('/api/kelas/{id}/groups/{gid}',            [UserKelasController::class, 'destroyGroup'])->name('kelas.groups.destroy');
 
-    // ─── Kelompok Agenda (agenda_groups table, keyed by agendas.id) ─────
-    Route::get('/api/agenda-groups/{agendaId}',                [UserAgendaController::class, 'agendaGroupsIndex'])->name('agenda.groups.index');
-    Route::post('/api/agenda-groups/{agendaId}',               [UserAgendaController::class, 'agendaGroupsStore'])->name('agenda.groups.store');
-    Route::put('/api/agenda-groups/{agendaId}/{gid}',          [UserAgendaController::class, 'agendaGroupsUpdate'])->name('agenda.groups.update');
-    Route::patch('/api/agenda-groups/{agendaId}/{gid}/toggle', [UserAgendaController::class, 'agendaGroupsToggle'])->name('agenda.groups.toggle');
-    Route::delete('/api/agenda-groups/{agendaId}/{gid}',       [UserAgendaController::class, 'agendaGroupsDestroy'])->name('agenda.groups.destroy');
 
-    // ─── Kelas Verifikasi Siswa (BK only) ────────────────────────────────
-    Route::get('/api/kelas/verifikasi/feed',                   [UserKelasVerifikasiController::class, 'feed'])->name('kelas.verifikasi.feed');
-    Route::get('/api/kelas/verifikasi/pending-count',          [UserKelasVerifikasiController::class, 'pendingCount'])->name('kelas.verifikasi.pendingCount');
-    Route::post('/api/kelas/verifikasi/{id}/approve',          [UserKelasVerifikasiController::class, 'approve'])->name('kelas.verifikasi.approve');
-    Route::post('/api/kelas/verifikasi/{id}/reject',           [UserKelasVerifikasiController::class, 'reject'])->name('kelas.verifikasi.reject');
-    Route::delete('/api/kelas/verifikasi/{id}',                [UserKelasVerifikasiController::class, 'destroy'])->name('kelas.verifikasi.destroy');
+    // ─── Program Booking Verifikasi (BK only) ───────────────────────────
+    Route::get('/api/program/booking/pending-count', [UserProgramBookingController::class, 'pendingCount'])->name('program.booking.pendingCount');
+    Route::post('/api/program/booking/{id}/approve', [UserProgramBookingController::class, 'approve'])->name('program.booking.approve');
+    Route::post('/api/program/booking/{id}/reject',  [UserProgramBookingController::class, 'reject'])->name('program.booking.reject');
+
+    // ─── Program Booking (Siswa actions) ───────────────────────────────
+    Route::post('/api/program/booking/{id}/chat-reconfirm', [UserProgramBookingController::class, 'chatReconfirm'])->name('program.booking.chatReconfirm');
 
     // ─── Kelas Group Chat ────────────────────────────────────────────────
-    Route::get('/kelas/join/{token}',                        [ClassroomChatController::class, 'joinPage'])->name('kelas.join.page');
-    Route::post('/kelas/join/{token}',                       [ClassroomChatController::class, 'joinConfirm'])->name('kelas.join.confirm');
-    Route::get('/api/kelas/join/status',                     [ClassroomChatController::class, 'joinStatus'])->name('kelas.join.status');
-    Route::get('/kelas/{slug}/chat',                         [ClassroomChatController::class, 'room'])->name('kelas.chat.room');
-    Route::get('/api/kelas/{id}/chat/members',             [ClassroomChatController::class, 'members'])->name('kelas.chat.members');
-    Route::get('/api/kelas/{id}/chat/messages',              [ClassroomChatController::class, 'messages'])->name('kelas.chat.messages');
-    Route::post('/api/kelas/{id}/chat/send',                 [ClassroomChatController::class, 'send'])->name('kelas.chat.send');
-    Route::post('/api/kelas/{id}/chat/send-media',           [ClassroomChatController::class, 'sendMedia'])->name('kelas.chat.sendMedia');
+    Route::get('/kelas/{slug}/chat',                         [GroupChatController::class, 'room'])->name('kelas.chat.room');
+    Route::get('/api/kelas/{id}/chat/members',               [GroupChatController::class, 'members'])->name('kelas.chat.members');
+    Route::get('/api/kelas/{id}/chat/messages',              [GroupChatController::class, 'messages'])->name('kelas.chat.messages');
+    Route::post('/api/kelas/{id}/chat/send',                 [GroupChatController::class, 'send'])->name('kelas.chat.send');
+    Route::post('/api/kelas/{id}/chat/send-media',           [GroupChatController::class, 'sendMedia'])->name('kelas.chat.sendMedia');
     // Camera page for kelas (mobile)
     Route::get('/kelas/{id}/camera', function ($id) {
         abort_unless(\Auth::guard('bk')->check() || \Auth::guard('siswa')->check(), 403);
@@ -134,7 +128,7 @@ Route::middleware(['auth:bk,siswa', 'maintenance', 'must.setup'])->group(functio
             'backUrl' => route('kelas.chat.room', $kelas->slug),
         ]);
     })->name('kelas.camera');
-    Route::post('/api/kelas/{id}/chat/mark-read',            [ClassroomChatController::class, 'markRead'])->name('kelas.chat.markRead');
+    Route::post('/api/kelas/{id}/chat/mark-read',            [GroupChatController::class, 'markRead'])->name('kelas.chat.markRead');
 
     // ─── Chat ─────────────────────────────────────────────────────────────
     Route::get('/bk/chat',    [UserChatController::class, 'index'])->name('bk.chat');

@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Setup Akun — BIKASI</title>
+  <title>Setup Akun — {{ config('app.name', 'E-Konseling') }}</title>
+  @include('shared.partials.pwa')
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -19,7 +20,7 @@
     <div class="px-8 pt-8 pb-6" style="background:linear-gradient(135deg,#0F4C9A 0%,#1a6fd4 100%)">
       <div class="flex items-center gap-3 mb-3">
         <div class="w-11 h-11 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-sm">
-          <img src="/favicon.png" alt="BIKASI" class="w-7 h-7 object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <img src="/favicon.png" alt="E-Konseling" class="w-7 h-7 object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
           <i class="fa-solid fa-shield-halved text-blue-700 text-xl" style="display:none"></i>
         </div>
         <div>

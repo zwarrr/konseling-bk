@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminKelasController;
+use App\Http\Controllers\Admin\ProgramBidangController;
 use App\Http\Controllers\Admin\Landing\BkNewsController;
 use App\Http\Controllers\Admin\Landing\TeamController;
 use App\Http\Controllers\Admin\Landing\HomeSectionController;
@@ -10,8 +11,9 @@ use App\Http\Controllers\Admin\Landing\AboutSectionController;
 use App\Http\Controllers\Admin\Landing\AboutFeatureController;
 use App\Http\Controllers\Admin\Landing\ServiceSectionController;
 use App\Http\Controllers\Admin\Landing\ServiceController;
-use App\Http\Controllers\Admin\Landing\AgendaSectionController;
-use App\Http\Controllers\Admin\Landing\AgendaController;
+use App\Http\Controllers\Admin\Landing\ProgramSectionController;
+use App\Http\Controllers\Admin\Landing\ProgramController;
+use App\Http\Controllers\Admin\AdminBookingController;
 
 // ─── Admin (guard: admin) ──────────────────────────────────────────
 Route::prefix('admin')->middleware(['auth:admin', 'admin'])->group(function () {
@@ -28,6 +30,13 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin'])->group(function () {
 	// Section: Kelola
 	Route::prefix('kelola')->group(function () {
 		Route::get('/akun', [AdminController::class, 'accounts'])->name('admin.accounts.index');
+
+		// Program Kategori (master dropdown bidang)
+		Route::get('/program-kategori', [ProgramBidangController::class, 'index'])->name('admin.programKategori.index');
+		Route::post('/program-kategori', [ProgramBidangController::class, 'store'])->name('admin.programKategori.store');
+		Route::put('/program-kategori/{programBidang}', [ProgramBidangController::class, 'update'])->name('admin.programKategori.update');
+		Route::patch('/program-kategori/{programBidang}/toggle', [ProgramBidangController::class, 'toggle'])->name('admin.programKategori.toggle');
+		Route::delete('/program-kategori/{programBidang}', [ProgramBidangController::class, 'destroy'])->name('admin.programKategori.destroy');
 
 		// BK accounts
 		Route::post('/akun/bk',             [AdminController::class, 'storeBkAccount'])  ->name('admin.accounts.bk.store');
@@ -83,13 +92,13 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin'])->group(function () {
 		Route::put('/service/items/{service}',    [ServiceController::class, 'update']) ->name('admin.landing.serviceItemUpdate');
 		Route::delete('/service/items/{service}', [ServiceController::class, 'destroy'])->name('admin.landing.serviceDestroy');
 
-		// Agenda Section
-		Route::get('/agenda',                  [AgendaSectionController::class, 'index']) ->name('admin.landing.agenda');
-		Route::put('/agenda',                  [AgendaSectionController::class, 'update'])->name('admin.landing.agendaUpdate');
-		Route::post('/agenda/items',           [AgendaController::class, 'store'])  ->name('admin.landing.agendaStore');
-		Route::put('/agenda/items/{agenda}',   [AgendaController::class, 'update']) ->name('admin.landing.agendaItemUpdate');
-		Route::patch('/agenda/items/{agenda}/toggle', [AgendaController::class, 'toggle'])->name('admin.landing.agendaToggle');
-		Route::delete('/agenda/items/{agenda}',[AgendaController::class, 'destroy'])->name('admin.landing.agendaDestroy');
+		// Program Section
+		Route::get('/program',                    [ProgramSectionController::class, 'index']) ->name('admin.landing.program');
+		Route::put('/program',                    [ProgramSectionController::class, 'update'])->name('admin.landing.programUpdate');
+		Route::post('/program/items',             [ProgramController::class, 'store'])  ->name('admin.landing.programStore');
+		Route::put('/program/items/{program}',    [ProgramController::class, 'update']) ->name('admin.landing.programItemUpdate');
+		Route::patch('/program/items/{program}/toggle', [ProgramController::class, 'toggle'])->name('admin.landing.programToggle');
+		Route::delete('/program/items/{program}', [ProgramController::class, 'destroy'])->name('admin.landing.programDestroy');
 
 		// BK News (replaces Sliders)
 		Route::get('/bk-news',           [BkNewsController::class, 'index'])  ->name('admin.landing.bkNews');
@@ -111,4 +120,9 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin'])->group(function () {
 	Route::post('/settings/maintenance/toggle',     [AdminController::class, 'toggleMaintenance'])       ->name('admin.settings.maintenance.toggle');
 	Route::post('/settings/maintenance/message',    [AdminController::class, 'saveMaintenanceMessage'])  ->name('admin.settings.maintenance.message');
 	Route::post('/settings/maintenance/admin-url',  [AdminController::class, 'saveMaintenanceAdminUrl']) ->name('admin.settings.maintenance.adminUrl');
+
+	// ─── Data Booking (Program Booking Reports) ───────────────────────
+	Route::get('/data-booking', [AdminBookingController::class, 'index'])->name('admin.booking.index');
+	Route::get('/data-booking/export/excel', [AdminBookingController::class, 'exportExcel'])->name('admin.booking.export.excel');
+	Route::get('/data-booking/export/pdf', [AdminBookingController::class, 'exportPdf'])->name('admin.booking.export.pdf');
 });

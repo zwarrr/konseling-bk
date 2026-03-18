@@ -11,14 +11,14 @@ return new class extends Migration
         Schema::create('user_notifications', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->index();
-            $table->string('user_type', 10)->default('siswa'); // 'bk' | 'siswa'
-            // type: 'agenda' | 'news'
-            $table->string('type', 30)->default('agenda');
+            $table->enum('user_type', ['bk', 'siswa'])->default('siswa'); // bk|siswa
+            // type: 'program' | 'news'
+            $table->string('type', 30)->default('program');
             $table->string('title');
             $table->text('body')->nullable();
             // related record
             $table->unsignedBigInteger('related_id')->nullable();
-            $table->string('related_type', 60)->nullable(); // e.g. 'App\Models\Agenda'
+            $table->string('related_type', 60)->nullable(); // e.g. 'App\Models\Program'
             // read tracking
             $table->timestamp('read_at')->nullable();
             $table->timestamps();

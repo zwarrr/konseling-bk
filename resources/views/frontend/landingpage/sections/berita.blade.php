@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BK News — BIKASI</title>
+  <title>BK News — {{ config('app.name', 'E-Konseling') }}</title>
   <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
   <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -38,12 +38,12 @@
   @include('frontend.landingpage.partials.navbar')
 
   {{-- ── HERO HEADER ────────────────────────────────────────────────── --}}
-  <section class="pt-36 pb-14 px-6 text-center bg-white">
+  <section class="pt-28 sm:pt-32 lg:pt-36 pb-12 sm:pb-14 px-4 sm:px-6 text-center bg-white">
     <!-- <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold mb-5 tracking-wide uppercase">
       <i class="fa-solid fa-newspaper"></i> BK News
     </div> -->
     <h1 class="text-4xl md:text-5xl font-extrabold leading-tight mb-4 text-slate-900">
-      Berita & Artikel <span style="color:#0F4C9A">BK BIKASI</span>
+      Berita & Artikel <span style="color:#0F4C9A">BK E-Konseling</span>
     </h1>
     <p class="text-base md:text-lg text-slate-500 max-w-xl mx-auto">
       Informasi terkini seputar bimbingan konseling, program layanan, dan kegiatan Tim BK SMKN 1 Ciamis.
@@ -51,7 +51,7 @@
   </section>
 
   {{-- ── NEWS GRID ───────────────────────────────────────────────────── --}}
-  <section class="py-4 pb-20 px-6">
+  <section class="py-4 pb-20 px-4 sm:px-6">
     <div class="max-w-6xl mx-auto">
 
       @if($news->count())
@@ -73,7 +73,7 @@
               @endif
             </div>
             {{-- Content --}}
-            <div class="p-8 flex flex-col justify-center">
+            <div class="p-6 sm:p-8 flex flex-col justify-center">
               <div class="flex items-center gap-2 mb-3">
                 <!-- <span class="w-2.5 h-2.5 rounded-full bg-blue-500 flex-shrink-0"></span>
                 <span class="text-xs font-semibold text-blue-600 uppercase tracking-wide">BK News</span> -->
@@ -195,7 +195,7 @@
   </section>
 
   {{-- ── CTA ─────────────────────────────────────────────────────────── --}}
-  <section class="py-16 px-6 text-center" style="background:linear-gradient(135deg,#0F4C9A,#1a6fd4,#0e3f82)">
+  <section class="py-16 px-4 sm:px-6 text-center" style="background:linear-gradient(135deg,#0F4C9A,#1a6fd4,#0e3f82)">
     <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-3">Butuh Bantuan dari Tim BK?</h2>
     <p class="text-blue-100 text-sm md:text-base mb-7 max-w-md mx-auto">
       Konselor kami siap membantu kamu menemukan solusi terbaik.

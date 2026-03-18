@@ -2,22 +2,23 @@
     $authUser = auth()->user();
     $role     = $authUser->role ?? 'siswa';
     $pfx      = $role === 'guru' ? 'bk' : 'siswa';
+    $isGuru   = $role === 'guru';
 
     // Tab links — Chat always in the center position
-    // BK    (5 tabs): Home · Agenda · [Chat] · Berita · Profil  (Kelas = FAB on chat page)
-    // Siswa (5 tabs): Home · Agenda · [Chat] · Berita · Profil
+    // BK    (5 tabs): Home · Program · [Chat] · Berita · Profil  (Kelas = FAB on chat page)
+    // Siswa (5 tabs): Home · Program · [Chat] · Berita · Profil
     $links = array_values(
         $role === 'guru'
         ? [
             ['key' => 'home',    'label' => 'Home',    'icon' => 'fa-house',            'href' => route('bk.home')],
-            ['key' => 'agenda',  'label' => 'Agenda',  'icon' => 'fa-calendar-days',    'href' => route('bk.agenda')],
+            ['key' => 'program', 'label' => 'Program', 'icon' => 'fa-calendar-days',    'href' => route('bk.program')],
             ['key' => 'chat',    'label' => 'Chat',    'icon' => 'fa-comments',         'href' => route('bk.chat')],
             ['key' => 'berita',  'label' => 'Berita',  'icon' => 'fa-newspaper',        'href' => route('bk.berita')],
             ['key' => 'profile', 'label' => 'Profil',  'icon' => 'fa-circle-user',      'href' => route('bk.profile')],
           ]
         : [
             ['key' => 'home',    'label' => 'Home',    'icon' => 'fa-house',            'href' => route('siswa.home')],
-            ['key' => 'agenda',  'label' => 'Agenda',  'icon' => 'fa-calendar-days',    'href' => route('siswa.agenda')],
+            ['key' => 'program', 'label' => 'Program', 'icon' => 'fa-calendar-days',    'href' => route('siswa.program')],
             ['key' => 'chat',    'label' => 'Chat',    'icon' => 'fa-comments',         'href' => route('siswa.chat')],
             ['key' => 'berita',  'label' => 'Berita',  'icon' => 'fa-newspaper',        'href' => route('siswa.berita')],
             ['key' => 'profile', 'label' => 'Profil',  'icon' => 'fa-circle-user',      'href' => route('siswa.profile')],
@@ -26,13 +27,13 @@
 
     $current = match(true) {
         request()->routeIs($pfx . '.home')           => 'home',
-        request()->routeIs($pfx . '.agenda')         => 'agenda',
-        request()->routeIs($pfx . '.agenda.detail')  => 'agenda',
-        request()->routeIs('bk.agenda.kelola')       => 'agenda',
+        request()->routeIs($pfx . '.program')        => 'program',
+        request()->routeIs($pfx . '.program.detail') => 'program',
+        request()->routeIs('bk.program.kelola')      => 'program',
         request()->routeIs($pfx . '.berita')         => 'berita',
         request()->routeIs($pfx . '.berita.detail')  => 'berita',
         request()->routeIs('bk.kelas')               => 'kelas',
-        request()->routeIs('bk.agenda.verifikasi')   => 'kelas',
+        request()->routeIs('bk.program.acc')         => 'program',
         request()->routeIs($pfx . '.chat')           => 'chat',
         request()->routeIs('chat.room')              => 'chat',
         request()->routeIs($pfx . '.profile')        => 'profile',
@@ -68,6 +69,9 @@
                     : 'background:#ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.12)' }}">
                 <i class="fa-solid fa-comments text-[22px]"
                    style="color:{{ $current === 'chat' ? '#ffffff' : '#94a3b8' }}"></i>
+                <span data-chat-badge
+                        class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-blue-700 text-white text-[10px] leading-[18px] text-center font-bold shadow">
+                </span>
             </span>
             {{-- Label --}}
             <span class="mt-9 text-[10px] leading-none truncate
@@ -84,6 +88,11 @@
                 <i class="fa-solid {{ $l['icon'] }} text-xl
                           {{ $current === $l['key'] ? 'scale-110' : '' }}"
                    style="{{ $current === $l['key'] ? 'color:#0F4C9A' : '' }}"></i>
+                @if($l['key'] === 'program' && $isGuru)
+                <span data-program-badge
+                        class="hidden absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-blue-700 text-white text-[10px] leading-[18px] text-center font-bold shadow">
+                </span>
+                @endif
         
             </span>
             <span class="text-[10px] leading-none truncate
@@ -95,4 +104,69 @@
         @endif
         @endforeach
     </nav>
+
+<script>
+(() => {
+    const chatBadgeEls = Array.from(document.querySelectorAll('[data-chat-badge]'));
+    const programBadgeEls = Array.from(document.querySelectorAll('[data-program-badge]'));
+    const chatUrl = @json(route('chat.conversations'));
+    const programUrl = @json($isGuru ? route('program.booking.pendingCount') : null);
+
+    const setBadge = (els, count) => {
+        const n = Number(count) || 0;
+        const txt = n > 99 ? '99+' : String(n);
+        els.forEach(el => {
+            if (!el) return;
+            if (n <= 0) {
+                el.classList.add('hidden');
+                el.textContent = '';
+            } else {
+                el.classList.remove('hidden');
+                el.textContent = txt;
+            }
+        });
+    };
+
+    async function refreshChatBadge() {
+        try {
+            const res = await fetch(chatUrl, {
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' },
+            });
+            if (!res.ok) return;
+            const convs = await res.json();
+            const totalUnread = Array.isArray(convs)
+                ? convs.reduce((sum, c) => sum + (Number(c?.unread) || 0), 0)
+                : 0;
+            setBadge(chatBadgeEls, totalUnread);
+        } catch (_) {}
+    }
+
+    async function refreshProgramBadge() {
+        if (!programUrl || programBadgeEls.length === 0) return;
+        try {
+            const res = await fetch(programUrl, {
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' },
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            const programCount = Number(data?.count ?? data?.pendingCount) || 0;
+            setBadge(programBadgeEls, programCount);
+        } catch (_) {}
+    }
+
+    refreshChatBadge();
+    refreshProgramBadge();
+    setInterval(() => {
+        refreshChatBadge();
+        refreshProgramBadge();
+    }, 10000);
+
+    // Room pages post this event to parent; use it for snappier badge refresh.
+    window.addEventListener('message', (e) => {
+        if (e?.data === 'chat-new-message') refreshChatBadge();
+    });
+})();
+</script>
 

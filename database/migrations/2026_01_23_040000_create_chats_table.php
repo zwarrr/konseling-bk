@@ -33,11 +33,11 @@ return new class extends Migration
 
             // Sender — account_id string (e.g. SSWAI01, BK01)
             $table->string('sender_account_id', 20)->nullable();
-            $table->string('sender_role', 20)->nullable();   // 'guru' | 'siswa' | 'user'
+            $table->enum('sender_role', ['guru', 'siswa', 'user', 'system'])->nullable(); // guru|siswa|user|system
 
             // Payload
             $table->text('message');
-            $table->string('message_type', 30)->default('text'); // text|image|video|document
+            $table->enum('message_type', ['text', 'image', 'video', 'document'])->default('text'); // text|image|video|document
             $table->string('attachment')->nullable();             // storage path
 
             // Read-receipt — 'unread' → 'read' (blue tick)

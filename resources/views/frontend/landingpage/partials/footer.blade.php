@@ -1,11 +1,11 @@
 <footer class="bg-blue-900 text-white">
-  <div class="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-4 gap-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14 grid grid-cols-1 md:grid-cols-4 gap-10">
 
     {{-- Brand --}}
     <div class="md:col-span-2">
       <div class="flex items-center gap-3 mb-4">
         <img src="{{ asset('favicon.png') }}" alt="Logo" class="w-10 h-10 rounded-xl">
-        <span class="text-2xl font-bold text-white">BIKASI</span>
+        <span class="text-2xl font-bold text-white">E-Konseling</span>
       </div>
       <p class="text-blue-200 text-sm leading-relaxed max-w-sm">
         Layanan Bimbingan dan Konseling yang profesional untuk mendukung tumbuh kembang siswa secara akademik, karier, sosial, dan pribadi.
@@ -56,6 +56,8 @@
   </div>
 
   <div class="border-t border-white/10 py-5 text-center text-blue-300 text-xs">
-    &copy; {{ date('Y') }} BIKASI. Seluruh hak cipta dilindungi.
+    &copy; {{ date('Y') }}
+    <a href="{{ route('landing.copyright_team') }}" class="text-white font-semibold hover:underline underline-offset-2 transition">Selenium</a>.
+    Seluruh hak cipta dilindungi.
   </div>
 </footer>

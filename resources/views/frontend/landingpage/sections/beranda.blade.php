@@ -12,11 +12,11 @@
   {{-- Gradient fade bottom: white bottom → transparent top --}}
   <div class="absolute bottom-0 left-0 right-0 h-40 pointer-events-none" style="background:linear-gradient(to top, #ffffff 0%, transparent 100%);"></div>
 
-  <div class="relative max-w-7xl mx-auto px-6 py-32 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 sm:py-24 lg:py-32 grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16 items-center">
 
     {{-- Text --}}
     <div>
-      <h1 class="text-4xl md:text-5xl font-extrabold leading-tight mb-6 text-gray-900">
+      <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight mb-6 text-gray-900">
         {!! nl2br(e($homeData->title)) !!}<br>
         <span style="color:#0F4C9A">{{ $homeData->subtitle }}</span>
       </h1>
@@ -25,13 +25,13 @@
         {{ $homeData->description }}
       </p>
 
-      <div class="flex flex-wrap gap-4">
+      <div class="flex flex-col sm:flex-row sm:flex-wrap gap-4">
         <a href="{{ route('auth.onboarding') }}" data-splash-nav
-           class="btn-raise inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-bold px-8 py-4 rounded-full shadow-xl shadow-blue-700/40 transition">
+           class="btn-raise w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-bold px-8 py-4 rounded-full shadow-xl shadow-blue-700/40 transition">
           <i class="fa-solid fa-comments"></i> Mulai Konseling
         </a>
         <a href="#tentang"
-           class="btn-raise inline-flex items-center gap-2 bg-blue-50 hover:bg-blue-100 border border-blue-100 text-blue-700 font-semibold px-8 py-4 rounded-full transition">
+           class="btn-raise w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 border border-blue-100 text-blue-700 font-semibold px-8 py-4 rounded-full transition">
           Pelajari Lebih <i class="fa-solid fa-arrow-down text-xs"></i>
         </a>
       </div>
@@ -41,7 +41,7 @@
     <div class="hidden md:flex justify-center items-center">
       <img
         src="{{ $homeData->img ?: asset('assets/img/iPhone.png') }}"
-        alt="BIKASI Mobile App"
+        alt="E-Konseling Mobile App"
         class="float w-[400px] xl:w-[460px] drop-shadow-2xl select-none pointer-events-none"
         draggable="false"
       >

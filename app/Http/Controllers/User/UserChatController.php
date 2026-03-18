@@ -6,9 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\BkAccount;
 use App\Models\Chat;
 use App\Models\Classroom;
-use App\Models\ClassroomJoinRequest;
-use App\Models\ClassroomMessage;
-use App\Models\ClassroomReadReceipt;
+use App\Models\GroupMessage;
+use App\Models\GroupReadReceipt;
 use App\Models\SiswaAccount;
 use App\Models\UserHiddenRoom;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +17,9 @@ use Illuminate\View\View;
 
 class UserChatController extends Controller
 {
+    private const SYSTEM_GURU_ACCOUNT_ID = 'EKON';
+    private const SYSTEM_NAME = 'E-Konseling';
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     /**
@@ -62,6 +64,10 @@ class UserChatController extends Controller
     /** Resolve a display name from an account_id (searches BK then siswa). */
     private function nameByAccountId(string $accountId): string
     {
+        if ($accountId === self::SYSTEM_GURU_ACCOUNT_ID) {
+            return self::SYSTEM_NAME;
+        }
+
         return BkAccount::where('account_id', $accountId)->value('name')
             ?? SiswaAccount::where('account_id', $accountId)->value('name')
             ?? '?';
@@ -77,6 +83,8 @@ class UserChatController extends Controller
         $authUser = auth()->user();
         $role     = $authUser->role ?? 'user';
         $pfx      = $role === 'guru' ? 'bk' : 'siswa';
+
+        $filter = request()->query('filter');
 
         if ($role !== 'guru') {
             return redirect()->route('siswa.chat');
@@ -113,22 +121,59 @@ class UserChatController extends Controller
         })->sortByDesc(fn($c) => $c['last_time']?->timestamp ?? 0)->values();
 
         // ── Append kelas (group chat) rooms — one entry per active group ─
+        // Pre-fetch program classroom IDs owned by this BK (no activeGroups required)
+        $programClassroomIds = \App\Models\Program::whereNotNull('classroom_id')
+            ->whereHas('classroom', fn($q) => $q->where('bk_account_id', $authUser->account_id))
+            ->pluck('classroom_id');
+
         $kelasConvs = Classroom::where('bk_account_id', $authUser->account_id)
             ->with('activeGroups')
-            ->orderBy('name')->get()->flatMap(function ($kelas) use ($authUser) {
-            $last     = ClassroomMessage::where('classroom_id', $kelas->id)->latest()->first();
-            $receipt  = ClassroomReadReceipt::where('user_id', $authUser->id)
+            ->orderBy('name')->get()->flatMap(function ($kelas) use ($authUser, $programClassroomIds) {
+            $last     = GroupMessage::where('classroom_id', $kelas->id)->latest()->first();
+            $receipt  = GroupReadReceipt::where('user_id', $authUser->id)
                             ->where('classroom_id', $kelas->id)->first();
             $lastRead = $receipt?->last_read_message_id ?? 0;
-            $unread   = ClassroomMessage::where('classroom_id', $kelas->id)
+            $unread   = GroupMessage::where('classroom_id', $kelas->id)
                             ->where('id', '>', $lastRead)
-                            ->where('user_id', '!=', $authUser->id)
+                            ->where(function($q) use ($authUser) {
+                                $q->where('user_id', '!=', (int) $authUser->id)
+                                  ->orWhere('user_type', '!=', 'bk');
+                            })
                             ->count();
+            $lastIsMine = $last && (int)$last->user_id === (int)$authUser->id && $last->user_type === 'bk';
+            $lastStatus = null;
+            if ($lastIsMine) {
+                $chkOther = GroupReadReceipt::where('classroom_id', $kelas->id)
+                    ->where('user_id', '!=', $authUser->id)
+                    ->max('last_read_message_id') ?? 0;
+                $lastStatus = ($last->id <= $chkOther) ? 'read' : null;
+            }
             if ($kelas->activeGroups->isEmpty()) {
-                // Ungrouped classrooms (including agenda classrooms) are not shown in chat-list
+                // Show program classrooms even without active sub-groups
+                if ($programClassroomIds->contains($kelas->id)) {
+                    return [[
+                        'type'               => 'classroom',
+                        'id'                 => $kelas->id,
+                        'kelas_id'           => $kelas->id,
+                        'room_key'           => 'kelas:' . $kelas->id,
+                        'href'               => route('kelas.chat.room', $kelas->slug),
+                        'name'               => $kelas->name,
+                        'group_name'         => null,
+                        'avatar_color'       => '#0F4C9A',
+                        'avatar_initial'     => strtoupper(substr($kelas->name, 0, 1)),
+                        'is_classroom'       => true,
+                        'last_message'       => $last?->message,
+                        'last_message_type'  => $last?->message_type ?? 'text',
+                        'last_time'          => $last?->created_at,
+                        'last_is_mine'       => $last ? ((int)$last->user_id === (int)$authUser->id && $last->user_type === 'bk') : false,
+                        'last_status'        => $lastStatus,
+                        'unread'             => $unread,
+                        'has_room'           => true,
+                    ]];
+                }
                 return [];
             }
-            return $kelas->activeGroups->map(function ($group) use ($kelas, $last, $unread) {
+            return $kelas->activeGroups->map(function ($group) use ($kelas, $last, $lastStatus, $unread, $authUser) {
                 return [
                     'type'            => 'classroom',
                     'id'              => 'kelas-' . $kelas->id . '-grp-' . $group->id,
@@ -143,8 +188,8 @@ class UserChatController extends Controller
                     'last_message'       => $last?->message,
                     'last_message_type'  => $last?->message_type ?? 'text',
                     'last_time'          => $last?->created_at,
-                    'last_is_mine'       => false,
-                    'last_status'        => null,
+                    'last_is_mine'       => $last ? ((int)$last->user_id === (int)$authUser->id && $last->user_type === 'bk') : false,
+                    'last_status'        => $lastStatus,
                     'unread'             => $unread,
                     'has_room'           => true,
                 ];
@@ -157,10 +202,18 @@ class UserChatController extends Controller
             ->sortByDesc(fn($c) => $c['last_time']?->timestamp ?? 0)
             ->values();
 
+        $groupsCount = $conversations->filter(fn($c) => !empty($c['is_classroom']))->count();
+        $activeFilter = ($filter === 'groups') ? 'groups' : 'all';
+        if ($activeFilter === 'groups') {
+            $conversations = $conversations->filter(fn($c) => !empty($c['is_classroom']))->values();
+        }
+
         return view('users.sections.chat-list', [
             'mode'          => 'guru',
             'pfx'           => $pfx,
             'conversations' => $conversations,
+            'activeFilter'  => $activeFilter,
+            'groupsCount'   => $groupsCount,
         ]);
     }
 
@@ -172,6 +225,8 @@ class UserChatController extends Controller
     {
         $authUser = auth()->user();
         abort_unless(($authUser->role ?? 'siswa') !== 'guru', 403);
+
+        $filter = request()->query('filter');
 
         $gurus = BkAccount::orderBy('name')->get();
 
@@ -210,25 +265,66 @@ class UserChatController extends Controller
             ];
         })->filter(fn($c) => $c['has_room'])->sortByDesc(fn($c) => $c['last_time']?->timestamp ?? 0)->values();
 
+        // ── Append E-Konseling system room (read-only) if it exists ─────────
+        $sysRoomId = Chat::where('siswa_account_id', $authUser->account_id)
+            ->where('guru_account_id', self::SYSTEM_GURU_ACCOUNT_ID)
+            ->value('room_id');
+        if ($sysRoomId) {
+            $last   = Chat::where('room_id', $sysRoomId)->latest()->first();
+            $unread = Chat::where('room_id', $sysRoomId)
+                ->where('sender_account_id', '!=', $authUser->account_id)
+                ->where('status', 'unread')
+                ->count();
+
+            $conversations = $conversations->push([
+                'type'              => 'direct',
+                'id'                => $sysRoomId,
+                'room_key'          => $sysRoomId,
+                'href'              => route('chat.room', $sysRoomId),
+                'name'              => self::SYSTEM_NAME,
+                'avatar_initial'    => 'E',
+                'avatar_color'      => '#0F4C9A',
+                'last_message'      => $last?->message,
+                'last_message_type' => $last?->message_type ?? 'text',
+                'last_time'         => $last?->created_at,
+                'last_is_mine'      => $last ? ($last->sender_account_id === $authUser->account_id) : false,
+                'last_status'       => $last?->status,
+                'unread'            => $unread,
+                'has_room'          => true,
+            ])->sortByDesc(fn($c) => $c['last_time']?->timestamp ?? 0)->values();
+        }
+
         // ── Append kelas room (if siswa is in a kelas with an active group containing their absen) ─
         if ($authUser->classroom_id) {
             $kelas            = Classroom::find($authUser->classroom_id);
             $siswaAbsen       = $authUser->absen;
-            $activeGroup      = $kelas && $siswaAbsen ? \App\Models\ClassroomGroup::where('classroom_id', $authUser->classroom_id)
+            $activeGroup      = $kelas && $siswaAbsen ? \App\Models\GroupSection::where('classroom_id', $authUser->classroom_id)
                 ->where('is_active', true)
                 ->where('absen_from', '<=', $siswaAbsen)
                 ->where('absen_to',   '>=', $siswaAbsen)
                 ->first() : null;
             $inActiveGroup    = (bool) $activeGroup;
             if ($kelas && $inActiveGroup) {
-                $last     = ClassroomMessage::where('classroom_id', $kelas->id)->latest()->first();
-                $receipt  = ClassroomReadReceipt::where('user_id', $authUser->id)
+                $last     = GroupMessage::where('classroom_id', $kelas->id)->latest()->first();
+                $receipt  = GroupReadReceipt::where('user_id', $authUser->id)
                                 ->where('classroom_id', $kelas->id)->first();
                 $lastRead = $receipt?->last_read_message_id ?? 0;
-                $unread   = ClassroomMessage::where('classroom_id', $kelas->id)
-                                ->where('id', '>', $lastRead)
-                                ->where('user_id', '!=', $authUser->id)
+                $cutoff   = \App\Models\GroupMemberCutoff::getCutoff($authUser->id, $kelas->id);
+                $unread   = GroupMessage::where('classroom_id', $kelas->id)
+                                ->where('id', '>', max($lastRead, $cutoff))
+                                ->where(function($q) use ($authUser) {
+                                    $q->where('user_id', '!=', (int) $authUser->id)
+                                      ->orWhere('user_type', '!=', 'siswa');
+                                })
                                 ->count();
+                $lastIsMine = $last && (int)$last->user_id === (int)$authUser->id && $last->user_type === 'siswa';
+                $lastStatus = null;
+                if ($lastIsMine) {
+                    $chkOther = GroupReadReceipt::where('classroom_id', $kelas->id)
+                        ->where('user_id', '!=', $authUser->id)
+                        ->max('last_read_message_id') ?? 0;
+                    $lastStatus = ($last->id <= $chkOther) ? 'read' : null;
+                }
                 $kelasConv = [
                     'type'            => 'classroom',
                     'id'              => $kelas->id,
@@ -242,8 +338,8 @@ class UserChatController extends Controller
                     'last_message'       => $last?->message,
                     'last_message_type'  => $last?->message_type ?? 'text',
                     'last_time'          => $last?->created_at,
-                    'last_is_mine'       => $last ? ($last->user_id === $authUser->id) : false,
-                    'last_status'        => null,
+                    'last_is_mine'       => $last ? ((int)$last->user_id === (int)$authUser->id && $last->user_type === 'siswa') : false,
+                    'last_status'        => $lastStatus,
                     'unread'             => $unread,
                     'has_room'           => true,
                 ];
@@ -253,47 +349,93 @@ class UserChatController extends Controller
             }
         }
 
-        // Agenda classrooms are not shown in chat-list; accessed via agenda detail page.
+        $programClassroomIds = [];
+
+        // ── Append ex-member classrooms (left/removed) ──
+        // We rely on GroupMemberCutoff.left_cutoff_message_id as join-history signal.
+        $exCutoffs = \App\Models\GroupMemberCutoff::where('user_id', $authUser->id)
+            ->whereNotNull('left_cutoff_message_id')
+            ->get(['classroom_id', 'cutoff_message_id', 'left_cutoff_message_id']);
+
+        foreach ($exCutoffs as $co) {
+            $cid = (string) ($co->classroom_id ?? '');
+            if ($cid === '') continue;
+            if ($authUser->classroom_id && (string) $authUser->classroom_id === $cid) continue;
+            if (in_array($cid, $programClassroomIds, true)) continue;
+
+            $kelas = Classroom::find($cid);
+            if (!$kelas) continue;
+
+            $aCutoff = (int) ($co->cutoff_message_id ?? 0);
+            $aLeave  = (int) ($co->left_cutoff_message_id ?? 0);
+            if ($aLeave <= 0) continue;
+
+            $last = GroupMessage::where('classroom_id', $kelas->id)
+                ->when($aCutoff > 0, fn($q) => $q->where('id', '>', $aCutoff))
+                ->where('id', '<=', $aLeave)
+                ->latest('id')
+                ->first();
+
+            $receipt  = GroupReadReceipt::where('user_id', $authUser->id)
+                ->where('classroom_id', $kelas->id)->first();
+            $lastRead = $receipt?->last_read_message_id ?? 0;
+            $unread   = GroupMessage::where('classroom_id', $kelas->id)
+                ->where('id', '>', max($lastRead, $aCutoff))
+                ->where('id', '<=', $aLeave)
+                ->where(function($q) use ($authUser) {
+                    $q->where('user_id', '!=', (int) $authUser->id)
+                      ->orWhere('user_type', '!=', 'siswa');
+                })
+                ->count();
+
+            $lastIsMine = $last && (int) $last->user_id === (int) $authUser->id && $last->user_type === 'siswa';
+            $lastStatus = null;
+            if ($lastIsMine) {
+                $chkOther = GroupReadReceipt::where('classroom_id', $kelas->id)
+                    ->where('user_id', '!=', $authUser->id)
+                    ->max('last_read_message_id') ?? 0;
+                $lastStatus = ($last->id <= $chkOther) ? 'read' : null;
+            }
+
+            $conversations = $conversations->push([
+                'type'               => 'classroom',
+                'id'                 => $kelas->id,
+                'kelas_id'           => $kelas->id,
+                'room_key'           => 'kelas:' . $kelas->id,
+                'href'               => route('kelas.chat.room', $kelas->slug),
+                'name'               => $kelas->name,
+                'group_name'         => null,
+                'avatar_color'       => '#0F4C9A',
+                'avatar_initial'     => strtoupper(substr($kelas->name, 0, 1)),
+                'is_classroom'       => true,
+                'last_message'       => $last?->message,
+                'last_message_type'  => $last?->message_type ?? 'text',
+                'last_time'          => $last?->created_at,
+                'last_is_mine'       => $last ? ((int) $last->user_id === (int) $authUser->id && $last->user_type === 'siswa') : false,
+                'last_status'        => $lastStatus,
+                'unread'             => $unread,
+                'is_ex_member'       => true,
+                'has_room'           => true,
+            ]);
+        }
+        $conversations = $conversations->sortByDesc(fn($c) => $c['last_time']?->timestamp ?? 0)->values();
 
         // ── Filter hidden rooms ─────────────────────────────────────────────
         $hiddenKeys    = UserHiddenRoom::hiddenKeysForUser($authUser->id);
         $conversations = $conversations->filter(fn($c) => !in_array($c['room_key'] ?? '', $hiddenKeys))->values();
 
-        // ── Join kelas modal (via ?join=token) ─────────────────────────────
-        $joinKelas      = null;
-        $joinToken      = request()->query('join');
-        $joinPending    = (bool) request()->query('pending', false);
-        $joinMembers    = collect();
-        $kelasJoinedId  = request()->query('kelas_joined');
-        if ($joinToken) {
-            $foundKelas = Classroom::where('join_token', $joinToken)->first();
-            if ($foundKelas) {
-                // Already a member — redirect straight to chat room
-                if ($authUser->classroom_id == $foundKelas->id) {
-                    return redirect()->route('kelas.chat.room', $foundKelas->slug);
-                }
-                $joinKelas   = $foundKelas;
-                $joinMembers = $foundKelas->students()->orderBy('name')->get(['name', 'login_id', 'account_id']);
-
-                // Check if there's already an active pending request
-                if (!$joinPending) {
-                    $joinPending = \App\Models\ClassroomJoinRequest::where('classroom_id', $foundKelas->id)
-                        ->where('user_id', $authUser->id)
-                        ->where('status', 'pending')
-                        ->exists();
-                }
-            }
+        $groupsCount = $conversations->filter(fn($c) => !empty($c['is_classroom']))->count();
+        $activeFilter = ($filter === 'groups') ? 'groups' : 'all';
+        if ($activeFilter === 'groups') {
+            $conversations = $conversations->filter(fn($c) => !empty($c['is_classroom']))->values();
         }
 
         return view('users.sections.chat-list', [
             'mode'          => 'siswa',
             'pfx'           => 'siswa',
             'conversations' => $conversations,
-            'joinKelas'     => $joinKelas,
-            'joinToken'     => $joinToken,
-            'joinPending'   => $joinPending,
-            'joinMembers'   => $joinMembers,
-            'kelasJoinedId' => $kelasJoinedId ?? null,
+            'activeFilter'  => $activeFilter,
+            'groupsCount'   => $groupsCount,
         ]);
     }
 
@@ -332,7 +474,9 @@ class UserChatController extends Controller
 
         if ($row) {
             $siswa = SiswaAccount::where('account_id', $row->siswa_account_id)->first();
-            $guru  = BkAccount::where('account_id',  $row->guru_account_id)->first();
+            $guru  = $row->guru_account_id === self::SYSTEM_GURU_ACCOUNT_ID
+                ? (object) ['account_id' => self::SYSTEM_GURU_ACCOUNT_ID, 'name' => self::SYSTEM_NAME]
+                : BkAccount::where('account_id',  $row->guru_account_id)->first();
         } else {
             // Brand-new room (no messages yet) — use ?guru= query param
             $guruAccountId = $request->query('guru', '');
@@ -344,6 +488,9 @@ class UserChatController extends Controller
                 $siswa = null;
             } else {
                 // Siswa: ?guru=GURUX_ACCOUNTID
+                if ($guruAccountId === self::SYSTEM_GURU_ACCOUNT_ID) {
+                    abort(403, 'Ruang chat tidak valid.');
+                }
                 $guru  = BkAccount::where('account_id', $guruAccountId)->firstOrFail();
                 $siswa = $authUser;
                 abort_unless($roomId === $this->buildRoomId($siswa, $guru), 403);
@@ -434,6 +581,7 @@ class UserChatController extends Controller
     {
         $authUser = auth()->user();
         $role     = $authUser->role ?? 'user';
+        $filter   = $request->query('filter');
 
         if ($role === 'guru') {
             $roomRows = Chat::where('guru_account_id', $authUser->account_id)
@@ -460,22 +608,55 @@ class UserChatController extends Controller
             });
 
         // ── convJson: kelas for BK — one entry per active group ────────────
+        $programClassroomIds = \App\Models\Program::whereNotNull('classroom_id')
+            ->whereHas('classroom', fn($q) => $q->where('bk_account_id', $authUser->account_id))
+            ->pluck('classroom_id');
+
         $kelasConvs = Classroom::where('bk_account_id', $authUser->account_id)
             ->with('activeGroups')
-            ->orderBy('name')->get()->flatMap(function ($kelas) use ($authUser) {
-                $last     = ClassroomMessage::where('classroom_id', $kelas->id)->latest()->first();
-                $receipt  = ClassroomReadReceipt::where('user_id', $authUser->id)
+            ->orderBy('name')->get()->flatMap(function ($kelas) use ($authUser, $programClassroomIds) {
+                $last     = GroupMessage::where('classroom_id', $kelas->id)->latest()->first();
+                $receipt  = GroupReadReceipt::where('user_id', $authUser->id)
                                 ->where('classroom_id', $kelas->id)->first();
                 $lastRead = $receipt?->last_read_message_id ?? 0;
-                $unread   = ClassroomMessage::where('classroom_id', $kelas->id)
+                $unread   = GroupMessage::where('classroom_id', $kelas->id)
                                 ->where('id', '>', $lastRead)
-                                ->where('user_id', '!=', $authUser->id)
+                                ->where(function($q) use ($authUser) {
+                                    $q->where('user_id', '!=', (int) $authUser->id)
+                                      ->orWhere('user_type', '!=', 'bk');
+                                })
                                 ->count();
+                $lastIsMine = $last && (int)$last->user_id === (int)$authUser->id && $last->user_type === 'bk';
+                $lastStatus = null;
+                if ($lastIsMine) {
+                    $chkOther = GroupReadReceipt::where('classroom_id', $kelas->id)
+                        ->where('user_id', '!=', $authUser->id)
+                        ->max('last_read_message_id') ?? 0;
+                    $lastStatus = ($last->id <= $chkOther) ? 'read' : null;
+                }
                 if ($kelas->activeGroups->isEmpty()) {
-                    // Ungrouped classrooms (including agenda classrooms) are not shown in chat-list
+                    if ($programClassroomIds->contains($kelas->id)) {
+                        return [[
+                            'id'                => $kelas->id,
+                            'kelas_id'          => $kelas->id,
+                            'room_key'          => 'kelas:' . $kelas->id,
+                            'name'              => $kelas->name,
+                            'group_name'        => null,
+                            'avatar_initial'    => strtoupper(substr($kelas->name, 0, 1)),
+                            'href'              => route('kelas.chat.room', $kelas->slug),
+                            'is_classroom'      => true,
+                            'last_message'      => $last?->message,
+                            'last_message_type' => $last?->message_type ?? 'text',
+                            'last_time_ts'      => $last?->created_at?->timestamp,
+                            'last_is_mine'      => $last ? ((int)$last->user_id === (int)$authUser->id && $last->user_type === 'bk') : false,
+                            'last_status'       => $lastStatus,
+                            'unread'            => $unread,
+                            'members_url'       => route('kelas.chat.members', $kelas->id),
+                        ]];
+                    }
                     return [];
                 }
-                return $kelas->activeGroups->map(function ($group) use ($kelas, $last, $unread, $authUser) {
+                return $kelas->activeGroups->map(function ($group) use ($kelas, $last, $lastStatus, $unread, $authUser) {
                     return [
                         'id'                => 'kelas-' . $kelas->id . '-grp-' . $group->id,
                         'kelas_id'          => $kelas->id,
@@ -488,8 +669,8 @@ class UserChatController extends Controller
                         'last_message'      => $last?->message,
                         'last_message_type' => $last?->message_type ?? 'text',
                         'last_time_ts'      => $last?->created_at?->timestamp,
-                        'last_is_mine'      => $last ? ($last->user_id === $authUser->id) : false,
-                        'last_status'       => null,
+                        'last_is_mine'      => $last ? ((int)$last->user_id === (int)$authUser->id && $last->user_type === 'bk') : false,
+                        'last_status'       => $lastStatus,
                         'unread'            => $unread,
                         'members_url'       => route('kelas.chat.members', $kelas->id),
                     ];
@@ -531,24 +712,63 @@ class UserChatController extends Controller
                 ];
             })->filter()->values();
 
+            // Append E-Konseling system room if it exists
+            $sysRoomId = ($existingRows[self::SYSTEM_GURU_ACCOUNT_ID] ?? null)?->room_id
+                ?? Chat::where('siswa_account_id', $authUser->account_id)
+                    ->where('guru_account_id', self::SYSTEM_GURU_ACCOUNT_ID)
+                    ->value('room_id');
+            if ($sysRoomId) {
+                $last   = Chat::where('room_id', $sysRoomId)->latest()->first();
+                $unread = Chat::where('room_id', $sysRoomId)
+                    ->where('sender_account_id', '!=', $authUser->account_id)
+                    ->where('status', 'unread')
+                    ->count();
+
+                $conversations = $conversations->push([
+                    'id'                => $sysRoomId,
+                    'room_key'          => $sysRoomId,
+                    'name'              => self::SYSTEM_NAME,
+                    'avatar_initial'    => 'E',
+                    'href'              => route('chat.room', $sysRoomId),
+                    'last_message'      => $last?->message,
+                    'last_message_type' => $last?->message_type ?? 'text',
+                    'last_time_ts'      => $last?->created_at?->timestamp,
+                    'last_is_mine'      => $last ? ($last->sender_account_id === $authUser->account_id) : false,
+                    'last_status'       => $last?->status,
+                    'unread'            => $unread,
+                ]);
+            }
+
             // Include kelas (classroom) conversation if siswa is in one AND absen in active group
             if ($authUser->classroom_id) {
                 $siswaAbsen  = $authUser->absen;
-                $nisInActive = $siswaAbsen && \App\Models\ClassroomGroup::where('classroom_id', $authUser->classroom_id)
+                $nisInActive = $siswaAbsen && \App\Models\GroupSection::where('classroom_id', $authUser->classroom_id)
                     ->where('is_active', true)
                     ->where('absen_from', '<=', $siswaAbsen)
                     ->where('absen_to',   '>=', $siswaAbsen)
                     ->exists();
                 if ($nisInActive) {
                 $kelas    = Classroom::find($authUser->classroom_id);
-                $kelasLast = ClassroomMessage::where('classroom_id', $authUser->classroom_id)->latest()->first();
-                $receipt  = ClassroomReadReceipt::where('user_id', $authUser->id)
+                $kelasLast = GroupMessage::where('classroom_id', $authUser->classroom_id)->latest()->first();
+                $receipt  = GroupReadReceipt::where('user_id', $authUser->id)
                                 ->where('classroom_id', $authUser->classroom_id)->first();
                 $lastRead = $receipt?->last_read_message_id ?? 0;
-                $kelasUnread = ClassroomMessage::where('classroom_id', $authUser->classroom_id)
-                                ->where('id', '>', $lastRead)
-                                ->where('user_id', '!=', $authUser->id)
+                $kCutoff  = \App\Models\GroupMemberCutoff::getCutoff($authUser->id, $authUser->classroom_id);
+                $kelasUnread = GroupMessage::where('classroom_id', $authUser->classroom_id)
+                                ->where('id', '>', max($lastRead, $kCutoff))
+                                ->where(function($q) use ($authUser) {
+                                    $q->where('user_id', '!=', (int) $authUser->id)
+                                      ->orWhere('user_type', '!=', 'siswa');
+                                })
                                 ->count();
+                $kelasIsMine = $kelasLast && (int)$kelasLast->user_id === (int)$authUser->id && $kelasLast->user_type === 'siswa';
+                $kelasStatus = null;
+                if ($kelasIsMine) {
+                    $chkKelas = GroupReadReceipt::where('classroom_id', $authUser->classroom_id)
+                        ->where('user_id', '!=', $authUser->id)
+                        ->max('last_read_message_id') ?? 0;
+                    $kelasStatus = ($kelasLast->id <= $chkKelas) ? 'read' : null;
+                }
                 $conversations = $conversations->push([
                     'id'                => $authUser->classroom_id,
                     'room_key'          => 'kelas:' . $authUser->classroom_id,
@@ -559,19 +779,24 @@ class UserChatController extends Controller
                     'last_message'      => $kelasLast?->message,
                     'last_message_type' => $kelasLast?->message_type ?? 'text',
                     'last_time_ts'      => $kelasLast?->created_at?->timestamp,
-                    'last_is_mine'      => $kelasLast ? ($kelasLast->user_id === $authUser->id) : false,
-                    'last_status'       => null,
+                    'last_is_mine'      => $kelasLast ? ((int)$kelasLast->user_id === (int)$authUser->id && $kelasLast->user_type === 'siswa') : false,
+                    'last_status'       => $kelasStatus,
                     'unread'            => $kelasUnread,
                     'members_url'       => route('kelas.chat.members', $authUser->classroom_id),
                 ]);
                 }
             }
 
-            // Agenda classrooms are not shown in chat-list; accessed via agenda detail page.
+            // Program classrooms are not shown in chat-list.
         }
+        $conversations = $conversations->sortByDesc(fn($c) => $c['last_time_ts'] ?? 0);
 
         $hiddenKeysS = UserHiddenRoom::hiddenKeysForUser($authUser->id);
         $conversations = $conversations->filter(fn($c) => !in_array($c['room_key'] ?? '', $hiddenKeysS));
+
+        if ($filter === 'groups') {
+            $conversations = $conversations->filter(fn($c) => !empty($c['is_classroom']));
+        }
 
         return response()->json($conversations->values());
     }
@@ -603,6 +828,9 @@ class UserChatController extends Controller
 
             $siswaAccountId = $authUser->account_id;
         }
+
+        // System room is read-only
+        abort_if($guruAccountId === self::SYSTEM_GURU_ACCOUNT_ID, 403, 'Chat E-Konseling hanya untuk pesan pengingat dari sistem.');
 
         abort_unless(
             $authUser->account_id === $siswaAccountId ||
@@ -664,6 +892,9 @@ class UserChatController extends Controller
             $siswaAccountId = $authUser->account_id;
         }
 
+        // System room is read-only
+        abort_if($guruAccountId === self::SYSTEM_GURU_ACCOUNT_ID, 403, 'Chat E-Konseling hanya untuk pesan pengingat dari sistem.');
+
         abort_unless(
             $authUser->account_id === $siswaAccountId ||
             $authUser->account_id === $guruAccountId,
@@ -675,14 +906,14 @@ class UserChatController extends Controller
         $type     = str_starts_with($mime, 'image/') ? 'image'
                   : (str_starts_with($mime, 'video/') ? 'video' : 'document');
 
-        // Build custom filename: IMG-BIKASI-YYYYMMDD-XXXX.ext (uppercase)
+        // Build custom filename: IMG-E-KONSELING-YYYYMMDD-XXXX.ext (uppercase)
         $ext      = strtoupper($file->getClientOriginalExtension() ?: 'BIN');
         $rand     = strtoupper(substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 4));
         $dateStr  = now()->format('d-m-y');
         if ($type === 'image') {
-            $newName = "IMG-BIKASI-{$dateStr}-{$rand}.{$ext}";
+            $newName = "IMG-E-KONSELING-{$dateStr}-{$rand}.{$ext}";
         } elseif ($type === 'video') {
-            $newName = "VID-BIKASI-{$dateStr}-{$rand}.{$ext}";
+            $newName = "VID-E-KONSELING-{$dateStr}-{$rand}.{$ext}";
         } else {
             $newName = strtoupper($file->getClientOriginalName());
         }

@@ -5,12 +5,13 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\BkAccount;
 use App\Models\Classroom;
-use App\Models\ClassroomGroup;
-use App\Models\ClassroomJoinRequest;
-use App\Models\ClassroomMessage;
+use App\Models\GroupSection;
+use App\Models\GroupMemberCutoff;
+use App\Models\GroupMessage;
 use App\Models\Kelas;
 use App\Models\SiswaAccount;
 use App\Services\KelasSync;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -32,13 +33,13 @@ class UserKelasController extends Controller
 
         $bkAccountId = auth()->user()->account_id;
 
-        // Exclude agenda classrooms — those are managed via the agenda/verifikasi page
-        $agendaClassroomIds = \App\Models\Agenda::whereNotNull('classroom_id')->pluck('classroom_id');
+        // Exclude program classrooms — those are managed via the program/verifikasi page
+        $programClassroomIds = \App\Models\Program::whereNotNull('classroom_id')->pluck('classroom_id');
 
         $classrooms = Classroom::with('dataKelas')
             ->withCount('students')
             ->where('bk_account_id', $bkAccountId)
-            ->whereNotIn('id', $agendaClassroomIds)
+            ->whereNotIn('id', $programClassroomIds)
             ->orderBy('name')->get();
 
         $totalEnrolled = $classrooms->sum('students_count');
@@ -52,7 +53,7 @@ class UserKelasController extends Controller
     /**
      * Dedicated kelompok management page.
      */
-    public function kelompok(string $id): View
+    public function kelompok(string $id): View|RedirectResponse
     {
         $this->assertGuru();
 
@@ -61,10 +62,10 @@ class UserKelasController extends Controller
             ->findOrFail($id);
         abort_if($kelas->bk_account_id !== auth()->user()->account_id, 403);
 
-        // Agenda classrooms have no absen-based groups — redirect to dedicated page
-        $agenda = \App\Models\Agenda::where('classroom_id', $id)->first();
-        if ($agenda) {
-            return redirect()->route('bk.agenda.grup', $agenda->slug);
+        // Program classrooms are not managed via kelompok UI anymore.
+        $isProgram = \App\Models\Program::where('classroom_id', $id)->exists();
+        if ($isProgram) {
+            return redirect()->route('bk.program')->with('booking_info', 'Grup program dan kegiatan tidak dikelola lagi di menu Kelompok.');
         }
 
         $students = SiswaAccount::where('classroom_id', $id)
@@ -230,51 +231,11 @@ class UserKelasController extends Controller
         $student->update(['classroom_id' => null]);
         Classroom::where('id', $id)->decrement('students_count');
 
-        return response()->json(['ok' => true]);
-    }
-
-    /**
-     * Siswa leaves their own classroom.
-     * POST /api/kelas/{id}/leave
-     */
-    public function leaveKelas(string $id): JsonResponse
-    {
-        $user = auth()->user();
-        abort_if($user->role === 'guru', 403, 'Guru tidak dapat keluar dari kelas.');
-
-        $kelas = Classroom::findOrFail($id);
-
-        // Primary classroom member
-        if ($user->classroom_id == $kelas->id) {
-            $user->update(['classroom_id' => null]);
-            $kelas->decrement('students_count');
-
-            ClassroomMessage::create([
-                'classroom_id' => $kelas->id,
-                'user_id'      => $user->id,
-                'message'      => $user->name . ' keluar dari grup ini',
-                'message_type' => 'system',
-            ]);
-
-            return response()->json(['ok' => true]);
+        // Record leave cutoff so removed siswa won't receive newer chat data.
+        $latestMsgId = (int) (GroupMessage::where('classroom_id', $id)->max('id') ?? 0);
+        if ($latestMsgId > 0) {
+            GroupMemberCutoff::recordLeave((int) $student->id, (string) $id, $latestMsgId);
         }
-
-        // Agenda kelas: member joined via ClassroomJoinRequest
-        $joinReq = ClassroomJoinRequest::where('user_id', $user->id)
-            ->where('classroom_id', $kelas->id)
-            ->where('status', 'approved')
-            ->first();
-
-        abort_unless($joinReq, 403, 'Kamu bukan anggota kelas ini.');
-
-        $joinReq->delete();
-
-        ClassroomMessage::create([
-            'classroom_id' => $kelas->id,
-            'user_id'      => $user->id,
-            'message'      => $user->name . ' keluar dari grup ini',
-            'message_type' => 'system',
-        ]);
 
         return response()->json(['ok' => true]);
     }
@@ -306,9 +267,9 @@ class UserKelasController extends Controller
         $kelas = Classroom::findOrFail($id);
         abort_if($kelas->bk_account_id !== auth()->user()->account_id, 403);
 
-        $isAgenda = \App\Models\Agenda::where('classroom_id', $id)->exists();
+        $isProgram = \App\Models\Program::where('classroom_id', $id)->exists();
 
-        $data = $request->validate($isAgenda
+        $data = $request->validate($isProgram
             ? ['name' => 'required|string|max:100']
             : [
                 'name'       => 'required|string|max:100',
@@ -317,7 +278,7 @@ class UserKelasController extends Controller
             ]
         );
 
-        $group = ClassroomGroup::create([
+        $group = GroupSection::create([
             'classroom_id' => $id,
             'name'         => $data['name'],
             'absen_from'   => $data['absen_from'] ?? null,
@@ -335,7 +296,7 @@ class UserKelasController extends Controller
     public function updateGroup(Request $request, string $id, int $gid): JsonResponse
     {
         $this->assertGuru();
-        $group = ClassroomGroup::where('id', $gid)->where('classroom_id', $id)->firstOrFail();
+        $group = GroupSection::where('id', $gid)->where('classroom_id', $id)->firstOrFail();
         abort_if($group->classroom->bk_account_id !== auth()->user()->account_id, 403);
 
         $data = $request->validate([
@@ -356,7 +317,7 @@ class UserKelasController extends Controller
     public function toggleGroup(string $id, int $gid): JsonResponse
     {
         $this->assertGuru();
-        $group = ClassroomGroup::where('id', $gid)->where('classroom_id', $id)->firstOrFail();
+        $group = GroupSection::where('id', $gid)->where('classroom_id', $id)->firstOrFail();
         abort_if($group->classroom->bk_account_id !== auth()->user()->account_id, 403);
 
         $group->update(['is_active' => !$group->is_active]);
@@ -371,7 +332,7 @@ class UserKelasController extends Controller
     public function destroyGroup(string $id, int $gid): JsonResponse
     {
         $this->assertGuru();
-        $group = ClassroomGroup::where('id', $gid)->where('classroom_id', $id)->firstOrFail();
+        $group = GroupSection::where('id', $gid)->where('classroom_id', $id)->firstOrFail();
         abort_if($group->classroom->bk_account_id !== auth()->user()->account_id, 403);
 
         $group->delete();

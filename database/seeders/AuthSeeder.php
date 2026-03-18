@@ -4,13 +4,11 @@ namespace Database\Seeders;
 
 use App\Models\AdminAccount;
 use App\Models\BkAccount;
-use App\Models\Chat;
 use App\Models\Classroom;
 use App\Models\Kelas;
 use App\Models\SiswaAccount;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 /**
  * Seed akun untuk login:
@@ -80,7 +78,6 @@ class AuthSeeder extends Seeder
         );
 
         // ── Classrooms (grup chat per kelas) ──────────────────────────────
-        // firstOrCreate so join_token is never regenerated on re-seed
         $classroom1 = Classroom::where('name', 'XII RPL')->first();
         if (!$classroom1) {
             $classroom1 = new Classroom([
@@ -89,7 +86,6 @@ class AuthSeeder extends Seeder
                 'bk_account_id' => 'BK01',
                 'class_id'      => $kelas1->id,
                 'description'   => 'Grup kelas XII RPL',
-                'join_token'    => Str::random(12),
             ]);
             $classroom1->save();
         } else {
@@ -104,7 +100,6 @@ class AuthSeeder extends Seeder
                 'bk_account_id' => 'BK02',
                 'class_id'      => $kelas2->id,
                 'description'   => 'Grup kelas XII IPA',
-                'join_token'    => Str::random(12),
             ]);
             $classroom2->save();
         } else {
@@ -153,24 +148,5 @@ class AuthSeeder extends Seeder
                 'must_change_password' => true,
             ]
         );
-
-        // ── Contoh pesan chat awal (agar list chat BK tidak kosong) ───────
-        if ($bk1 && $siswa1) {
-            $si     = strtoupper(str_pad(substr(preg_replace('/[^a-zA-Z]/', '', $siswa1->name), 0, 2), 2, 'X'));
-            $gi     = strtoupper(str_pad(substr(preg_replace('/[^a-zA-Z]/', '', $bk1->name), 0, 2), 2, 'X'));
-            $roomId = 'RC' . $si . $gi . '01';
-
-            Chat::firstOrCreate(
-                ['room_id' => $roomId, 'message' => 'Halo Pak Budi, saya ingin konseling.'],
-                [
-                    'siswa_account_id'  => $siswa1->account_id,
-                    'guru_account_id'   => $bk1->account_id,
-                    'sender_role'       => 'siswa',
-                    'sender_account_id' => $siswa1->account_id,
-                    'message_type'      => 'text',
-                    'status'            => 'unread',
-                ]
-            );
-        }
     }
 }

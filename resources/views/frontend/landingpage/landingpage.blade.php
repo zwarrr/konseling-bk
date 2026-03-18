@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BIKASI — Bimbingan &amp; Konseling Profesional</title>
+  <title>{{ config('app.name', 'E-Konseling') }} — Bimbingan &amp; Konseling Profesional</title>
 
   {{-- Favicon --}}
   <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
@@ -98,7 +98,7 @@
   @include('frontend.landingpage.sections.slider')
   @include('frontend.landingpage.sections.about')
   @include('frontend.landingpage.sections.services')
-  @include('frontend.landingpage.sections.agenda')
+  @include('frontend.landingpage.sections.program')
   @include('frontend.landingpage.sections.cta')
 
   @include('frontend.landingpage.partials.footer')
@@ -115,7 +115,7 @@
       // Hanya section yang benar-benar punya nav item — sisanya tidak aktifkan apapun
       'beranda':  'beranda',
       'layanan':  'layanan',
-      'agenda':   'agenda',
+      'program':  'program',
     };
     // Custom URL slugs per section id
     const sectionUrlMap = {
@@ -166,7 +166,7 @@
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll(); // set on load
 
-    // On page load — handle hash (#) dari sub-page, ATAU path section (/agenda, /slider-news-bk, dst)
+    // On page load — handle hash (#) dari sub-page, ATAU path section (/program, /slider-news-bk, dst)
     (function() {
       const hash = window.location.hash.replace('#', '');
       const pathSlug = window.location.pathname.replace('/', '').trim();

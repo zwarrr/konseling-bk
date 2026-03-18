@@ -1,12 +1,46 @@
-/* public/sw.js — Web Push Service Worker */
+/* public/sw.js — Service Worker: PWA install + Web Push */
 
+const CACHE_NAME = 'e-konseling-v1';
+const PRECACHE = [
+    '/auth/onboarding',
+    '/auth/login',
+    '/favicon.png',
+    '/favicon.ico',
+];
+
+/* ─── Install: pre-cache shell pages ─── */
 self.addEventListener('install', function (e) {
     self.skipWaiting();
+    e.waitUntil(
+        caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE).catch(() => {}))
+    );
 });
 
+/* ─── Activate: clean up old caches ─── */
 self.addEventListener('activate', function (e) {
-    e.waitUntil(self.clients.claim());
+    e.waitUntil(
+        caches.keys().then(keys =>
+            Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+        ).then(() => self.clients.claim())
+    );
 });
+
+/* ─── Fetch: network-first, fall back to cache for navigations ─── */
+self.addEventListener('fetch', function (e) {
+    // Only handle GET, same-origin, navigation requests for offline fallback
+    if (e.request.method !== 'GET') return;
+    if (!e.request.url.startsWith(self.location.origin)) return;
+
+    if (e.request.mode === 'navigate') {
+        e.respondWith(
+            fetch(e.request).catch(() =>
+                caches.match('/auth/onboarding').then(r => r || caches.match('/auth/login'))
+            )
+        );
+    }
+});
+
+
 
 /* ─── Push event ─── */
 self.addEventListener('push', function (e) {

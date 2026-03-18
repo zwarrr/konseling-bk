@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('group_read_receipts', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->string('user_type', 10)->default('siswa'); // 'bk' | 'siswa'
+            $table->enum('user_type', ['bk', 'siswa'])->default('siswa'); // bk|siswa
             $table->string('classroom_id', 10);
             $table->unsignedBigInteger('last_read_message_id')->default(0);
             $table->timestamps();

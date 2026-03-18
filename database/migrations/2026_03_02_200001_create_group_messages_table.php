@@ -12,9 +12,9 @@ return new class extends Migration
             $table->id();
             $table->string('classroom_id', 10);
             $table->unsignedBigInteger('user_id');
-            $table->string('user_type', 10)->default('siswa'); // 'bk' | 'siswa'
+            $table->enum('user_type', ['bk', 'siswa'])->default('siswa'); // bk|siswa
             $table->text('message')->nullable();
-            $table->string('message_type', 20)->default('text'); // text | image | document
+            $table->enum('message_type', ['text', 'image', 'document'])->default('text'); // text|image|document
             $table->string('attachment')->nullable();
             $table->timestamps();
 
