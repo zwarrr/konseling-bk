@@ -39,7 +39,7 @@
     {{-- CTA --}}
     <a href="{{ route('auth.onboarding') }}" data-splash-nav
        class="btn-raise hidden md:inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold px-6 py-3 rounded-full transition shadow-lg shadow-blue-700/30">
-      <i class="fa-solid fa-right-to-bracket text-xs"></i> Masuk
+      <i class="fa-solid fa-right-to-bracket text-xs"></i> Login
     </a>
 
     {{-- Hamburger --}}
