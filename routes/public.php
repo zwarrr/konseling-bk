@@ -23,10 +23,6 @@ Route::post('/admin/logout', [AuthController::class, 'logoutAdmin'])->middleware
 
 // ─── Landing root ─────────────────────────────────────────────────────
 Route::get('/', function () {
-
-    if (\Illuminate\Support\Facades\Auth::guard('admin')->check()) {
-        return redirect()->route('admin.dashboard.index');
-    }
     return view('frontend.landingpage.landingpage');
 })->name('landing');
 
