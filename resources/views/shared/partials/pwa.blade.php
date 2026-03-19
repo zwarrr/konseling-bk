@@ -21,14 +21,11 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('/sw.js', { scope: '/' }).then(function (reg) {
+      navigator.serviceWorker.register('/sw.js?v={{ $pwaAssetV }}', {
+        scope: '/',
+        updateViaCache: 'none'
+      }).then(function (reg) {
         try {
-          function isStandalonePwa() {
-            if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
-            if (window.navigator && window.navigator.standalone) return true;
-            return false;
-          }
-
           function applyUpdateSilently(reg) {
             if (!reg || !reg.waiting) return;
             var reloading = false;
@@ -43,11 +40,7 @@
 
           // If there's already a waiting worker (update downloaded), notify UI.
           if (reg.waiting) {
-            if (isStandalonePwa()) {
-              window.dispatchEvent(new CustomEvent('pwa:sw-update', { detail: { registration: reg } }));
-            } else {
-              applyUpdateSilently(reg);
-            }
+            applyUpdateSilently(reg);
           }
 
           reg.addEventListener('updatefound', function () {
@@ -57,11 +50,7 @@
             newWorker.addEventListener('statechange', function () {
               // 'installed' with an existing controller means: an update is ready.
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                if (isStandalonePwa()) {
-                  window.dispatchEvent(new CustomEvent('pwa:sw-update', { detail: { registration: reg } }));
-                } else {
-                  applyUpdateSilently(reg);
-                }
+                applyUpdateSilently(reg);
               }
             });
           });
@@ -70,6 +59,7 @@
           window.addEventListener('focus', function () {
             try { reg.update(); } catch (_) {}
           });
+          try { reg.update(); } catch (_) {}
         } catch (_) {}
       }).catch(function () {});
     });
