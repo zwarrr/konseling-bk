@@ -4,7 +4,7 @@
   Requires shared/partials/pwa.blade.php to dispatch the `pwa:sw-update` event.
 --}}
 
-<div id="pwaUpdateModal" class="hidden fixed inset-0 z-[99998] items-center justify-center p-4"
+<div id="pwaUpdateModal" class="hidden fixed inset-0 z-[100001] items-center justify-center p-4"
      style="background:rgba(0,0,0,.55);backdrop-filter:blur(4px)">
   <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
     <div class="px-6 py-5 border-b border-slate-100">

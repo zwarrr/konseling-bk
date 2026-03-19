@@ -315,7 +315,7 @@
 <div id="appInfoModal" class="fixed inset-0 hidden" style="z-index:99999">
     <div class="absolute inset-0 bg-black/40" id="appInfoBackdrop"></div>
     <div class="absolute inset-0 flex items-center justify-center p-4">
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <div>
                     <div class="text-sm font-extrabold text-slate-900">Info Aplikasi</div>
@@ -347,6 +347,22 @@
                         class="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition font-semibold text-sm">
                     Tutup
                 </button>
+            </div>
+
+            {{-- Busy overlay while checking update (PWA only) --}}
+            <div id="appInfoBusyOverlay" class="hidden absolute inset-0 z-20 bg-white/80 backdrop-blur-[2px]">
+                <div class="absolute inset-0 flex items-center justify-center p-6">
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-xl px-6 py-5 flex items-center gap-3">
+                        <svg class="animate-spin w-5 h-5" style="color:#0F4C9A" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                        </svg>
+                        <div>
+                            <div class="text-sm font-semibold text-slate-800">Sedang mengecek update…</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">Mohon tunggu sebentar</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -513,6 +529,7 @@
     const checkUpdateBtn     = document.getElementById('appInfoCheckUpdateBtn');
     const checkUpdateLabel   = document.getElementById('appInfoCheckUpdateLabel');
     const checkUpdateSpinner = document.getElementById('appInfoCheckUpdateSpinner');
+    const appInfoBusyOverlay  = document.getElementById('appInfoBusyOverlay');
 
     function isStandalonePwa() {
         // Android/Chromium: display-mode
@@ -555,6 +572,7 @@
         checkUpdateBtn.disabled = busy;
         if (checkUpdateLabel) checkUpdateLabel.textContent = busy ? 'Mengecek...' : 'Cek Update';
         if (checkUpdateSpinner) checkUpdateSpinner.classList.toggle('hidden', !busy);
+        if (appInfoBusyOverlay) appInfoBusyOverlay.classList.toggle('hidden', !busy);
     }
 
     checkUpdateBtn?.addEventListener('click', async () => {
@@ -584,6 +602,8 @@
             await new Promise(resolve => setTimeout(resolve, 800));
 
             if (reg.waiting) {
+                // Close detail modal so update prompt is not blocked.
+                closeAppInfo();
                 window.dispatchEvent(new CustomEvent('pwa:sw-update', { detail: { registration: reg } }));
             } else {
                 window.showFlashModal?.('success', 'Sudah versi terbaru.');

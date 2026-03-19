@@ -22,7 +22,7 @@
 @endphp
 
 {{-- Modal HTML: always rendered so JS can also trigger it --}}
-<div id="flashModal" class="fixed inset-0 z-[9999] hidden">
+<div id="flashModal" class="fixed inset-0 z-[100002] hidden">
   <div id="flashModalBackdrop" class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
   <div class="absolute inset-0 flex items-center justify-center p-4">
     <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-8 text-center">

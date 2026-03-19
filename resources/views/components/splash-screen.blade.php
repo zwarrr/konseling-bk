@@ -11,7 +11,7 @@
       <div class="splash-ripple splash-ripple-2"></div>
       <div class="splash-ripple splash-ripple-3"></div>
       <div class="relative z-10 w-24 h-24 rounded-[28px] bg-white flex items-center justify-center splash-icon-box" style="box-shadow: 0 16px 48px rgba(15,76,154,0.18), 0 2px 8px rgba(15,76,154,0.10);">
-        <img src="/favicon.png" alt="E-Konseling" class="w-16 h-16 object-contain">
+        <img src="/pwa-icon.png" alt="E-Konseling" class="w-16 h-16 object-contain">
         {{-- Notification dot --}}
         <span class="absolute -top-2 -right-2 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center splash-dot" style="background:#f97316;">
           <span class="w-2 h-2 bg-white rounded-full block"></span>
@@ -178,6 +178,19 @@
     // ── Splash visibility logic ──
     var splash = document.getElementById('splashScreen');
     if (!splash) return;
+
+    // In installed PWA, the OS already shows a splash.
+    // Avoid duplicate on normal first-load (default mode).
+    function isStandalonePwa() {
+      if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+      if (window.navigator && window.navigator.standalone) return true;
+      return false;
+    }
+    var _peekMode = sessionStorage.getItem('_splash_mode') || 'default';
+    if (isStandalonePwa() && _peekMode === 'default') {
+      splash.style.display = 'none';
+      return;
+    }
 
     // Detect manual refresh (F5 / Ctrl+R)
     var navEntry = performance.getEntriesByType('navigation')[0];
