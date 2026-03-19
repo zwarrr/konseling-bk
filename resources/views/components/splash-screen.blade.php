@@ -10,8 +10,8 @@
       <div class="splash-ripple splash-ripple-1"></div>
       <div class="splash-ripple splash-ripple-2"></div>
       <div class="splash-ripple splash-ripple-3"></div>
-      <div class="relative z-10 w-24 h-24 rounded-[28px] bg-white flex items-center justify-center splash-icon-box" style="box-shadow: 0 16px 48px rgba(15,76,154,0.18), 0 2px 8px rgba(15,76,154,0.10);">
-        <img src="/assets/img/favicon.png" alt="E-Konseling" class="w-16 h-16 object-contain">
+      <div class="relative z-10 w-24 h-24 flex items-center justify-center splash-icon-box">
+        <img src="/assets/img/favicon.png" alt="E-Konseling" class="w-24 h-24 rounded-[28px] object-contain">
         {{-- Notification dot --}}
         <span class="absolute -top-2 -right-2 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center splash-dot" style="background:#f97316;">
           <span class="w-2 h-2 bg-white rounded-full block"></span>

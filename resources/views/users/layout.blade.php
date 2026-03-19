@@ -35,9 +35,10 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         *, *::before, *::after { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }
+        html, body { overscroll-behavior-y: none; }
         html { scroll-behavior: smooth; }
         body { min-height: 100dvh; }
-        main { margin: 0; padding-top: 0 !important; }
+        main { margin: 0; padding-top: 0 !important; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
         ::-webkit-scrollbar { display: none; }
         * { scrollbar-width: none; }
         .turbo-progress-bar { display: none !important; }

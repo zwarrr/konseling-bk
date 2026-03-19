@@ -20,11 +20,21 @@ import './bootstrap';
 			Turbo.setProgressBarDelay(2147483647);
 		}
 	} catch (_) {}
+	function removeTurboBars() {
+		try {
+			document.querySelectorAll('.turbo-progress-bar').forEach(function (el) { el.remove(); });
+		} catch (_) {}
+	}
 	try {
 		const style = document.createElement('style');
 		style.setAttribute('data-turbo', 'no-progress');
 		style.textContent = '.turbo-progress-bar{display:none !important;}';
 		document.head && document.head.appendChild(style);
+	} catch (_) {}
+	removeTurboBars();
+	try {
+		const observer = new MutationObserver(removeTurboBars);
+		observer.observe(document.documentElement, { childList: true, subtree: true });
 	} catch (_) {}
 
 	// Drive: link visits via fetch + DOM swap (no full refresh).
@@ -69,9 +79,26 @@ import './bootstrap';
 
 	// Pages like chat often manage intervals/polling; don't cache them.
 	document.addEventListener('turbo:load', function () {
+		removeTurboBars();
 		const p = window.location.pathname || '';
 		if (p.includes('roomchat') || p.includes('chat')) {
 			try { Turbo.cache.exemptPageFromCache(); } catch (_) {}
 		}
 	});
+
+	// Prevent Android pull-to-refresh indicator in standalone PWA.
+	let touchStartY = 0;
+	document.addEventListener('touchstart', function (e) {
+		if (!e.touches || e.touches.length !== 1) return;
+		touchStartY = e.touches[0].clientY;
+	}, { passive: true });
+	document.addEventListener('touchmove', function (e) {
+		if (!e.touches || e.touches.length !== 1) return;
+		const y = e.touches[0].clientY;
+		const pullingDown = y - touchStartY > 10;
+		const atTop = (window.scrollY || window.pageYOffset || 0) <= 0;
+		if (pullingDown && atTop) {
+			e.preventDefault();
+		}
+	}, { passive: false });
 })();
