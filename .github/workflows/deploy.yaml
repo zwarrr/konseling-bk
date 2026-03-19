@@ -21,15 +21,12 @@ jobs:
     - name: Deploy to server via SSH
       run: |
         ssh -p 21032 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-            set -e
             eval \$(ssh-agent -s)
             ssh-add ~/.ssh/zwar
-            # NOTE: `ssh -T git@github.com` returns exit code 1 even when auth succeeds
-            # (GitHub prints "no shell access"). Don't let that break deploy.
-            ssh -T git@github.com || true
+            ssh -T git@github.com
+            ssh -T git@github.com
             cd web
-            git pull --ff-only origin Zwar
-            echo 'DEPLOYED_COMMIT='$(git rev-parse --short HEAD)
+            git pull origin Zwar
             composer install
             composer dump-autoload
             npm install

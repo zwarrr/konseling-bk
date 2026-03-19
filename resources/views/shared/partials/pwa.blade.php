@@ -5,7 +5,7 @@
 @php
   $pwaAssetV = @filemtime(public_path('assets/img/app-icon.png')) ?: time();
 @endphp
-<link rel="manifest" href="/manifest.json?v={{ $pwaAssetV }}">
+<link rel="manifest" href="/manifest.webmanifest?v={{ $pwaAssetV }}">
 <meta name="theme-color" content="#ffffff">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
