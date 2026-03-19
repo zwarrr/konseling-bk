@@ -575,6 +575,64 @@
         if (appInfoBusyOverlay) appInfoBusyOverlay.classList.toggle('hidden', !busy);
     }
 
+    function withTimeout(promise, ms) {
+        return new Promise((resolve, reject) => {
+            let done = false;
+            const t = setTimeout(() => {
+                if (done) return;
+                done = true;
+                reject(new Error('timeout'));
+            }, ms);
+            Promise.resolve(promise).then(
+                (v) => { if (done) return; done = true; clearTimeout(t); resolve(v); },
+                (e) => { if (done) return; done = true; clearTimeout(t); reject(e); }
+            );
+        });
+    }
+
+    function waitForWaitingWorker(reg, timeoutMs) {
+        if (!reg) return Promise.resolve(null);
+        if (reg.waiting) return Promise.resolve(reg.waiting);
+
+        return new Promise((resolve) => {
+            let finished = false;
+            const finish = (val) => {
+                if (finished) return;
+                finished = true;
+                cleanup();
+                resolve(val || null);
+            };
+
+            const onUpdateFound = () => {
+                const w = reg.installing;
+                if (!w) return;
+                w.addEventListener('statechange', onStateChange);
+            };
+
+            const onStateChange = () => {
+                if (reg.waiting) finish(reg.waiting);
+            };
+
+            const cleanup = () => {
+                try { reg.removeEventListener('updatefound', onUpdateFound); } catch (_) {}
+            };
+
+            reg.addEventListener('updatefound', onUpdateFound);
+            // Also check periodically in case updatefound already fired.
+            const poll = setInterval(() => {
+                if (reg.waiting) {
+                    clearInterval(poll);
+                    finish(reg.waiting);
+                }
+            }, 250);
+
+            setTimeout(() => {
+                clearInterval(poll);
+                finish(null);
+            }, timeoutMs);
+        });
+    }
+
     checkUpdateBtn?.addEventListener('click', async () => {
         // Web mode: tombol ini tidak pernah muncul
         if (!isStandalonePwa()) return;
@@ -590,25 +648,26 @@
         setUpdateBusy(true);
 
         try {
-            let reg = await navigator.serviceWorker.getRegistration('/');
+            let reg = await withTimeout(navigator.serviceWorker.getRegistration('/'), 6000);
             if (!reg) {
-                reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                reg = await withTimeout(navigator.serviceWorker.register('/sw.js', { scope: '/' }), 8000);
             }
 
             // Trigger update check
-            try { await reg.update(); } catch (_) {}
+            try { await withTimeout(reg.update(), 6000); } catch (_) {}
 
-            // Wait briefly for updatefound/installing to settle
-            await new Promise(resolve => setTimeout(resolve, 800));
+            // Wait for waiting worker to appear (if update exists)
+            const waiting = await waitForWaitingWorker(reg, 7000);
 
-            if (reg.waiting) {
-                // Close detail modal so update prompt is not blocked.
+            if (waiting) {
                 closeAppInfo();
                 window.dispatchEvent(new CustomEvent('pwa:sw-update', { detail: { registration: reg } }));
             } else {
+                closeAppInfo();
                 window.showFlashModal?.('success', 'Sudah versi terbaru.');
             }
         } catch (_) {
+            closeAppInfo();
             window.showFlashModal?.('error', 'Gagal cek update. Coba lagi.');
         } finally {
             setUpdateBusy(false);

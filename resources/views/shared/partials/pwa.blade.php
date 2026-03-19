@@ -2,13 +2,16 @@
   shared/partials/pwa.blade.php
   Include inside <head> on every page that needs PWA support.
 --}}
-<link rel="manifest" href="/manifest.json">
+@php
+  $pwaAssetV = @filemtime(public_path('manifest.json')) ?: time();
+@endphp
+<link rel="manifest" href="/manifest.json?v={{ $pwaAssetV }}">
 <meta name="theme-color" content="#0f4c9a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="E-Konseling">
-<link rel="apple-touch-icon" href="/pwa-icon.png">
+<link rel="apple-touch-icon" href="/pwa-icon-192.png?v={{ $pwaAssetV }}">
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {

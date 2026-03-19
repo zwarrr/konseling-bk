@@ -17,6 +17,10 @@
     <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
     @include('shared.partials.pwa')
 
+    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+        @vite(['resources/js/app.js'])
+    @endif
+
     <script>
         tailwind.config = {
             theme: {
