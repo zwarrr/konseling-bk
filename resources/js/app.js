@@ -14,6 +14,19 @@ import './bootstrap';
 	const Turbo = mod.Turbo || mod.default || mod;
 	if (!Turbo || !Turbo.session) return;
 
+	// Remove Turbo's top progress bar (looks like a reload line).
+	try {
+		if (typeof Turbo.setProgressBarDelay === 'function') {
+			Turbo.setProgressBarDelay(2147483647);
+		}
+	} catch (_) {}
+	try {
+		const style = document.createElement('style');
+		style.setAttribute('data-turbo', 'no-progress');
+		style.textContent = '.turbo-progress-bar{display:none !important;}';
+		document.head && document.head.appendChild(style);
+	} catch (_) {}
+
 	// Drive: link visits via fetch + DOM swap (no full refresh).
 	Turbo.session.drive = true;
 

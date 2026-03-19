@@ -547,6 +547,8 @@
 
     function closeAppInfo() {
         if (!appInfoModal) return;
+        // Safety: never leave the update button in a busy state.
+        try { setUpdateBusy(false); } catch (_) {}
         appInfoModal.classList.add('hidden');
         document.body.classList.remove('overflow-hidden');
     }
@@ -660,13 +662,16 @@
             const waiting = await waitForWaitingWorker(reg, 7000);
 
             if (waiting) {
+                setUpdateBusy(false);
                 closeAppInfo();
                 window.dispatchEvent(new CustomEvent('pwa:sw-update', { detail: { registration: reg } }));
             } else {
+                setUpdateBusy(false);
                 closeAppInfo();
                 window.showFlashModal?.('success', 'Sudah versi terbaru.');
             }
         } catch (_) {
+            setUpdateBusy(false);
             closeAppInfo();
             window.showFlashModal?.('error', 'Gagal cek update. Coba lagi.');
         } finally {
