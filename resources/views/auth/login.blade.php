@@ -90,7 +90,7 @@
 
         <div class="pt-2 text-center text-xs text-slate-400">
           &copy; {{ date('Y') }}
-          <a href="{{ route('landing.copyright_team') }}" class="text-blue-600 font-semibold hover:text-blue-600/80 transition">Selenium</a>.
+          <a href="{{ route('landing.copyright_team') }}" class="text-blue-600 font-semibold hover:text-blue-600/80 transition">RPL/Selenium</a>.
           Seluruh hak cipta dilindungi.
         </div>
 

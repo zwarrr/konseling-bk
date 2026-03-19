@@ -4,7 +4,7 @@
 --}}
 @php
   $pwaManifestV = @filemtime(public_path('manifest.json')) ?: time();
-  $pwaIconV     = @filemtime(public_path('assets/img/favicon.png')) ?: $pwaManifestV;
+  $pwaIconV     = @filemtime(public_path('assets/img/pwa-icon-192.png')) ?: $pwaManifestV;
   $pwaAssetV    = max($pwaManifestV, $pwaIconV);
 @endphp
 <link rel="manifest" href="/manifest.json?v={{ $pwaAssetV }}">
@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="E-Konseling">
-<link rel="apple-touch-icon" href="/assets/img/favicon.png?v={{ $pwaAssetV }}">
+<link rel="apple-touch-icon" href="/assets/img/pwa-icon-192.png?v={{ $pwaAssetV }}">
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {

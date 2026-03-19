@@ -40,6 +40,7 @@
         main { margin: 0; padding-top: 0 !important; }
         ::-webkit-scrollbar { display: none; }
         * { scrollbar-width: none; }
+        .turbo-progress-bar { display: none !important; }
     </style>
 
     @stack('styles')

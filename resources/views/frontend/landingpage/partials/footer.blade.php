@@ -57,7 +57,7 @@
 
   <div class="border-t border-white/10 py-5 text-center text-blue-300 text-xs">
     &copy; {{ date('Y') }}
-    <a href="{{ route('landing.copyright_team') }}" class="text-white font-semibold hover:underline underline-offset-2 transition">Selenium</a>.
+    <a href="{{ route('landing.copyright_team') }}" class="text-white font-semibold hover:underline underline-offset-2 transition">RPL/Selenium</a>.
     Seluruh hak cipta dilindungi.
   </div>
 </footer>
