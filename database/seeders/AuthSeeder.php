@@ -33,38 +33,41 @@ class AuthSeeder extends Seeder
     public function run(): void
     {
         // ── Admin ─────────────────────────────────────────────────────────
-        AdminAccount::updateOrCreate(
-            ['login_id' => '1'],
-            [
+        $admin = AdminAccount::firstOrNew(['login_id' => '1']);
+        if (!$admin->exists) {
+            $admin->fill([
                 'name'                 => 'Administrator',
                 'account_id'           => 'ADM1',
                 'password'             => Hash::make('admin123'),
                 'must_change_password' => false,
-            ]
-        );
+            ]);
+            $admin->save();
+        }
 
         // ── Akun BK ───────────────────────────────────────────────────────
-        $bk1 = BkAccount::updateOrCreate(
-            ['login_id' => '196601011994031001'],
-            [
+        $bk1 = BkAccount::firstOrNew(['login_id' => '196601011994031001']);
+        if (!$bk1->exists) {
+            $bk1->fill([
                 'name'                 => 'Budi Santoso, S.Pd',
                 'account_id'           => 'BK01',
                 'email'                => null,
                 'password'             => Hash::make('bk123456'),
                 'must_change_password' => true,
-            ]
-        );
+            ]);
+            $bk1->save();
+        }
 
-        $bk2 = BkAccount::updateOrCreate(
-            ['login_id' => '197703152005042002'],
-            [
+        $bk2 = BkAccount::firstOrNew(['login_id' => '197703152005042002']);
+        if (!$bk2->exists) {
+            $bk2->fill([
                 'name'                 => 'Sari Dewi, S.Psi',
                 'account_id'           => 'BK02',
                 'email'                => null,
                 'password'             => Hash::make('bk123456'),
                 'must_change_password' => true,
-            ]
-        );
+            ]);
+            $bk2->save();
+        }
 
         // ── Kelas  (kelas master → menentukan siapa BK-nya) ───────────────
         $kelas1 = Kelas::updateOrCreate(
@@ -107,9 +110,9 @@ class AuthSeeder extends Seeder
         }
 
         // ── Akun Siswa/i (classroom_id → BK otomatis dari kelas) ─────────
-        $siswa1 = SiswaAccount::updateOrCreate(
-            ['login_id' => '2026001'],
-            [
+        $siswa1 = SiswaAccount::firstOrNew(['login_id' => '2026001']);
+        if (!$siswa1->exists) {
+            $siswa1->fill([
                 'name'                 => 'Andi Pratama',
                 'account_id'           => 'SSWA01',
                 'email'                => null,
@@ -118,12 +121,13 @@ class AuthSeeder extends Seeder
                 'bk_id'                => $bk1->id,
                 'password'             => Hash::make('siswa123'),
                 'must_change_password' => true,
-            ]
-        );
+            ]);
+            $siswa1->save();
+        }
 
-        $siswa2 = SiswaAccount::updateOrCreate(
-            ['login_id' => '2026002'],
-            [
+        $siswa2 = SiswaAccount::firstOrNew(['login_id' => '2026002']);
+        if (!$siswa2->exists) {
+            $siswa2->fill([
                 'name'                 => 'Bela Safitri',
                 'account_id'           => 'SSWA02',
                 'email'                => null,
@@ -132,12 +136,13 @@ class AuthSeeder extends Seeder
                 'bk_id'                => $bk1->id,
                 'password'             => Hash::make('siswa123'),
                 'must_change_password' => true,
-            ]
-        );
+            ]);
+            $siswa2->save();
+        }
 
-        SiswaAccount::updateOrCreate(
-            ['login_id' => '2026003'],
-            [
+        $siswa3 = SiswaAccount::firstOrNew(['login_id' => '2026003']);
+        if (!$siswa3->exists) {
+            $siswa3->fill([
                 'name'                 => 'Cahyo Nugroho',
                 'account_id'           => 'SSWA03',
                 'email'                => null,
@@ -146,7 +151,8 @@ class AuthSeeder extends Seeder
                 'bk_id'                => $bk2->id,
                 'password'             => Hash::make('siswa123'),
                 'must_change_password' => true,
-            ]
-        );
+            ]);
+            $siswa3->save();
+        }
     }
 }

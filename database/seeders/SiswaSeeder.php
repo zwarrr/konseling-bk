@@ -82,7 +82,7 @@ class SiswaSeeder extends Seeder
         ];
 
         foreach ($rpl as [$accountId, $loginId, $name, $absen]) {
-            SiswaAccount::updateOrCreate(
+            SiswaAccount::firstOrCreate(
                 ['login_id' => $loginId],
                 [
                     'name'                 => $name,
@@ -116,7 +116,7 @@ class SiswaSeeder extends Seeder
         ];
 
         foreach ($ipa as [$accountId, $loginId, $name, $absen]) {
-            SiswaAccount::updateOrCreate(
+            SiswaAccount::firstOrCreate(
                 ['login_id' => $loginId],
                 [
                     'name'                 => $name,
