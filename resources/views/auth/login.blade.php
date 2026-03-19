@@ -19,7 +19,7 @@
     <div class="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
       <div class="flex items-center gap-3 mb-6">
         <div class="w-11 h-11 rounded-xl bg-white border border-slate-200 flex items-center justify-center overflow-hidden shadow-sm">
-          <img src="/favicon.png" alt="E-Konseling" class="w-8 h-8 object-contain">
+          <img src="/assets/img/favicon.png" alt="E-Konseling" class="w-8 h-8 object-contain">
         </div>
         <div>
           <p class="text-xs text-slate-500">Selamat Datang Kembali !</p>
