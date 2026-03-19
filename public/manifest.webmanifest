@@ -2,7 +2,8 @@
   "name": "E-Konseling — Konseling BK",
   "short_name": "E-Konseling",
   "description": "Aplikasi Bimbingan Konseling (BK) — layanan konseling siswa berbasis digital.",
-  "start_url": "/auth/onboarding",
+  "id": "/?pwa=ekonseling",
+  "start_url": "/auth/onboarding?source=pwa",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -12,10 +13,10 @@
   "categories": ["education"],
   "icons": [
     {
-      "src": "/assets/img/favicon.png",
+      "src": "/assets/img/app-icon.png",
       "sizes": "640x640",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ],
   "screenshots": [],
@@ -25,7 +26,7 @@
       "short_name": "Login",
       "description": "Buka halaman login",
       "url": "/auth/onboarding",
-      "icons": [{ "src": "/assets/img/favicon.png", "sizes": "640x640" }]
+      "icons": [{ "src": "/assets/img/app-icon.png", "sizes": "640x640" }]
     }
   ]
 }

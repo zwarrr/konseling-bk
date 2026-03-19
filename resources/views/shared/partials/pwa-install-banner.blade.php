@@ -40,7 +40,7 @@
 
   {{-- App info row --}}
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-right:20px">
-    <img src="/assets/img/favicon.png" alt="E-Konseling"
+    <img src="/assets/img/app-icon.png" alt="E-Konseling"
          style="width:48px;height:48px;border-radius:12px;object-fit:contain;border:1px solid #f1f5f9;flex-shrink:0">
     <div>
       <p style="font-size:15px;font-weight:700;color:#0f172a;margin:0">Install E-Konseling</p>

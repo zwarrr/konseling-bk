@@ -11,7 +11,7 @@
       <div class="splash-ripple splash-ripple-2"></div>
       <div class="splash-ripple splash-ripple-3"></div>
       <div class="relative z-10 w-24 h-24 flex items-center justify-center splash-icon-box">
-        <img src="/assets/img/favicon.png" alt="E-Konseling" class="w-24 h-24 rounded-[28px] object-contain">
+        <img src="/assets/img/app-icon.png" alt="E-Konseling" class="w-24 h-24 rounded-[28px] object-contain">
         {{-- Notification dot --}}
         <span class="absolute -top-2 -right-2 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center splash-dot" style="background:#f97316;">
           <span class="w-2 h-2 bg-white rounded-full block"></span>

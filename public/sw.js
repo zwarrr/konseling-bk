@@ -1,12 +1,12 @@
 /* public/sw.js — Service Worker: PWA install + Web Push */
 
-const CACHE_NAME = 'e-konseling-v4';
+const CACHE_NAME = 'e-konseling-v5';
 const PRECACHE = [
     '/',
     '/auth/onboarding',
     '/auth/login',
-    '/manifest.json',
-    '/assets/img/favicon.png',
+    '/manifest.webmanifest',
+    '/assets/img/app-icon.png',
     '/favicon.png',
     '/favicon.ico',
 ];
@@ -63,8 +63,8 @@ self.addEventListener('push', function (e) {
     const title   = data.title  || 'Konseling BK';
     const options = {
         body:   data.body   || '',
-        icon:   '/assets/img/favicon.png',
-        badge:  '/assets/img/favicon.png',
+        icon:   '/assets/img/app-icon.png',
+        badge:  '/assets/img/app-icon.png',
         data:   data.data   || {},
         tag:    'konseling-notif',
         renotify: true,

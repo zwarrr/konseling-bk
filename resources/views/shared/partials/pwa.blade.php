@@ -3,17 +3,17 @@
   Include inside <head> on every page that needs PWA support.
 --}}
 @php
-  $pwaManifestV = @filemtime(public_path('manifest.json')) ?: time();
-  $pwaIconV     = @filemtime(public_path('assets/img/favicon.png')) ?: $pwaManifestV;
+  $pwaManifestV = @filemtime(public_path('manifest.webmanifest')) ?: time();
+  $pwaIconV     = @filemtime(public_path('assets/img/app-icon.png')) ?: $pwaManifestV;
   $pwaAssetV    = max($pwaManifestV, $pwaIconV);
 @endphp
-<link rel="manifest" href="/manifest.json?v={{ $pwaAssetV }}">
+<link rel="manifest" href="/manifest.webmanifest?v={{ $pwaAssetV }}">
 <meta name="theme-color" content="#ffffff">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="E-Konseling">
-<link rel="apple-touch-icon" href="/assets/img/favicon.png?v={{ $pwaAssetV }}">
+<link rel="apple-touch-icon" href="/assets/img/app-icon.png?v={{ $pwaAssetV }}">
 
 <style>
   .turbo-progress-bar { display: none !important; }
