@@ -178,6 +178,53 @@
         </div>
       </div>
 
+      {{-- ── App Info Card ─────────────────────────────────────────────── --}}
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100"
+             style="background:linear-gradient(135deg,#0f4c9a08,#1a6fd408)">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+               style="background:#e8f0fe">
+            <i class="fa-solid fa-circle-info text-sm" style="color:#0f4c9a"></i>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-slate-800">Info Aplikasi</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Versi aplikasi dan catatan update (ditampilkan di Profil pengguna)</p>
+          </div>
+        </div>
+
+        <div class="px-6 py-5">
+          <form method="POST" action="{{ route('admin.settings.appInfo') }}" class="space-y-4">
+            @csrf
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">Versi Aplikasi</label>
+              <input type="text" name="app_version" value="{{ $appVersion ?? '1.0.0' }}"
+                     class="w-full text-sm border border-slate-200 rounded-xl px-3.5 py-2.5
+                            focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
+                     placeholder="contoh: 1.2.0" required>
+              <p class="text-xs text-slate-400 mt-1">Contoh format: 1.2.0 atau 2026.03.19</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1.5">Info Update</label>
+              <textarea name="app_update_info" rows="4"
+                        class="w-full text-sm border border-slate-200 rounded-xl px-3.5 py-2.5 resize-none
+                               focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
+                        placeholder="Tulis catatan update singkat...">{{ $appUpdateInfo ?? '' }}</textarea>
+              <p class="text-xs text-slate-400 mt-1">Opsional. Misal: perbaikan bug PWA, landing bisa diakses setelah login, dll.</p>
+            </div>
+
+            <div class="flex justify-end">
+              <button type="submit"
+                      class="px-4 py-2 rounded-xl text-sm font-semibold text-white transition"
+                      style="background:#0f4c9a">
+                Simpan Info
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
     </div>
   </main>
 

@@ -11,12 +11,47 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 // ─── Auth ────────────────────────────────────────────────────────────
 Route::middleware(['maintenance'])->group(function () {
-    Route::get('/auth/onboarding', fn () => view('auth.onboarding'))->name('auth.onboarding');
+    Route::get('/auth/onboarding', function () {
+        // If already logged in (PWA often reopens at start_url), never show onboarding again.
+        if (\Illuminate\Support\Facades\Auth::guard('admin')->check()) {
+            return redirect()->route('admin.dashboard.index');
+        }
+
+        $bkUser = \Illuminate\Support\Facades\Auth::guard('bk')->user();
+        if ($bkUser) {
+            if ($bkUser->must_change_password) {
+                return redirect()->route('user.setup');
+            }
+            return redirect()->route('bk.home');
+        }
+
+        $siswaUser = \Illuminate\Support\Facades\Auth::guard('siswa')->user();
+        if ($siswaUser) {
+            if ($siswaUser->must_change_password) {
+                return redirect()->route('user.setup');
+            }
+            return redirect()->route('siswa.home');
+        }
+
+        return view('auth.onboarding');
+    })->name('auth.onboarding');
     Route::get('/auth/login', [AuthController::class, 'showLogin'])->name('auth.login');
     Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.loginSubmit');
 });
 Route::get('/admin/login', fn () => redirect()->route('auth.login'))->name('admin.login');
-Route::get('/login', fn () => redirect()->route('auth.onboarding'))->name('login');
+Route::get('/login', function () {
+    // Convenience alias: if already logged in, go straight to the correct home.
+    if (\Illuminate\Support\Facades\Auth::guard('admin')->check()) {
+        return redirect()->route('admin.dashboard.index');
+    }
+    if (\Illuminate\Support\Facades\Auth::guard('bk')->check()) {
+        return redirect()->route('bk.home');
+    }
+    if (\Illuminate\Support\Facades\Auth::guard('siswa')->check()) {
+        return redirect()->route('siswa.home');
+    }
+    return redirect()->route('auth.onboarding');
+})->name('login');
 
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:bk,siswa')->name('auth.logout');
 Route::post('/admin/logout', [AuthController::class, 'logoutAdmin'])->middleware('auth:admin')->name('admin.logout');

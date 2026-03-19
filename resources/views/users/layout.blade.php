@@ -61,6 +61,8 @@
     @stack('modals')
     <x-flash-modal />
 
+    @include('shared.partials.pwa-update-prompt')
+
     {{-- ── First-login forced password change modal ─────────────────── --}}
     @auth
     @if(auth()->user()->must_change_password)
@@ -178,7 +180,9 @@
             } catch (_) {}
         }
 
-        navigator.serviceWorker.register('/sw.js').then(async function (reg) {
+                (navigator.serviceWorker.getRegistration('/')
+                    .then(function (r) { return r || navigator.serviceWorker.register('/sw.js', { scope: '/' }); })
+                ).then(async function (reg) {
             const existing = await reg.pushManager.getSubscription();
             if (existing) return; // already subscribed
 

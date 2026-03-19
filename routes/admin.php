@@ -120,6 +120,7 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin'])->group(function () {
 	Route::post('/settings/maintenance/toggle',     [AdminController::class, 'toggleMaintenance'])       ->name('admin.settings.maintenance.toggle');
 	Route::post('/settings/maintenance/message',    [AdminController::class, 'saveMaintenanceMessage'])  ->name('admin.settings.maintenance.message');
 	Route::post('/settings/maintenance/admin-url',  [AdminController::class, 'saveMaintenanceAdminUrl']) ->name('admin.settings.maintenance.adminUrl');
+	Route::post('/settings/app-info',               [AdminController::class, 'saveAppInfo'])             ->name('admin.settings.appInfo');
 
 	// ─── Data Booking (Program Booking Reports) ───────────────────────
 	Route::get('/data-booking', [AdminBookingController::class, 'index'])->name('admin.booking.index');

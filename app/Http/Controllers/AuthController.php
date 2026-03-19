@@ -38,6 +38,9 @@ class AuthController extends Controller
         // ── Cek admin dulu ────────────────────────────────────────────────
         $admin = AdminAccount::where('login_id', $id)->first();
         if ($admin && Hash::check($validated['password'], $admin->password)) {
+            // Ensure we never keep BK/Siswa sessions alongside admin in the same browser session.
+            Auth::guard('bk')->logout();
+            Auth::guard('siswa')->logout();
             Auth::guard('admin')->login($admin, false);
             $request->session()->regenerate();
             return redirect()->route('admin.dashboard.index');
@@ -64,6 +67,15 @@ class AuthController extends Controller
             return back()->withErrors(['id' => 'ID / password tidak valid.'])->withInput();
         }
 
+        // Ensure we never keep multiple role sessions at once.
+        // This prevents must.setup and role routing from picking the wrong guard.
+        Auth::guard('admin')->logout();
+        if ($guard === 'bk') {
+            Auth::guard('siswa')->logout();
+        } else {
+            Auth::guard('bk')->logout();
+        }
+
         $authGuard = Auth::guard($guard);
         if ($authGuard->check() && (int) $authGuard->id() !== (int) $user->id) {
             $authGuard->logout();
@@ -83,6 +95,8 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        // Safety: clear all guards so sessions don't bleed across roles/devices (PWA vs browser).
+        Auth::guard('admin')->logout();
         Auth::guard('bk')->logout();
         Auth::guard('siswa')->logout();
         $request->session()->invalidate();
@@ -93,6 +107,9 @@ class AuthController extends Controller
 
     public function logoutAdmin(Request $request)
     {
+        // Safety: clear all guards so sessions don't bleed across roles/devices (PWA vs browser).
+        Auth::guard('bk')->logout();
+        Auth::guard('siswa')->logout();
         Auth::guard('admin')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

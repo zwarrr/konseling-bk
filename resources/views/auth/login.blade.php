@@ -102,6 +102,8 @@
     Password minimal 6 karakter dan maksimal 12 karakter. Jika lupa password, hubungi admin / guru BK.
   </x-modal>
 
+  @include('shared.partials.pwa-update-prompt')
+
   <script>
     (function () {
       const form = document.querySelector('form[action="{{ route('auth.loginSubmit') }}"]');

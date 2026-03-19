@@ -25,6 +25,8 @@
     $role     = $authUser->role ?? 'siswa';
     $pfx      = $role === 'guru' ? 'bk' : 'siswa';
     $roleLabel = $role === 'guru' ? 'Guru BK' : 'Siswa/i';
+    $appVersion = \App\Models\AppSetting::get('app_version', '1.0.0');
+    $appUpdateInfo = \App\Models\AppSetting::get('app_update_info', '');
 @endphp
 
 <div class="profile-page-wrap">
@@ -263,6 +265,27 @@
             </button>
         </div>
 
+        {{-- ── App info + update (PWA) ───────────────────────── --}}
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-3">
+            <div class="px-5 py-3 border-b border-slate-100">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Aplikasi</span>
+            </div>
+            <div class="flex items-center gap-4 px-5 py-4">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:#e8f0fe;">
+                    <i class="fa-solid fa-rotate text-sm" style="color:#0F4C9A;"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-[11px] font-semibold uppercase tracking-wider mb-0.5 text-slate-400">Update Aplikasi</p>
+                    <p class="text-sm text-slate-800 font-semibold">Versi {{ $appVersion }}</p>
+                </div>
+                <button type="button" id="openAppInfoBtn"
+                        class="shrink-0 px-4 py-2 rounded-xl text-white text-sm font-semibold transition flex items-center gap-2"
+                        style="background:#0F4C9A;">
+                    Lihat Detail
+                </button>
+            </div>
+        </div>
+
         {{-- ── Mobile logout --}}
         <div class="md:hidden">
             <button type="button" onclick="openLogoutModal()"
@@ -285,6 +308,47 @@
             <i class="fa-solid fa-check text-lg" style="color:#0F4C9A;"></i>
         </div>
         <p id="profileFlashMsg" class="text-sm font-medium text-slate-700 text-center"></p>
+    </div>
+</div>
+
+{{-- App info modal (detail update + PWA check update) --}}
+<div id="appInfoModal" class="fixed inset-0 hidden" style="z-index:99999">
+    <div class="absolute inset-0 bg-black/40" id="appInfoBackdrop"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-extrabold text-slate-900">Info Aplikasi</div>
+                    <div class="text-xs text-slate-400 mt-0.5">Versi {{ $appVersion }}</div>
+                </div>
+                <button type="button" id="closeAppInfoBtn" class="w-9 h-9 rounded-xl hover:bg-slate-50 transition flex items-center justify-center text-slate-400">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="px-6 py-5">
+                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Catatan Update</div>
+                <div class="text-sm text-slate-700 leading-relaxed max-h-[40vh] overflow-auto pr-1">
+                    {!! $appUpdateInfo ? nl2br(e($appUpdateInfo)) : '<span class="text-slate-400">Tidak ada catatan update.</span>' !!}
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button type="button" id="appInfoCheckUpdateBtn"
+                        class="hidden px-4 py-2 rounded-xl text-white text-sm font-semibold transition flex items-center gap-2"
+                        style="background:#0F4C9A;">
+                    <span id="appInfoCheckUpdateLabel">Cek Update</span>
+                    <svg id="appInfoCheckUpdateSpinner" class="hidden animate-spin w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                    </svg>
+                </button>
+                <button type="button" id="appInfoCloseBtn"
+                        class="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition font-semibold text-sm">
+                    Tutup
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -438,6 +502,98 @@
     });
 
     document.getElementById('profileEmailEditBtn')?.addEventListener('click', enterEdit);
+
+    // ── App info (detail) + PWA-only update check ───────────────────────
+    const openAppInfoBtn  = document.getElementById('openAppInfoBtn');
+    const appInfoModal    = document.getElementById('appInfoModal');
+    const appInfoBackdrop = document.getElementById('appInfoBackdrop');
+    const closeAppInfoBtn = document.getElementById('closeAppInfoBtn');
+    const appInfoCloseBtn = document.getElementById('appInfoCloseBtn');
+
+    const checkUpdateBtn     = document.getElementById('appInfoCheckUpdateBtn');
+    const checkUpdateLabel   = document.getElementById('appInfoCheckUpdateLabel');
+    const checkUpdateSpinner = document.getElementById('appInfoCheckUpdateSpinner');
+
+    function isStandalonePwa() {
+        // Android/Chromium: display-mode
+        if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+        // iOS Safari
+        if (window.navigator && window.navigator.standalone) return true;
+        return false;
+    }
+
+    function openAppInfo() {
+        if (!appInfoModal) return;
+        appInfoModal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function closeAppInfo() {
+        if (!appInfoModal) return;
+        appInfoModal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    openAppInfoBtn?.addEventListener('click', openAppInfo);
+    appInfoBackdrop?.addEventListener('click', closeAppInfo);
+    closeAppInfoBtn?.addEventListener('click', closeAppInfo);
+    appInfoCloseBtn?.addEventListener('click', closeAppInfo);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        if (!appInfoModal || appInfoModal.classList.contains('hidden')) return;
+        closeAppInfo();
+    });
+
+    // Show check update button ONLY in PWA standalone
+    if (checkUpdateBtn) {
+        checkUpdateBtn.classList.toggle('hidden', !isStandalonePwa());
+    }
+
+    function setUpdateBusy(busy) {
+        if (!checkUpdateBtn) return;
+        checkUpdateBtn.disabled = busy;
+        if (checkUpdateLabel) checkUpdateLabel.textContent = busy ? 'Mengecek...' : 'Cek Update';
+        if (checkUpdateSpinner) checkUpdateSpinner.classList.toggle('hidden', !busy);
+    }
+
+    checkUpdateBtn?.addEventListener('click', async () => {
+        // Web mode: tombol ini tidak pernah muncul
+        if (!isStandalonePwa()) return;
+        if (!('serviceWorker' in navigator)) {
+            window.showFlashModal?.('error', 'Update tidak didukung di perangkat ini.');
+            return;
+        }
+        if (navigator.onLine === false) {
+            window.showFlashModal?.('error', 'Tidak ada koneksi internet untuk cek update.');
+            return;
+        }
+
+        setUpdateBusy(true);
+
+        try {
+            let reg = await navigator.serviceWorker.getRegistration('/');
+            if (!reg) {
+                reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+            }
+
+            // Trigger update check
+            try { await reg.update(); } catch (_) {}
+
+            // Wait briefly for updatefound/installing to settle
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            if (reg.waiting) {
+                window.dispatchEvent(new CustomEvent('pwa:sw-update', { detail: { registration: reg } }));
+            } else {
+                window.showFlashModal?.('success', 'Sudah versi terbaru.');
+            }
+        } catch (_) {
+            window.showFlashModal?.('error', 'Gagal cek update. Coba lagi.');
+        } finally {
+            setUpdateBusy(false);
+        }
+    });
 })();
 
 // ── Logout modal ──────────────────────────────────────────────────────────

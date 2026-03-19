@@ -337,7 +337,15 @@ class AdminController extends Controller
         $maintenanceMode     = AppSetting::maintenanceMode();
         $maintenanceMessage  = AppSetting::get('maintenance_message', 'Sistem sedang dalam pemeliharaan. Mohon tunggu sebentar.');
         $maintenanceAdminUrl = AppSetting::get('maintenance_admin_url', 'ginlogin');
-        return view('admin.sections.settings', compact('maintenanceMode', 'maintenanceMessage', 'maintenanceAdminUrl'));
+        $appVersion          = AppSetting::get('app_version', '1.0.0');
+        $appUpdateInfo       = AppSetting::get('app_update_info', '');
+        return view('admin.sections.settings', compact(
+            'maintenanceMode',
+            'maintenanceMessage',
+            'maintenanceAdminUrl',
+            'appVersion',
+            'appUpdateInfo'
+        ));
     }
 
     public function toggleMaintenance()
@@ -360,5 +368,18 @@ class AdminController extends Controller
         $request->validate(['admin_url' => 'required|string|max:60|regex:/^[a-zA-Z0-9\-_]+$/']);
         AppSetting::set('maintenance_admin_url', $request->input('admin_url'));
         return redirect()->route('admin.settings')->with('success', 'URL login darurat berhasil diperbarui.');
+    }
+
+    public function saveAppInfo(Request $request)
+    {
+        $validated = $request->validate([
+            'app_version'     => 'required|string|max:32',
+            'app_update_info' => 'nullable|string|max:1000',
+        ]);
+
+        AppSetting::set('app_version', trim($validated['app_version']));
+        AppSetting::set('app_update_info', $validated['app_update_info'] ?? '');
+
+        return redirect()->route('admin.settings')->with('success', 'Info aplikasi berhasil disimpan.');
     }
 }

@@ -1,7 +1,8 @@
 /* public/sw.js — Service Worker: PWA install + Web Push */
 
-const CACHE_NAME = 'e-konseling-v1';
+const CACHE_NAME = 'e-konseling-v2';
 const PRECACHE = [
+    '/',
     '/auth/onboarding',
     '/auth/login',
     '/favicon.png',
@@ -10,7 +11,6 @@ const PRECACHE = [
 
 /* ─── Install: pre-cache shell pages ─── */
 self.addEventListener('install', function (e) {
-    self.skipWaiting();
     e.waitUntil(
         caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE).catch(() => {}))
     );
@@ -25,6 +25,13 @@ self.addEventListener('activate', function (e) {
     );
 });
 
+/* ─── Allow clients to trigger activation ─── */
+self.addEventListener('message', function (e) {
+    if (e.data && e.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});
+
 /* ─── Fetch: network-first, fall back to cache for navigations ─── */
 self.addEventListener('fetch', function (e) {
     // Only handle GET, same-origin, navigation requests for offline fallback
@@ -34,7 +41,7 @@ self.addEventListener('fetch', function (e) {
     if (e.request.mode === 'navigate') {
         e.respondWith(
             fetch(e.request).catch(() =>
-                caches.match('/auth/onboarding').then(r => r || caches.match('/auth/login'))
+                caches.match('/').then(r => r || caches.match('/auth/login') || caches.match('/auth/onboarding'))
             )
         );
     }

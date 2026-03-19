@@ -241,6 +241,7 @@
 </script>
 
 <x-flash-modal />
+@include('shared.partials.pwa-update-prompt')
 @include('shared.partials.submit-loading')
 </body>
 </html>

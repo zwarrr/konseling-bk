@@ -235,6 +235,7 @@
   </script>
   @include('shared.partials.submit-loading')
   @include('shared.partials.pwa-install-banner')
+  @include('shared.partials.pwa-update-prompt')
 
 </body>
 </html>
