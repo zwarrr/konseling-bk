@@ -24,8 +24,9 @@ jobs:
             set -e
             eval \$(ssh-agent -s)
             ssh-add ~/.ssh/zwar
-            ssh -T git@github.com
-            ssh -T git@github.com
+            # NOTE: `ssh -T git@github.com` returns exit code 1 even when auth succeeds
+            # (GitHub prints "no shell access"). Don't let that break deploy.
+            ssh -T git@github.com || true
             cd web
             git pull --ff-only origin Zwar
             echo 'DEPLOYED_COMMIT='$(git rev-parse --short HEAD)
