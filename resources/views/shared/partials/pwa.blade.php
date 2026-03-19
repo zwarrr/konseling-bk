@@ -3,9 +3,7 @@
   Include inside <head> on every page that needs PWA support.
 --}}
 @php
-  $pwaManifestV = @filemtime(public_path('manifest.webmanifest')) ?: time();
-  $pwaIconV     = @filemtime(public_path('assets/img/app-icon.png')) ?: $pwaManifestV;
-  $pwaAssetV    = max($pwaManifestV, $pwaIconV);
+  $pwaAssetV = @filemtime(public_path('assets/img/app-icon.png')) ?: time();
 @endphp
 <link rel="manifest" href="/manifest.webmanifest?v={{ $pwaAssetV }}">
 <meta name="theme-color" content="#ffffff">
@@ -16,9 +14,31 @@
 <link rel="apple-touch-icon" href="/assets/img/app-icon.png?v={{ $pwaAssetV }}">
 
 <style>
+  html, body { overscroll-behavior-y: none; }
   .turbo-progress-bar { display: none !important; }
 </style>
 <script>
+  (function () {
+    function isStandalonePwa() {
+      if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+      if (window.navigator && window.navigator.standalone) return true;
+      return false;
+    }
+    if (!isStandalonePwa()) return;
+    var startY = 0;
+    window.addEventListener('touchstart', function (e) {
+      if (!e.touches || e.touches.length !== 1) return;
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+    window.addEventListener('touchmove', function (e) {
+      if (!e.touches || e.touches.length !== 1) return;
+      var y = e.touches[0].clientY;
+      var pullingDown = (y - startY) > 10;
+      var atTop = (window.scrollY || window.pageYOffset || 0) <= 0;
+      if (pullingDown && atTop) e.preventDefault();
+    }, { passive: false });
+  })();
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('/sw.js?v={{ $pwaAssetV }}', {

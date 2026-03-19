@@ -9,6 +9,54 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+
+// ─── PWA Manifest (served by Laravel to avoid webserver caching/extension issues) ───
+Route::get('/manifest.webmanifest', function () {
+    $v = @filemtime(public_path('assets/img/app-icon.png')) ?: time();
+
+    $manifest = [
+        'name' => 'E-Konseling — Konseling BK',
+        'short_name' => 'E-Konseling',
+        'description' => 'Aplikasi Bimbingan Konseling (BK) — layanan konseling siswa berbasis digital.',
+        'id' => '/?pwa=ekonseling',
+        'start_url' => '/auth/onboarding?source=pwa&v=' . $v,
+        'scope' => '/',
+        'display' => 'standalone',
+        'orientation' => 'portrait',
+        'background_color' => '#ffffff',
+        'theme_color' => '#ffffff',
+        'lang' => 'id',
+        'categories' => ['education'],
+        'icons' => [
+            [
+                'src' => '/assets/img/app-icon.png?v=' . $v,
+                'sizes' => '1080x1080',
+                'type' => 'image/png',
+                'purpose' => 'any maskable',
+            ],
+        ],
+        'screenshots' => [],
+        'shortcuts' => [
+            [
+                'name' => 'Login',
+                'short_name' => 'Login',
+                'description' => 'Buka halaman login',
+                'url' => '/auth/onboarding',
+                'icons' => [
+                    ['src' => '/assets/img/app-icon.png?v=' . $v, 'sizes' => '1080x1080'],
+                ],
+            ],
+        ],
+    ];
+
+    return response()
+        ->json($manifest)
+        ->header('Content-Type', 'application/manifest+json; charset=utf-8')
+        ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+});
+
+// Backward-compat for old installs that still fetch /manifest.json
+Route::get('/manifest.json', fn () => redirect('/manifest.webmanifest', 302));
 // ─── Auth ────────────────────────────────────────────────────────────
 Route::middleware(['maintenance'])->group(function () {
     Route::get('/auth/onboarding', function () {

@@ -1,10 +1,11 @@
 /* public/sw.js — Service Worker: PWA install + Web Push */
 
-const CACHE_NAME = 'e-konseling-v5';
+const CACHE_NAME = 'e-konseling-v1';
 const PRECACHE = [
     '/',
     '/auth/onboarding',
     '/auth/login',
+    '/manifest.json',
     '/manifest.webmanifest',
     '/assets/img/app-icon.png',
     '/favicon.png',
