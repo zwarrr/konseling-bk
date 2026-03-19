@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
 // ─── PWA Manifest (served by Laravel to avoid webserver caching/extension issues) ───
-Route::get('/manifest.webmanifest', function () {
+function pwaManifestResponse()
+{
     $v = @filemtime(public_path('assets/img/app-icon.png')) ?: time();
 
     $manifest = [
@@ -52,11 +53,13 @@ Route::get('/manifest.webmanifest', function () {
     return response()
         ->json($manifest)
         ->header('Content-Type', 'application/manifest+json; charset=utf-8')
-        ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
-});
+        ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        ->header('Pragma', 'no-cache')
+        ->header('Expires', '0');
+}
 
-// Backward-compat for old installs that still fetch /manifest.json
-Route::get('/manifest.json', fn () => redirect('/manifest.webmanifest', 302));
+Route::get('/manifest.webmanifest', fn () => pwaManifestResponse());
+Route::get('/manifest.json', fn () => pwaManifestResponse());
 // ─── Auth ────────────────────────────────────────────────────────────
 Route::middleware(['maintenance'])->group(function () {
     Route::get('/auth/onboarding', function () {
