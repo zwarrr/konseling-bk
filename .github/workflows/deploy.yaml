@@ -21,12 +21,14 @@ jobs:
     - name: Deploy to server via SSH
       run: |
         ssh -p 21032 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+            set -e
             eval \$(ssh-agent -s)
             ssh-add ~/.ssh/zwar
             ssh -T git@github.com
             ssh -T git@github.com
             cd web
-            git pull origin Zwar
+            git pull --ff-only origin Zwar
+            echo 'DEPLOYED_COMMIT='$(git rev-parse --short HEAD)
             composer install
             composer dump-autoload
             npm install

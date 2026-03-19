@@ -15,7 +15,15 @@ const PRECACHE = [
 /* ─── Install: pre-cache shell pages ─── */
 self.addEventListener('install', function (e) {
     e.waitUntil(
-        caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE).catch(() => {}))
+        caches.open(CACHE_NAME).then(async (cache) => {
+            // Don't let a single 404 (common for manifest.webmanifest on some servers)
+            // break the whole precache.
+            await Promise.all(
+                PRECACHE.map((url) =>
+                    cache.add(new Request(url, { cache: 'reload' })).catch(() => {})
+                )
+            );
+        })
     );
 });
 
