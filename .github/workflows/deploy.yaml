@@ -37,7 +37,7 @@ jobs:
           npm run build
 
           # Laravel tasks
-          php artisan migrate:fresh --seed --force   # Hapus & rebuild semua DB + seed
+          php artisan migrate --force
           php artisan storage:link
           php artisan optimize
           php artisan config:cache

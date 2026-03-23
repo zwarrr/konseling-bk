@@ -95,11 +95,21 @@
   @include('frontend.landingpage.partials.navbar')
 
   @include('frontend.landingpage.sections.beranda')
-  @include('frontend.landingpage.sections.slider')
-  @include('frontend.landingpage.sections.about')
-  @include('frontend.landingpage.sections.services')
-  @include('frontend.landingpage.sections.program')
-  @include('frontend.landingpage.sections.cta')
+
+  {{-- Progressive CSR slots (keep beranda SSR for first paint and SEO) --}}
+  <div id="landing-slot-slider" data-landing-slot="slider"></div>
+  <div id="landing-slot-tentang" data-landing-slot="tentang"></div>
+  <div id="landing-slot-layanan" data-landing-slot="layanan"></div>
+  <div id="landing-slot-program" data-landing-slot="program"></div>
+  <div id="landing-slot-cta" data-landing-slot="cta"></div>
+
+  <noscript>
+    @include('frontend.landingpage.sections.slider')
+    @include('frontend.landingpage.sections.about')
+    @include('frontend.landingpage.sections.services')
+    @include('frontend.landingpage.sections.program')
+    @include('frontend.landingpage.sections.cta')
+  </noscript>
 
   @include('frontend.landingpage.partials.footer')
 
@@ -126,7 +136,7 @@
       'slider-news-bk': 'slider',
     };
     const spyNavLinks = document.querySelectorAll('a.nav-link');
-    const spySections = Array.from(document.querySelectorAll('section[id]'));
+    const getSpySections = () => Array.from(document.querySelectorAll('section[id]'));
 
     function setActiveNav(mappedHref) {
       spyNavLinks.forEach(l => {
@@ -139,6 +149,8 @@
     }
 
     function onScroll() {
+      const spySections = getSpySections();
+      if (!spySections.length) return;
       const vh = window.innerHeight;
       // Titik referensi: 45% dari tinggi viewport (sedikit di atas tengah)
       const refPoint = vh * 0.45;
@@ -166,23 +178,105 @@
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll(); // set on load
 
+    function scrollToSectionId(targetId) {
+      const target = document.getElementById(targetId);
+      if (!target) return false;
+      const navH = document.querySelector('nav')?.offsetHeight || 64;
+      const y = target.getBoundingClientRect().top + window.scrollY - navH;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+      const finalSlug = sectionUrlMap[targetId] || targetId;
+      history.replaceState(null, '', '/' + finalSlug);
+      return true;
+    }
+
+    let pendingScrollTarget = '';
+
     // On page load — handle hash (#) dari sub-page, ATAU path section (/program, /slider-news-bk, dst)
     (function() {
       const hash = window.location.hash.replace('#', '');
       const pathSlug = window.location.pathname.replace('/', '').trim();
       const targetId = hash || urlToSection[pathSlug] || (pathSlug && document.getElementById(pathSlug) ? pathSlug : '');
       if (targetId) {
-        const target = document.getElementById(targetId);
-        if (target) {
-          setTimeout(() => {
-            const navH = document.querySelector('nav')?.offsetHeight || 64;
-            const y = target.getBoundingClientRect().top + window.scrollY - navH;
-            window.scrollTo({ top: y, behavior: 'smooth' });
-          }, 100);
-        }
-        const finalSlug = sectionUrlMap[targetId] || targetId;
-        history.replaceState(null, '', '/' + finalSlug);
+        setTimeout(() => {
+          const ok = scrollToSectionId(targetId);
+          if (!ok) pendingScrollTarget = targetId;
+        }, 100);
       }
+    })();
+
+    // ── Progressive CSR loader: load sections one by one from server-rendered fragments ──
+    (function () {
+      const sectionOrder = ['slider', 'tentang', 'layanan', 'program', 'cta'];
+      const slots = Object.fromEntries(
+        sectionOrder.map((id) => [id, document.getElementById('landing-slot-' + id)])
+      );
+
+      const baseFragmentUrl = @json(route('landing.fragments', ['section' => '__SECTION__']));
+      const loaded = new Set();
+      let cursor = 0;
+
+      function fragmentUrl(sectionId) {
+        return baseFragmentUrl.replace('__SECTION__', sectionId);
+      }
+
+      function waitTiny() {
+        if ('requestIdleCallback' in window) {
+          return new Promise((resolve) => requestIdleCallback(() => resolve(), { timeout: 250 }));
+        }
+        return new Promise((resolve) => setTimeout(resolve, 32));
+      }
+
+      async function loadSection(sectionId) {
+        const slot = slots[sectionId];
+        if (!slot || loaded.has(sectionId)) return;
+
+        const res = await fetch(fragmentUrl(sectionId), {
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html',
+          },
+          credentials: 'same-origin',
+        });
+        if (!res.ok) throw new Error('Failed to load section: ' + sectionId);
+
+        const html = await res.text();
+        slot.innerHTML = html;
+        slot.dataset.loaded = '1';
+        loaded.add(sectionId);
+
+        document.dispatchEvent(new CustomEvent('landing:section-loaded', { detail: { id: sectionId } }));
+        slot.querySelectorAll('.reveal').forEach((el) => revealObserver.observe(el));
+        onScroll();
+        if (pendingScrollTarget) {
+          const done = scrollToSectionId(pendingScrollTarget);
+          if (done) pendingScrollTarget = '';
+        }
+      }
+
+      async function processUntil(targetIndex) {
+        while (cursor <= targetIndex && cursor < sectionOrder.length) {
+          const id = sectionOrder[cursor];
+          await loadSection(id);
+          cursor += 1;
+          await waitTiny();
+        }
+      }
+
+      // Queue runner to avoid concurrent loaders (auto-load + ensureSection).
+      let queue = Promise.resolve();
+      function enqueue(targetIndex) {
+        queue = queue.then(() => processUntil(targetIndex)).catch(() => {});
+        return queue;
+      }
+
+      window.__landingEnsureSection = function (sectionId) {
+        const index = sectionOrder.indexOf(sectionId);
+        if (index === -1) return;
+        enqueue(index);
+      };
+
+      // Auto-load all non-critical sections sequentially after first paint.
+      enqueue(sectionOrder.length - 1);
     })();
 
     // Intercept anchor clicks — scroll tanpa hash di URL
@@ -190,8 +284,16 @@
       a.addEventListener('click', e => {
         const id = a.getAttribute('href').replace('#', '');
         const target = document.getElementById(id);
-        if (!target) return;
         e.preventDefault();
+
+        if (!target) {
+          pendingScrollTarget = id;
+          if (typeof window.__landingEnsureSection === 'function') {
+            window.__landingEnsureSection(id);
+          }
+          return;
+        }
+
         const navH = document.querySelector('nav')?.offsetHeight || 64;
         const y = target.getBoundingClientRect().top + window.scrollY - navH;
         window.scrollTo({ top: y, behavior: 'smooth' });

@@ -63,6 +63,20 @@ Route::get('/', function () {
     return view('frontend.landingpage.landingpage');
 })->name('landing');
 
+Route::get('/_fragments/landing/{section}', function (string $section) {
+    $viewMap = [
+        'slider'  => 'frontend.landingpage.sections.slider',
+        'tentang' => 'frontend.landingpage.sections.about',
+        'layanan' => 'frontend.landingpage.sections.services',
+        'program' => 'frontend.landingpage.sections.program',
+        'cta'     => 'frontend.landingpage.sections.cta',
+    ];
+
+    abort_unless(isset($viewMap[$section]), 404);
+
+    return response()->view($viewMap[$section]);
+})->name('landing.fragments');
+
 // ─── Landing sub-pages ────────────────────────────────────────────────
 Route::get('/kontak', fn () => view('frontend.landingpage.sections.contact'))->name('landing.contact');
 Route::get('/profil-bk', fn () => view('frontend.landingpage.sections.profile_bk'))->name('landing.profile_bk');
