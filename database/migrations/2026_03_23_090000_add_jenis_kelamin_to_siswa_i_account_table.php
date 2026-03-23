@@ -8,15 +8,15 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('program_bookings', function (Blueprint $table) {
-            $table->timestamp('reminded_lead_at')->nullable()->after('responded_by');
+        Schema::table('siswa_i_account', function (Blueprint $table) {
+            $table->enum('jenis_kelamin', ['L', 'P'])->nullable()->after('name');
         });
     }
 
     public function down(): void
     {
-        Schema::table('program_bookings', function (Blueprint $table) {
-            $table->dropColumn('reminded_lead_at');
+        Schema::table('siswa_i_account', function (Blueprint $table) {
+            $table->dropColumn('jenis_kelamin');
         });
     }
 };

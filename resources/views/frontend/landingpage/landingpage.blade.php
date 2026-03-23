@@ -9,36 +9,36 @@
   <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
   <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
 
-  {{-- Tailwind CDN --}}
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            blue:   { 50:'#eff6ff', 100:'#dbeafe', 200:'#bfdbfe', 300:'#93c5fd', 400:'#60a5fa', 500:'#3b82f6', 600:'#1a6dd8', 700:'#0F4C9A', 800:'#073d82', 900:'#072c5e' },
-            orange: { 50:'#fff7ed', 100:'#ffedd5', 200:'#fed7aa', 300:'#fdba74', 400:'#fb923c', 500:'#f97316', 600:'#ea580c', 700:'#c2410c', 800:'#9a3412', 900:'#7c2d12' },
-          },
-          fontFamily: {
-            sans: ['Inter', 'Segoe UI', 'sans-serif'],
-          },
-        },
-      },
-    }
-  </script>
+  {{-- Hero image preload (helps LCP) --}}
+  <link rel="preload" as="image" href="{{ asset('assets/img/promot_iphone3d.png') }}" fetchpriority="high">
 
-  {{-- Google Fonts --}}
+  {{-- Tailwind (Vite build) --}}
+  @vite('resources/css/app.css')
+
+  {{-- Google Fonts (non-blocking) --}}
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap">
+  </noscript>
 
-  {{-- Font Awesome --}}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  {{-- Font Awesome (non-blocking) --}}
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" media="print" onload="this.media='all'">
+  <noscript>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  </noscript>
 
   {{-- Alpine.js (untuk slider) --}}
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
   <style>
     html { scroll-behavior: smooth; }
+
+    /* Keep landing page typography consistent */
+    :root { --font-sans: 'Inter', 'Segoe UI', ui-sans-serif, system-ui, sans-serif; }
 
     /* Brand solid color (no gradient) */
     .bg-brand       { background: #0F4C9A; }

@@ -147,7 +147,6 @@
                 <th class="px-4 py-3 font-medium">Bidang</th>
                 <th class="px-4 py-3 font-medium">Jadwal</th>
                 <th class="px-4 py-3 font-medium">Guru Pembimbing</th>
-                <th class="px-4 py-3 font-medium">Status</th>
                 <th class="px-4 py-3 font-medium">Aksi</th>
               </tr>
             </thead>
@@ -157,7 +156,6 @@
                 data-id="{{ $ag->id }}"
                 data-ag-category="{{ $ag->category }}"
                 data-ag-date="{{ $ag->date->format('Y-m-d') }}"
-                data-ag-status="{{ $ag->status }}"
                 data-ag-guru="{{ $ag->guru_pembimbing }}"
                 data-ag-title="{{ $ag->title }}"
                 data-ag-desc="{{ $ag->description }}"
@@ -200,17 +198,6 @@
                 <td class="px-4 py-3 text-gray-600 text-xs">{{ $ag->date->format('d M Y') }}</td>
                 <td class="px-4 py-3 text-gray-600 text-xs">{{ $ag->guru_pembimbing ?? '—' }}</td>
                 <td class="px-4 py-3">
-                  @if($ag->status === 'publish')
-                    <span class="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-                      <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span> Publish
-                    </span>
-                  @else
-                    <span class="inline-flex items-center gap-1 bg-gray-100 text-gray-500 text-xs font-semibold px-2.5 py-1 rounded-full">
-                      <span class="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span> Draft
-                    </span>
-                  @endif
-                </td>
-                <td class="px-4 py-3">
                   <div data-drop class="relative inline-block">
                     <button data-drop-toggle type="button"
                       class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition">
@@ -221,9 +208,6 @@
                         class="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition flex items-center gap-2">
                         <i class="fa-solid fa-pen-to-square w-4 text-center"></i> Edit
                       </button>
-                      <x-drop-action.toggle-publish
-                        :current-status="$ag->status"
-                        :toggle-url="route('admin.landing.programToggle', $ag)" />
                       <x-drop-action.delete
                         :title="$ag->title"
                         :action="route('admin.landing.programDestroy', $ag)" />
@@ -233,7 +217,7 @@
               </tr>
               @empty
               <tr>
-                <td colspan="7" class="px-6 py-8 text-center text-gray-400">Belum ada data program dan kegiatan.</td>
+                <td colspan="6" class="px-6 py-8 text-center text-gray-400">Belum ada data program dan kegiatan.</td>
               </tr>
               @endforelse
             </tbody>
@@ -276,7 +260,7 @@
                   <div class="flex-1">
                     <input id="programInputImg" name="img" type="file" accept="image/*"
                       class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-primary/10 file:text-primary">
-                    <p class="text-xs text-gray-400 mt-1">PNG, JPG, WEBP — maks. 5 MB. Kosongkan untuk tidak mengubah.</p>
+                    <p class="text-xs text-gray-400 mt-1">1152x723 | 384:241 - PNG, JPG, WEBP, maks. 5 MB. Kosongkan untuk tidak mengubah.</p>
                   </div>
                 </div>
               </div>
@@ -292,7 +276,7 @@
                   <div class="flex-1">
                     <input id="programInputImgD1" name="img_detail_1" type="file" accept="image/*"
                       class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-primary/10 file:text-primary">
-                    <p class="text-xs text-gray-400 mt-1" id="programImgD1Note">Ditampilkan di halaman detail (slide 1).</p>
+                    <p class="text-xs text-gray-400 mt-1" id="programImgD1Note">1600x900 | 16:9 - Ditampilkan di halaman detail (slide 1).</p>
                   </div>
                 </div>
               </div>
@@ -308,7 +292,7 @@
                   <div class="flex-1">
                     <input id="programInputImgD2" name="img_detail_2" type="file" accept="image/*"
                       class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-primary/10 file:text-primary">
-                    <p class="text-xs text-gray-400 mt-1" id="programImgD2Note">Ditampilkan di halaman detail (slide 2).</p>
+                    <p class="text-xs text-gray-400 mt-1" id="programImgD2Note">1600x900 | 16:9 - Ditampilkan di halaman detail (slide 2).</p>
                   </div>
                 </div>
               </div>
@@ -338,21 +322,13 @@
                 </div>
               </div>
 
-              {{-- Row 2: Guru Pembimbing & Status --}}
-              <div class="grid grid-cols-2 gap-3">
+              {{-- Row 2: Guru Pembimbing --}}
+              <div class="grid grid-cols-1 gap-3">
                 <div>
                   <label class="block text-sm font-medium text-slate-700 mb-1">Guru Pembimbing</label>
                   <input id="programInputGuru" name="guru_pembimbing" type="text" maxlength="100"
                     placeholder="Nama guru pembimbing"
                     class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Status <span class="text-red-500">*</span></label>
-                  <select id="programInputStatus" name="status" required
-                    class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white">
-                    <option value="draft">Draft</option>
-                    <option value="publish">Publish</option>
-                  </select>
                 </div>
               </div>
 
@@ -448,7 +424,6 @@
     const inputCategory  = document.getElementById('programInputCategory');
     const inputDate      = document.getElementById('programInputDate');
     const inputGuru      = document.getElementById('programInputGuru');
-    const inputStatus    = document.getElementById('programInputStatus');
     const inputTitle     = document.getElementById('programInputTitle');
     const inputDesc      = document.getElementById('programInputDesc');
     const inputInfoLink  = document.getElementById('programInputInfoLink');
@@ -554,7 +529,6 @@
       inputCategory.value   = '';
       inputDate.value       = '';
       inputGuru.value       = '';
-      inputStatus.value     = 'draft';
       inputTitle.value      = '';
       inputDesc.value       = '';
       if (inputInfoLink)  inputInfoLink.value  = '';
@@ -576,7 +550,6 @@
       inputCategory.value   = d.agCategory || '';
       inputDate.value       = d.agDate    || '';
       inputGuru.value       = d.agGuru    || '';
-      inputStatus.value     = d.agStatus  || 'draft';
       inputTitle.value      = d.agTitle   || '';
       inputDesc.value       = d.agDesc    || '';
       if (inputInfoLink)  inputInfoLink.value = d.agInfoLink || '';

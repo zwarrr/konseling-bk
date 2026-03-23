@@ -14,7 +14,7 @@ class UserProgramController extends Controller
 {
     public function index(Request $request)
     {
-        $programs = Program::where('status', 'publish')
+        $programs = Program::query()
             ->orderByDesc('date')
             ->paginate(12)
             ->withQueryString();
@@ -38,7 +38,7 @@ class UserProgramController extends Controller
         $isGuru = (auth()->user()->role ?? '') === 'guru';
         $program = $isGuru
             ? Program::where('slug', $slug)->firstOrFail()
-            : Program::where('status', 'publish')->where('slug', $slug)->firstOrFail();
+            : Program::where('slug', $slug)->firstOrFail();
 
         $reviews       = ProgramReview::where('program_id', $program->id)->latest()->paginate(5);
         $reviewsCount  = ProgramReview::where('program_id', $program->id)->count();
@@ -46,7 +46,7 @@ class UserProgramController extends Controller
         $firstReview   = ProgramReview::where('program_id', $program->id)->oldest()->first();
         $firstReviewId = $firstReview?->id;
 
-        $allPrograms = Program::where('status', 'publish')->orderByDesc('date')->get();
+        $allPrograms = Program::orderByDesc('date')->get();
         $isAuth = true;
         return view('shared.sections.program-detail', compact(
             'program', 'allPrograms', 'reviews', 'reviewsCount', 'reviewsAvg', 'firstReviewId', 'isAuth'
@@ -111,7 +111,6 @@ class UserProgramController extends Controller
         $data['slug']          = $this->generateSlug($data['title']);
         $data['added_by']      = auth()->id();
         $data['info_link']     = $data['info_link'] ?? null;
-        $data['status']        = 'publish';
 
         Program::create($data);
 
@@ -156,7 +155,6 @@ class UserProgramController extends Controller
         $data['img_detail_2'] = $this->uploadImg($request, 'img_detail_2', $program->img_detail_2);
         $data['guru_pembimbing'] = null;
         $data['info_link']    = $data['info_link'] ?? null;
-        $data['status']       = 'publish';
         if (!$program->slug) {
             $data['slug'] = $this->generateSlug($data['title'], $program->id);
         }
@@ -164,14 +162,6 @@ class UserProgramController extends Controller
         $program->update($data);
 
         return redirect()->route('bk.program.kelola')->with('success', 'Program dan kegiatan berhasil diperbarui.');
-    }
-
-    public function toggle($slug)
-    {
-        abort_unless(auth()->user()->role === 'guru', 403);
-        $program = Program::where('slug', $slug)->firstOrFail();
-        $program->update(['status' => 'publish']);
-        return back()->with('success', 'Program selalu publish (tidak ada draft).');
     }
 
     public function destroy($slug)

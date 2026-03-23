@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Schema;
  *  sender_role        — snapshot of role at send time (guru / siswa / user)
  *  message_type       — 'text' | 'image' | 'video' | 'document'
  *  attachment         — relative storage path when message_type ≠ 'text'
- *  status             — 'unread' → 'read'  (drives the blue-tick read receipt)
+ *  read_at            — null = unread, timestamp = read (drives the blue-tick read receipt)
  */
 return new class extends Migration
 {
@@ -40,8 +40,8 @@ return new class extends Migration
             $table->enum('message_type', ['text', 'image', 'video', 'document'])->default('text'); // text|image|video|document
             $table->string('attachment')->nullable();             // storage path
 
-            // Read-receipt — 'unread' → 'read' (blue tick)
-            $table->enum('status', ['unread', 'read'])->default('unread');
+            // Read-receipt — null means unread, timestamp means already read
+            $table->timestamp('read_at')->nullable();
 
             $table->timestamps();
 
@@ -50,7 +50,7 @@ return new class extends Migration
             // Quick participant lookup
             $table->index(['siswa_account_id', 'guru_account_id']);
             // Quick unread count per room
-            $table->index(['room_id', 'status']);
+            $table->index(['room_id', 'read_at']);
         });
     }
 

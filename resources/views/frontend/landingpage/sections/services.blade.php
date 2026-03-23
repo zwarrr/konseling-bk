@@ -50,7 +50,7 @@
         <img
           src="{{ $svcSection->img ? asset($svcSection->img) : asset('assets/img/iPhone.png') }}"
           alt="E-Konseling App"
-          class="relative z-10 float select-none pointer-events-none drop-shadow-2xl w-[280px] sm:w-[360px] md:w-[420px] lg:w-[450px] max-w-full"
+          class="relative z-10 float select-none pointer-events-none drop-shadow-2xl w-[280px] sm:w-[340px] md:w-[280px] lg:w-[280px] max-w-full"
           draggable="false"
         >
       </div>
@@ -74,4 +74,3 @@
 
   </div>
 </section>
-

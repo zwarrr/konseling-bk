@@ -34,8 +34,7 @@
         <thead>
           <tr class="text-center text-slate-500 text-xs uppercase tracking-wider border-b border-slate-100">
             <th class="px-4 py-3 font-medium">No</th>
-            <th class="px-4 py-3 font-medium text-left">Nama</th>
-            <th class="px-4 py-3 font-medium">Status</th>
+            <th class="px-4 py-3 font-medium text-center">Nama</th>
             <th class="px-4 py-3 font-medium">Aksi</th>
           </tr>
         </thead>
@@ -43,18 +42,7 @@
           @forelse($bidangs as $b)
             <tr class="hover:bg-slate-50 transition text-center">
               <td class="px-4 py-3 text-slate-400 text-xs">{{ ($bidangs->currentPage()-1)*$bidangs->perPage()+$loop->iteration }}</td>
-              <td class="px-4 py-3 text-left font-medium text-slate-800">{{ $b->name }}</td>
-              <td class="px-4 py-3">
-                <form method="POST" action="{{ route('admin.programKategori.toggle', $b) }}">
-                  @csrf
-                  @method('PATCH')
-                  <button type="submit"
-                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition
-                      {{ $b->is_active ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
-                    <span class="w-1.5 h-1.5 rounded-full {{ $b->is_active ? 'bg-green-500' : 'bg-slate-400' }} inline-block"></span>
-                    {{ $b->is_active ? 'Aktif' : 'Nonaktif' }}
-                  </button>
-                </form>
+              <td class="px-4 py-3 text-center font-medium text-slate-800">{{ $b->name }}</td>
               </td>
               <td class="px-4 py-3">
                 <div data-drop class="relative inline-block">

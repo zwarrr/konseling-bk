@@ -55,63 +55,18 @@
     <div class="max-w-6xl mx-auto">
 
       @if($news->count())
-
-        {{-- Featured card (first item, full-width) --}}
-        @php $first = $news->first(); @endphp
-        <a href="{{ route('landing.berita.detail', $first->slug) }}" class="news-card group block rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 mb-10 reveal">
-          <div class="grid grid-cols-1 md:grid-cols-2">
-            {{-- Image --}}
-            <div class="overflow-hidden bg-gray-100" style="aspect-ratio:384/214">
-              @php $firstThumb = $first->img_cards ?: $first->img_card; @endphp
-              @if($firstThumb)
-                <img src="{{ $firstThumb }}" alt="{{ $first->title }}"
-                  class="card-img w-full h-full object-cover">
-              @else
-                <div class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
-                  <i class="fa-solid fa-image text-5xl"></i>
-                </div>
-              @endif
-            </div>
-            {{-- Content --}}
-            <div class="p-6 sm:p-8 flex flex-col justify-center">
-              <div class="flex items-center gap-2 mb-3">
-                <!-- <span class="w-2.5 h-2.5 rounded-full bg-blue-500 flex-shrink-0"></span>
-                <span class="text-xs font-semibold text-blue-600 uppercase tracking-wide">BK News</span> -->
-              </div>
-              <h2 class="text-2xl font-bold text-slate-900 leading-snug mb-3 group-hover:text-blue-700 transition-colors duration-200">
-                {{ $first->title }}
-              </h2>
-              @if($first->description)
-                <p class="text-sm text-slate-500 leading-relaxed line-clamp-3 mb-5">{{ $first->description }}</p>
-              @endif
-              <div class="flex items-center gap-3 text-xs text-slate-400 mt-auto">
-                <!-- @if($first->author)
-                  <span class="font-medium text-slate-600">{{ $first->author }}</span>
-                @endif -->
-                <span class="flex items-center gap-1">
-                  <i class="fa-solid fa-calendar-days"></i>
-                  {{ $first->created_at->translatedFormat('d F Y') }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </a>
-
-        {{-- Rest of cards — 3-col grid --}}
-        @if($news->count() > 1)
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
-            @foreach($news->skip(1) as $item)
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
+            @foreach($news as $item)
               <a href="{{ route('landing.berita.detail', $item->slug) }}" class="news-card group flex flex-col rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 bg-white reveal">
                 {{-- Image --}}
                 <div class="overflow-hidden bg-gray-100" style="aspect-ratio:384/214">
-                  @php $cardThumb = $item->img_cards ?: $item->img_card; @endphp
+                  @php $cardThumb = $item->img_cards ?: $item->img_detail_1 ?: $item->img_detail_2; @endphp
                   @if($cardThumb)
                     <img src="{{ $cardThumb }}" alt="{{ $item->title }}"
                       class="card-img w-full h-full object-cover">
                   @else
-                    <div class="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
-                      <i class="fa-solid fa-image text-4xl"></i>
-                    </div>
+                    <img src="{{ asset('assets/img/default-cards-noimg.png') }}" alt="{{ $item->title }}"
+                      class="card-img w-full h-full object-cover">
                   @endif
                 </div>
                 {{-- Content --}}
@@ -139,7 +94,6 @@
               </a>
             @endforeach
           </div>
-        @endif
 
         {{-- Pagination --}}
         @if($news->hasPages())
@@ -192,19 +146,6 @@
       @endif
 
     </div>
-  </section>
-
-  {{-- ── CTA ─────────────────────────────────────────────────────────── --}}
-  <section class="py-16 px-4 sm:px-6 text-center" style="background:linear-gradient(135deg,#0F4C9A,#1a6fd4,#0e3f82)">
-    <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-3">Butuh Bantuan dari Tim BK?</h2>
-    <p class="text-blue-100 text-sm md:text-base mb-7 max-w-md mx-auto">
-      Konselor kami siap membantu kamu menemukan solusi terbaik.
-    </p>
-    <a href="{{ route('landing') }}#cta"
-      class="inline-flex items-center gap-2 px-7 py-3 rounded-full bg-white font-bold text-sm shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200"
-      style="color:#0F4C9A">
-      <i class="fa-solid fa-comments"></i> Mulai Konseling
-    </a>
   </section>
 
   @include('frontend.landingpage.partials.footer')

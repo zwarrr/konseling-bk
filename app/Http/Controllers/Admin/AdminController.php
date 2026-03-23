@@ -194,6 +194,7 @@ class AdminController extends Controller
     {
         $validated = $request->validate([
             'name'         => 'required|string|max:255',
+            'jenis_kelamin'=> 'required|in:L,P',
             'login_id'     => 'required|string|max:10|regex:/^\d+$/|unique:siswa_i_account,login_id',
             'email'        => 'nullable|email|max:255|regex:/@gmail\.com$/i|unique:siswa_i_account,email',
             'password'     => 'required|string|min:6|max:12',
@@ -208,6 +209,7 @@ class AdminController extends Controller
 
         SiswaAccount::create([
             'name'                 => $validated['name'],
+            'jenis_kelamin'        => $validated['jenis_kelamin'],
             'login_id'             => $validated['login_id'],
             'email'                => $validated['email'] ?? null,
             'classroom_id'         => $validated['classroom_id'] ?? null,
@@ -225,6 +227,7 @@ class AdminController extends Controller
 
         $validated = $request->validate([
             'name'         => 'required|string|max:255',
+            'jenis_kelamin'=> 'required|in:L,P',
             'login_id'     => 'required|string|max:10|regex:/^\d+$/|unique:siswa_i_account,login_id,' . $siswa->id,
             'email'        => 'nullable|email|max:255|regex:/@gmail\.com$/i|unique:siswa_i_account,email,' . $siswa->id,
             'password'     => 'nullable|string|min:6|max:12',
@@ -232,6 +235,7 @@ class AdminController extends Controller
         ]);
 
         $siswa->name     = $validated['name'];
+        $siswa->jenis_kelamin = $validated['jenis_kelamin'];
         $siswa->login_id = $validated['login_id'];
         $siswa->email    = $validated['email'] ?? null;
 
@@ -302,13 +306,24 @@ class AdminController extends Controller
         $errors          = $result['errors'];
         $importedRecords = $result['imported_records'] ?? [];
 
-        $fmtError = function (array $e): string {
+        $fmtError = function ($e): string {
+            if (is_string($e)) {
+                return "✗ {$e}";
+            }
+
+            if (!is_array($e)) {
+                return '✗ Terjadi kesalahan saat memproses baris impor.';
+            }
+
             if (!empty($e['name']) && !empty($e['id'])) {
                 return "✗ {$e['name']}, {$e['id']}, {$e['reason']}";
-            } elseif (!empty($e['name'])) {
+            }
+
+            if (!empty($e['name'])) {
                 return "✗ {$e['name']}, {$e['reason']}";
             }
-            return "✗ {$e['reason']}";
+
+            return '✗ ' . ($e['reason'] ?? 'Terjadi kesalahan saat memproses baris impor.');
         };
 
         if ($imported === 0 && !empty($errors)) {

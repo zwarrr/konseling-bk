@@ -46,7 +46,7 @@
           <td class="nowrap">{{ $b->scheduled_at ? $b->scheduled_at->format('d M Y, H:i') : '-' }}</td>
           <td class="nowrap">
             @php
-              $st = (string) ($b->status ?? '');
+              $st = (string) ($b->state ?? '');
               $stLabel = match ($st) {
                 'approved' => 'APPROVED',
                 'rejected' => 'REJECTED',

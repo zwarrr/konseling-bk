@@ -90,7 +90,7 @@ class UserProgramBookingController extends Controller
             ->firstOrFail();
 
         abort_unless((int) $booking->user_id === (int) auth()->id(), 403);
-        abort_unless($booking->status === 'approved', 422, 'Booking belum disetujui.');
+        abort_unless($booking->state === 'approved', 422, 'Booking belum disetujui.');
         abort_unless(($booking->method ?? 'tatap_muka') === 'chat', 422, 'Booking ini bukan via chat.');
         abort_unless(($booking->booking_type ?? 'individu') === 'individu', 422, 'Konfirmasi chat hanya untuk individu.');
         abort_unless(!empty($booking->responded_by) && $booking->respondedBy, 422, 'BK belum ditentukan.');
@@ -160,7 +160,7 @@ class UserProgramBookingController extends Controller
     {
         $this->assertSiswa();
 
-        $program = Program::where('status', 'publish')->where('slug', $slug)->firstOrFail();
+        $program = Program::where('slug', $slug)->firstOrFail();
 
         $data = $request->validate([
             'scheduled_at' => ['required', 'date_format:Y-m-d\\TH:i'],
@@ -204,7 +204,7 @@ class UserProgramBookingController extends Controller
 
         $existingPending = ProgramBooking::where('program_id', $program->id)
             ->where('user_id', auth()->id())
-            ->where('status', 'pending')
+            ->where('state', 'pending')
             ->exists();
         if ($existingPending) {
             return back()->with('booking_info', 'Kamu sudah mengirim permintaan jadwal. Tunggu persetujuan BK.');
@@ -212,7 +212,7 @@ class UserProgramBookingController extends Controller
 
         $existingUpcomingApproved = ProgramBooking::where('program_id', $program->id)
             ->where('user_id', auth()->id())
-            ->where('status', 'approved')
+            ->where('state', 'approved')
             ->where('scheduled_at', '>=', now())
             ->exists();
         if ($existingUpcomingApproved) {
@@ -224,7 +224,7 @@ class UserProgramBookingController extends Controller
             'user_id'       => auth()->id(),
             'scheduled_at'  => Carbon::createFromFormat('Y-m-d\\TH:i', $data['scheduled_at']),
             'message'       => $data['message'] ?? null,
-            'status'        => 'pending',
+            'state'         => 'pending',
             'booking_type'  => $bookingType,
             'method'        => $method,
             'participants'  => $participants,
@@ -239,13 +239,13 @@ class UserProgramBookingController extends Controller
         $this->assertGuru();
 
         $booking = ProgramBooking::with(['program', 'user'])->findOrFail($id);
-        abort_if($booking->status !== 'pending', 422, 'Permintaan sudah diproses.');
+        abort_if($booking->state !== 'pending', 422, 'Permintaan sudah diproses.');
 
         $program = $booking->program;
         abort_unless($program && (int) $program->added_by === (int) auth()->id(), 403);
 
         $booking->update([
-            'status'       => 'approved',
+            'state'        => 'approved',
             'responded_at' => now(),
             'responded_by' => auth()->id(),
         ]);
@@ -303,7 +303,6 @@ class UserProgramBookingController extends Controller
                 'sender_role'       => 'system',
                 'message'           => $msg,
                 'message_type'      => 'text',
-                'status'            => 'unread',
             ]);
         }
 
@@ -316,13 +315,13 @@ class UserProgramBookingController extends Controller
         $this->assertGuru();
 
         $booking = ProgramBooking::with(['program'])->findOrFail($id);
-        abort_if($booking->status !== 'pending', 422, 'Permintaan sudah diproses.');
+        abort_if($booking->state !== 'pending', 422, 'Permintaan sudah diproses.');
 
         $program = $booking->program;
         abort_unless($program && (int) $program->added_by === (int) auth()->id(), 403);
 
         $booking->update([
-            'status'       => 'rejected',
+            'state'        => 'rejected',
             'responded_at' => now(),
             'responded_by' => auth()->id(),
         ]);
@@ -360,7 +359,7 @@ class UserProgramBookingController extends Controller
         $this->assertGuru();
 
         $count = ProgramBooking::whereHas('program', fn($q) => $q->where('added_by', auth()->id()))
-            ->where('status', 'pending')
+            ->where('state', 'pending')
             ->count();
 
         return response()->json(['count' => $count]);

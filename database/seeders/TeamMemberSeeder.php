@@ -9,16 +9,35 @@ class TeamMemberSeeder extends Seeder
 {
     public function run(): void
     {
-        if (TeamMember::count() > 0) return;
+        // Clean up legacy placeholder data from an older seed.
+        TeamMember::whereIn('name', [
+            'Ani Kusumawati, S.Pd.',
+            'Budi Santoso, M.Pd.',
+            'Citra Dewi, S.Psi.',
+        ])->delete();
 
-        $members = [
-            ['name' => 'Ani Kusumawati, S.Pd.', 'quote' => 'Mendampingi siswa menemukan potensi terbaik mereka.',    'img' => 'https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=400&q=80', 'sort_order' => 0],
-            ['name' => 'Budi Santoso, M.Pd.',   'quote' => 'Setiap masalah punya solusi, mari kita temukan bersama.', 'img' => 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80', 'sort_order' => 1],
-            ['name' => 'Citra Dewi, S.Psi.',    'quote' => 'Kesehatan mental adalah fondasi keberhasilan belajar.',   'img' => 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80', 'sort_order' => 2],
+        $defaultQuote = 'Setiap langkah kecil hari ini adalah awal dari perubahan besar; kami siap mendampingi Anda.';
+
+        $names = [
+            'Yusef abdul aziz,M.Pd',
+            'Drs.Dadang Nurdin',
+            'Pebi Dinastriani,S.Pd',
+            'Pia Amanda Nurhusni,S.Pd',
+            'Neri Sondari,S.Pd',
+            'Dewi Rosita,S.Pd',
+            'Tenia Octaviana,S.Pd',
+            'Deslita Seniatsaani,S.Pd',
         ];
 
-        foreach ($members as $member) {
-            TeamMember::create($member);
+        foreach ($names as $index => $name) {
+            TeamMember::updateOrCreate(
+                ['name' => $name],
+                [
+                    'quote' => $defaultQuote,
+                    'img' => null,
+                    'sort_order' => $index,
+                ]
+            );
         }
     }
 }

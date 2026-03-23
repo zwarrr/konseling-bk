@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\Landing\ServiceSectionController;
 use App\Http\Controllers\Admin\Landing\ServiceController;
 use App\Http\Controllers\Admin\Landing\ProgramSectionController;
 use App\Http\Controllers\Admin\Landing\ProgramController;
+use App\Http\Controllers\Admin\Landing\ProfileBkController;
 use App\Http\Controllers\Admin\AdminBookingController;
 
 // ─── Admin (guard: admin) ──────────────────────────────────────────
@@ -97,7 +98,6 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin'])->group(function () {
 		Route::put('/program',                    [ProgramSectionController::class, 'update'])->name('admin.landing.programUpdate');
 		Route::post('/program/items',             [ProgramController::class, 'store'])  ->name('admin.landing.programStore');
 		Route::put('/program/items/{program}',    [ProgramController::class, 'update']) ->name('admin.landing.programItemUpdate');
-		Route::patch('/program/items/{program}/toggle', [ProgramController::class, 'toggle'])->name('admin.landing.programToggle');
 		Route::delete('/program/items/{program}', [ProgramController::class, 'destroy'])->name('admin.landing.programDestroy');
 
 		// BK News (replaces Sliders)
@@ -105,13 +105,19 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin'])->group(function () {
 		Route::post('/bk-news',          [BkNewsController::class, 'store'])  ->name('admin.landing.bkNewsStore');
 		Route::put('/bk-news/{bkNews}',  [BkNewsController::class, 'update']) ->name('admin.landing.bkNewsUpdate');
 		Route::delete('/bk-news/{bkNews}', [BkNewsController::class, 'destroy'])->name('admin.landing.bkNewsDestroy');
-		Route::patch('/bk-news/{bkNews}/toggle', [BkNewsController::class, 'toggle'])->name('admin.landing.bkNewsToggle');
 
 		// Team
 		Route::get('/team', [TeamController::class, 'index'])->name('admin.landing.team');
 		Route::post('/team', [TeamController::class, 'store'])->name('admin.landing.teamStore');
 		Route::put('/team/{teamMember}', [TeamController::class, 'update'])->name('admin.landing.teamUpdate');
 		Route::delete('/team/{teamMember}', [TeamController::class, 'destroy'])->name('admin.landing.teamDestroy');
+
+		// Profil BK (singleton + gallery CRUD)
+		Route::get('/profile-bk', [ProfileBkController::class, 'index'])->name('admin.landing.profileBk');
+		Route::put('/profile-bk', [ProfileBkController::class, 'updateSection'])->name('admin.landing.profileBkUpdate');
+		Route::post('/profile-bk/gallery', [ProfileBkController::class, 'storeGallery'])->name('admin.landing.profileBkGalleryStore');
+		Route::put('/profile-bk/gallery/{item}', [ProfileBkController::class, 'updateGallery'])->name('admin.landing.profileBkGalleryUpdate');
+		Route::delete('/profile-bk/gallery/{item}', [ProfileBkController::class, 'destroyGallery'])->name('admin.landing.profileBkGalleryDestroy');
 
 	});
 

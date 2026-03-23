@@ -18,7 +18,6 @@ class BkNews extends Model
         'img_cards',
         'img_detail_1',
         'img_detail_2',
-        'status',
     ];
 
     /** Auto-generate a unique slug from the title on create. */
@@ -53,7 +52,7 @@ class BkNews extends Model
     /** Returns only published news, newest first. */
     public function scopePublished($query)
     {
-        return $query->where('status', 'publish')->latest();
+        return $query->latest();
     }
 
     /** Route model binding key. */

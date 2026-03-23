@@ -87,12 +87,12 @@
 
     $hasPendingBooking = \App\Models\ProgramBooking::where('program_id', $program->id)
       ->where('user_id', $authUser->id)
-      ->where('status', 'pending')
+      ->where('state', 'pending')
       ->exists();
 
     $hasUpcomingApprovedBooking = \App\Models\ProgramBooking::where('program_id', $program->id)
       ->where('user_id', $authUser->id)
-      ->where('status', 'approved')
+      ->where('state', 'approved')
       ->where('scheduled_at', '>=', now())
       ->exists();
 
@@ -331,17 +331,17 @@
 
         {{-- Booking status (siswa only) --}}
         @if($isAuth && ($authUser?->role ?? 'siswa') !== 'guru')
-          @if($myBooking && $myBooking->status === 'pending')
+          @if($myBooking && $myBooking->state === 'pending')
             <div class="w-full rounded-xl border border-amber-200 bg-amber-50 text-amber-700 px-4 py-3 text-sm font-semibold">
               Booking menunggu persetujuan BK.
             </div>
-          @elseif($myBooking && $myBooking->status === 'approved')
+          @elseif($myBooking && $myBooking->state === 'approved')
             @if(!optional($myBooking->scheduled_at)->isPast())
               <div class="w-full rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 px-4 py-3 text-sm font-semibold">
                 Booking disetujui: {{ optional($myBooking->scheduled_at)->format('d M Y, H:i') }}
               </div>
             @endif
-          @elseif($myBooking && $myBooking->status === 'rejected')
+          @elseif($myBooking && $myBooking->state === 'rejected')
             <div class="w-full rounded-xl border border-red-200 bg-red-50 text-red-600 px-4 py-3 text-sm font-semibold">
               Booking ditolak.
             </div>

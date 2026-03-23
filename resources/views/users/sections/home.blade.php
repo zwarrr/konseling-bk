@@ -15,11 +15,25 @@
     $emoji    = '👋';
     $sub      = $hour < 11 ? 'Semangat menjalani hari ini!' : ($hour < 15 ? 'Jangan lupa istirahat ya.' : ($hour < 18 ? 'Sore yang menyenangkan!' : 'Istirahat yang baik malam ini.'));
 
+    $defaultCardImage = asset('assets/img/default-slider-noimg.png');
+    $resolveImage = function ($path) use ($defaultCardImage) {
+        $path = trim((string) $path);
+        if ($path === '') {
+            return $defaultCardImage;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, 'data:')) {
+            return $path;
+        }
+
+        return asset(ltrim(str_replace('\\', '/', $path), '/'));
+    };
+
     // ── Slider (BkNews) ───────────────────────────────────────
     $dbSlides = BkNews::published()->get()->map(fn($s) => [
         'title'    => (string)($s->title ?? ''),
         'desc'     => (string)($s->description ?? ''),
-        'img'      => $s->img_card ? asset($s->img_card) : '',
+        'img'      => $resolveImage($s->img_card),
         'category' => '',
         'color'    => '#0F4C9A',
         'href'     => $s->slug ? route($pfx . '.berita.detail', $s->slug) : '#',
@@ -175,7 +189,8 @@ function homeSlider() {
             <div class="user-slider-box relative w-full rounded-[2rem] overflow-hidden bg-slate-100">
                 @if($dbSlides[0]['img'])
                     <img src="{{ $dbSlides[0]['img'] }}" alt="{{ $dbSlides[0]['title'] }}"
-                         class="absolute inset-0 w-full h-full object-cover">
+                         class="absolute inset-0 w-full h-full object-cover"
+                         onerror="this.onerror=null;this.src='{{ $defaultCardImage }}';">
                 @endif
             </div>
             @endif
@@ -224,7 +239,8 @@ function homeSlider() {
                                 <template x-if="s.img">
                                     <img :src="s.img" :alt="s.title"
                                          class="absolute inset-0 w-full h-full object-cover"
-                                         draggable="false" loading="eager" decoding="async">
+                                         draggable="false" loading="eager" decoding="async"
+                                         x-on:error="if($event.target.src !== '{{ $defaultCardImage }}'){ $event.target.src='{{ $defaultCardImage }}'; }">
                                 </template>
                                 <template x-if="!s.img">
                                     <div class="absolute inset-0 flex items-center justify-center">
@@ -246,7 +262,7 @@ function homeSlider() {
     PROGRAM DAN KEGIATAN
      ══════════════════════════════════════════════════════════════ --}}
 @php
-    $homePrograms = \App\Models\Program::where('status', 'publish')
+    $homePrograms = \App\Models\Program::query()
         ->orderByDesc('date')
         ->take(4)
         ->get();
@@ -262,14 +278,9 @@ function homeSlider() {
            class="group flex gap-3 bg-white border border-gray-100 rounded-2xl p-3 shadow-sm
                   hover:shadow-md hover:border-blue-200 transition-all duration-200">
             {{-- Thumbnail --}}
-            @if($ha->img)
-                <img src="{{ $ha->img }}" alt="{{ $ha->title }}"
-                     class="w-16 h-16 rounded-xl object-cover shrink-0 group-hover:scale-105 transition duration-300">
-            @else
-                <div class="w-16 h-16 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-calendar-days text-blue-300 text-xl"></i>
-                </div>
-            @endif
+            <img src="{{ $resolveImage($ha->img) }}" alt="{{ $ha->title }}"
+                 class="w-16 h-16 rounded-xl object-cover shrink-0 group-hover:scale-105 transition duration-300"
+                 onerror="this.onerror=null;this.src='{{ $defaultCardImage }}';">
             {{-- Info --}}
             <div class="min-w-0 flex flex-col justify-center gap-0.5">
                 @if($ha->category)

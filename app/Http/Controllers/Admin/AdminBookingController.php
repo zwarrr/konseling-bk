@@ -89,7 +89,7 @@ class AdminBookingController extends Controller
         $data = [];
         foreach ($rows as $b) {
             $typeLabel = strtoupper((string) ($b->booking_type ?? 'individu'));
-            $statusRaw = (string) ($b->status ?? '');
+            $statusRaw = (string) ($b->state ?? '');
             $statusLabel = match ($statusRaw) {
                 'approved' => 'APPROVED',
                 'rejected' => 'REJECTED',

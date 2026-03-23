@@ -2,6 +2,8 @@
 
 return [
 
+    'notifications_enabled' => env('MAIL_NOTIFICATIONS_ENABLED', false),
+
     /*
     |--------------------------------------------------------------------------
     | Default Mailer
@@ -111,8 +113,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        'address' => env('MAIL_FROM_ADDRESS', 'bksmknciamis@gmail.com'),
+        'name' => env('MAIL_FROM_NAME', 'BK SMKN 1 Ciamis'),
     ],
 
 ];

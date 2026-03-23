@@ -67,7 +67,7 @@
     @stack('modals')
     <x-flash-modal />
 
-    @include('shared.partials.pwa-update-prompt')
+    {{-- PWA update prompt disabled (web-only mode) --}}
 
     {{-- ── First-login forced password change modal ─────────────────── --}}
     @auth
@@ -152,54 +152,8 @@
 
     @stack('scripts')
     @include('shared.partials.cropper-modal')
-    {{-- ── Web Push Service Worker registration ─────────────────────── --}}
-    @auth
-    <script>
-    (function () {
-        const VAPID_PUBLIC_KEY = @json(config('vapid.public_key'));
-        const SUBSCRIBE_URL    = @json(route('push.subscribe'));
-        const CSRF             = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-        if (!VAPID_PUBLIC_KEY || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
-
-        function urlBase64ToUint8Array(base64String) {
-            const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-            const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-            const raw     = atob(base64);
-            const output  = new Uint8Array(raw.length);
-            for (let i = 0; i < raw.length; i++) output[i] = raw.charCodeAt(i);
-            return output;
-        }
-
-        async function subscribePush(reg) {
-            try {
-                const sub = await reg.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-                });
-                await fetch(SUBSCRIBE_URL, {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF },
-                    body: JSON.stringify(sub.toJSON()),
-                });
-            } catch (_) {}
-        }
-
-                (navigator.serviceWorker.getRegistration('/')
-                    .then(function (r) { return r || navigator.serviceWorker.register('/sw.js', { scope: '/' }); })
-                ).then(async function (reg) {
-            const existing = await reg.pushManager.getSubscription();
-            if (existing) return; // already subscribed
-
-            const perm = await Notification.requestPermission();
-            if (perm === 'granted') {
-                await subscribePush(reg);
-            }
-        }).catch(() => {});
-    })();
-    </script>
-    @endauth
+    {{-- Web Push via Service Worker disabled (web-only mode) --}}
     @include('shared.partials.submit-loading')
 
 </body>

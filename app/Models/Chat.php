@@ -17,19 +17,20 @@ class Chat extends Model
         'message',
         'message_type',
         'attachment',
-        'status',
+        'read_at',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'read_at' => 'datetime',
     ];
 
     /** Mark this message as read (blue tick). */
     public function markAsRead(): void
     {
-        if ($this->status !== 'read') {
-            $this->update(['status' => 'read']);
+        if ($this->read_at === null) {
+            $this->update(['read_at' => now()]);
         }
     }
 
@@ -43,13 +44,13 @@ class Chat extends Model
     {
         static::where('room_id', $roomId)
               ->where('sender_account_id', '!=', $readerAccountId)
-              ->where('status', 'unread')
-              ->update(['status' => 'read']);
+              ->whereNull('read_at')
+              ->update(['read_at' => now()]);
     }
 
     /** Is this message unread? */
     public function isUnread(): bool
     {
-        return $this->status === 'unread';
+        return $this->read_at === null;
     }
 }

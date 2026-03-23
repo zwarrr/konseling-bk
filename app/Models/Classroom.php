@@ -33,9 +33,9 @@ class Classroom extends Model
                 $kelas->id = 'KLS' . str_pad($next, 2, '0', STR_PAD_LEFT);
             }
 
-            // Auto-set BK account owner
-            if (empty($kelas->bk_account_id) && auth()->check()) {
-                $kelas->bk_account_id = auth()->user()->account_id;
+            // Auto-set BK account owner only when BK guard is authenticated.
+            if (empty($kelas->bk_account_id) && auth('bk')->check()) {
+                $kelas->bk_account_id = auth('bk')->user()->account_id;
             }
         });
     }

@@ -54,7 +54,7 @@
                    class="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs
                           file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0
                           file:text-xs file:bg-[#0f4c9a]/10 file:text-[#0f4c9a]">
-            <p class="text-[10px] text-slate-400 mt-1">PNG/JPG/WEBP, maks 5 MB</p>
+                 <p class="text-[10px] text-slate-400 mt-1">1152x723 | 384:241 - PNG, JPG, WEBP, maks 5 MB</p>
         </div>
 
         {{-- Detail 1 --}}
@@ -70,7 +70,7 @@
                    class="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs
                           file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0
                           file:text-xs file:bg-[#0f4c9a]/10 file:text-[#0f4c9a]">
-            <p class="text-[10px] text-slate-400 mt-1">Slide 1 di halaman detail</p>
+                 <p class="text-[10px] text-slate-400 mt-1">1600x900 | 16:9 - Slide 1 di halaman detail</p>
         </div>
 
         {{-- Detail 2 --}}
@@ -86,7 +86,7 @@
                    class="w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs
                           file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0
                           file:text-xs file:bg-[#0f4c9a]/10 file:text-[#0f4c9a]">
-            <p class="text-[10px] text-slate-400 mt-1">Slide 2 di halaman detail</p>
+                 <p class="text-[10px] text-slate-400 mt-1">1600x900 | 16:9 - Slide 2 di halaman detail</p>
         </div>
     </div>
 

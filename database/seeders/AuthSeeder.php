@@ -4,29 +4,16 @@ namespace Database\Seeders;
 
 use App\Models\AdminAccount;
 use App\Models\BkAccount;
-use App\Models\Classroom;
-use App\Models\Kelas;
 use App\Models\SiswaAccount;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 /**
- * Seed akun untuk login:
+ * Seed akun login minimal:
  *
- *  ADMIN
- *   login_id : 1        password : admin123
- *
- *  BK (login_id harus 18 digit angka)
- *   login_id : 196601011994031001   password : bk123456   (Pak Budi)
- *   login_id : 197703152005042002   password : bk123456   (Bu Sari)
- *
- *  SISWA (login_id ≤ 10 digit angka)
- *   login_id : 2026001     password : siswa123   (Andi)
- *   login_id : 2026002     password : siswa123   (Bela)
- *   login_id : 2026003     password : siswa123   (Cahyo)
- *
- *  KELAS  : XII RPL (BK01)  |  XII IPA (BK02)
- *  SISWA → kelas : Andi & Bela → XII RPL, Cahyo → XII IPA
+ *  ADMIN  : login_id 1                     | password admin123
+ *  BK     : login_id 196601011994031001    | password bk123456
+ *  SISWA  : login_id 2026001               | password siswa123
  */
 class AuthSeeder extends Seeder
 {
@@ -44,7 +31,7 @@ class AuthSeeder extends Seeder
             $admin->save();
         }
 
-        // ── Akun BK ───────────────────────────────────────────────────────
+        // ── Akun BK (1 akun) ─────────────────────────────────────────────
         $bk1 = BkAccount::firstOrNew(['login_id' => '196601011994031001']);
         if (!$bk1->exists) {
             $bk1->fill([
@@ -57,59 +44,7 @@ class AuthSeeder extends Seeder
             $bk1->save();
         }
 
-        $bk2 = BkAccount::firstOrNew(['login_id' => '197703152005042002']);
-        if (!$bk2->exists) {
-            $bk2->fill([
-                'name'                 => 'Sari Dewi, S.Psi',
-                'account_id'           => 'BK02',
-                'email'                => null,
-                'password'             => Hash::make('bk123456'),
-                'must_change_password' => true,
-            ]);
-            $bk2->save();
-        }
-
-        // ── Kelas  (kelas master → menentukan siapa BK-nya) ───────────────
-        $kelas1 = Kelas::updateOrCreate(
-            ['kelas' => 'XII', 'jurusan' => 'RPL'],
-            ['jumlah_siswa_i' => 17, 'bk_id' => $bk1->id]
-        );
-
-        $kelas2 = Kelas::updateOrCreate(
-            ['kelas' => 'XII', 'jurusan' => 'IPA'],
-            ['jumlah_siswa_i' => 16, 'bk_id' => $bk2->id]
-        );
-
-        // ── Classrooms (grup chat per kelas) ──────────────────────────────
-        $classroom1 = Classroom::where('name', 'XII RPL')->first();
-        if (!$classroom1) {
-            $classroom1 = new Classroom([
-                'id'            => 'KLS01',
-                'name'          => 'XII RPL',
-                'bk_account_id' => 'BK01',
-                'class_id'      => $kelas1->id,
-                'description'   => 'Grup kelas XII RPL',
-            ]);
-            $classroom1->save();
-        } else {
-            $classroom1->update(['bk_account_id' => 'BK01', 'class_id' => $kelas1->id]);
-        }
-
-        $classroom2 = Classroom::where('name', 'XII IPA')->first();
-        if (!$classroom2) {
-            $classroom2 = new Classroom([
-                'id'            => 'KLS02',
-                'name'          => 'XII IPA',
-                'bk_account_id' => 'BK02',
-                'class_id'      => $kelas2->id,
-                'description'   => 'Grup kelas XII IPA',
-            ]);
-            $classroom2->save();
-        } else {
-            $classroom2->update(['bk_account_id' => 'BK02', 'class_id' => $kelas2->id]);
-        }
-
-        // ── Akun Siswa/i (classroom_id → BK otomatis dari kelas) ─────────
+        // ── Akun Siswa (1 akun) ───────────────────────────────────────────
         $siswa1 = SiswaAccount::firstOrNew(['login_id' => '2026001']);
         if (!$siswa1->exists) {
             $siswa1->fill([
@@ -117,42 +52,12 @@ class AuthSeeder extends Seeder
                 'account_id'           => 'SSWA01',
                 'email'                => null,
                 'absen'                => 1,
-                'classroom_id'         => $classroom1->id,
+                'classroom_id'         => null,
                 'bk_id'                => $bk1->id,
                 'password'             => Hash::make('siswa123'),
                 'must_change_password' => true,
             ]);
             $siswa1->save();
-        }
-
-        $siswa2 = SiswaAccount::firstOrNew(['login_id' => '2026002']);
-        if (!$siswa2->exists) {
-            $siswa2->fill([
-                'name'                 => 'Bela Safitri',
-                'account_id'           => 'SSWA02',
-                'email'                => null,
-                'absen'                => 2,
-                'classroom_id'         => $classroom1->id,
-                'bk_id'                => $bk1->id,
-                'password'             => Hash::make('siswa123'),
-                'must_change_password' => true,
-            ]);
-            $siswa2->save();
-        }
-
-        $siswa3 = SiswaAccount::firstOrNew(['login_id' => '2026003']);
-        if (!$siswa3->exists) {
-            $siswa3->fill([
-                'name'                 => 'Cahyo Nugroho',
-                'account_id'           => 'SSWA03',
-                'email'                => null,
-                'absen'                => 1,
-                'classroom_id'         => $classroom2->id,
-                'bk_id'                => $bk2->id,
-                'password'             => Hash::make('siswa123'),
-                'must_change_password' => true,
-            ]);
-            $siswa3->save();
         }
     }
 }

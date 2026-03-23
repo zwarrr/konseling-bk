@@ -17,6 +17,7 @@ class SiswaAccount extends Authenticatable
         'account_id',
         'login_id',
         'name',
+        'jenis_kelamin',
         'email',
         'about',
         'profile_photo',
@@ -39,6 +40,7 @@ class SiswaAccount extends Authenticatable
             'last_seen_at'         => 'datetime',
             'password'             => 'hashed',
             'must_change_password' => 'boolean',
+            'jenis_kelamin'        => 'string',
         ];
     }
 

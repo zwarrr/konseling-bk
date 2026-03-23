@@ -2,7 +2,12 @@
 
 namespace App\Services;
 
+use App\Mail\GenericSystemNotificationMail;
+use App\Models\BkAccount;
+use App\Models\SiswaAccount;
 use App\Models\Users\PushSubscription;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Minishlink\WebPush\WebPush;
 use Minishlink\WebPush\Subscription;
 use Minishlink\WebPush\VAPID;
@@ -102,5 +107,44 @@ class PushNotificationService
                 PushSubscription::where('endpoint', $report->getRequest()->getUri()->__toString())->delete();
             }
         }
+
+        $this->sendEmailNotification($userId, $userType, $title, $body);
+    }
+
+    protected function sendEmailNotification(int $userId, ?string $userType, string $title, string $body): void
+    {
+        if (!config('mail.notifications_enabled')) return;
+
+        $email = $this->resolveUserEmail($userId, $userType);
+        if (!$email) return;
+
+        try {
+            Mail::to($email)->send(new GenericSystemNotificationMail($title, $body));
+        } catch (\Throwable $e) {
+            // Keep push flow stable if SMTP fails.
+            Log::warning('Gagal mengirim notifikasi email.', [
+                'user_id' => $userId,
+                'user_type' => $userType,
+                'email' => $email,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    protected function resolveUserEmail(int $userId, ?string $userType): ?string
+    {
+        $userType = strtolower((string) $userType);
+
+        if ($userType === 'bk') {
+            return BkAccount::whereKey($userId)->value('email');
+        }
+
+        if ($userType === 'siswa' || $userType === 'user') {
+            return SiswaAccount::whereKey($userId)->value('email');
+        }
+
+        // Fallback: try both roles when type is not provided.
+        return BkAccount::whereKey($userId)->value('email')
+            ?? SiswaAccount::whereKey($userId)->value('email');
     }
 }

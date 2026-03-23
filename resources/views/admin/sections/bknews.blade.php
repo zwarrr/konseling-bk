@@ -55,7 +55,6 @@
                   <th class="px-6 py-3 font-medium">Gambar</th>
                   <th class="px-6 py-3 font-medium">Judul</th>
                   <th class="px-6 py-3 font-medium">Deskripsi</th>
-                  <th class="px-6 py-3 font-medium">Status</th>
                   <th class="px-6 py-3 font-medium">Aksi</th>
                 </tr>
               </thead>
@@ -67,11 +66,9 @@
                     data-title="{{ $item->title }}"
                     data-desc="{{ $item->description }}"
                     data-author="{{ $item->author }}"
-                    data-img-card="{{ $item->img_card }}"
                     data-img-cards="{{ $item->img_cards }}"
                     data-img-detail1="{{ $item->img_detail_1 }}"
-                    data-img-detail2="{{ $item->img_detail_2 }}"
-                    data-status="{{ $item->status }}">
+                    data-img-detail2="{{ $item->img_detail_2 }}">
                   <td class="px-6 py-3 text-center">
                     @php $thumb = $item->img_cards ?: $item->img_card; @endphp
                     @if($thumb)
@@ -87,13 +84,6 @@
                     <div class="text-xs text-gray-500 leading-relaxed line-clamp-2">{{ $item->description }}</div>
                   </td>
                   <td class="px-6 py-3 text-center">
-                    @if($item->status === 'publish')
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700">Publish</span>
-                    @else
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Draft</span>
-                    @endif
-                  </td>
-                  <td class="px-6 py-3 text-center">
                     <div class="relative inline-flex justify-center" data-drop>
                       <button type="button" data-drop-toggle
                         class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition">
@@ -103,10 +93,6 @@
                         <button type="button" data-drop-edit class="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 transition flex items-center gap-2">
                           <i class="fa-solid fa-pen-to-square w-4 text-center"></i> Edit
                         </button>
-                        <x-drop-action.toggle-publish
-                          :current-status="$item->status"
-                          :toggle-url="route('admin.landing.bkNewsToggle', $item)"
-                        />
                         <x-drop-action.delete
                           :title="$item->title"
                           :action="route('admin.landing.bkNewsDestroy', $item)"
@@ -116,7 +102,7 @@
                   </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="px-6 py-10 text-center text-gray-400">Belum ada data berita.</td></tr>
+                <tr><td colspan="4" class="px-6 py-10 text-center text-gray-400">Belum ada data berita.</td></tr>
                 @endforelse
               </tbody>
             </table>
@@ -158,37 +144,24 @@
           </div>
 
           {{-- Author & Status --}}
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 gap-3">
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Penulis / Author</label>
               <input id="fieldAuthor" name="author" placeholder="Nama penulis (opsional)"
                 class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
             </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Status <span class="text-red-500">*</span></label>
-              <select id="fieldStatus" name="status" required
-                class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-white">
-                <option value="draft">Draft</option>
-                <option value="publish">Publish</option>
-              </select>
-            </div>
           </div>
 
-          {{-- Gambar Card (full width, required) --}}
-          <div class="border border-slate-200 rounded-xl p-4 space-y-2">
-            <p class="text-sm font-semibold text-slate-700">Gambar Card Slider <span class="text-red-500">*</span> <span class="font-normal text-slate-400 text-xs">(thumbnail slider / detail cover — rasio ~2.3:1)</span></p>
-            <input id="fieldImgCard" type="file" name="img_card" accept="image/*"
-              class="w-full text-sm text-slate-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary/10 file:text-primary">
-            <div id="imgCardPreviewWrap" class="hidden mt-2">
-              <img id="imgCardPreview" class="max-w-full rounded-lg object-contain border border-slate-200">
-              <p class="text-xs text-slate-400 mt-1">IMG</p>
-            </div>
+          <div class="rounded-xl border border-blue-100 bg-blue-50/60 p-3 text-xs text-blue-700 leading-relaxed">
+            <div class="font-semibold mb-1">Panduan ukuran gambar BK News</div>
+            <div>Card listing (/berita): 1536x856 | 384:214.</div>
+            <div>Detail 1 & Detail 2: 1600x900 | 16:9.</div>
           </div>
 
           {{-- Gambar Cards Listing (card thumbnail khusus /berita) --}}
           <div class="border border-blue-100 rounded-xl p-4 space-y-2 bg-blue-50/30">
-            <p class="text-sm font-semibold text-slate-700">Gambar Card Listing <span class="font-normal text-slate-400 text-xs">(opsional — tampil di halaman /berita cards, rasio 384:214)</span></p>
-            <p class="text-xs text-blue-600">Jika kosong, gambar Card Slider akan digunakan sebagai fallback.</p>
+            <p class="text-sm font-semibold text-slate-700">Gambar Card Listing <span class="font-normal text-slate-400 text-xs">(1536x856 | 384:214, opsional)</span></p>
+            <p class="text-xs text-blue-600">Jika kosong, sistem akan pakai placeholder default.</p>
             <input id="fieldImgCards" type="file" name="img_cards" accept="image/*"
               class="w-full text-sm text-slate-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-blue-100 file:text-blue-600">
             <div id="imgCardsPreviewWrap" class="hidden mt-2">
@@ -201,7 +174,7 @@
           <div class="grid grid-cols-2 gap-3">
             {{-- Detail 1 --}}
             <div class="border border-slate-200 rounded-xl p-3 space-y-2">
-              <p class="text-xs font-semibold text-slate-700">Detail 1 <span class="font-normal text-slate-400">(opsional)</span></p>
+              <p class="text-xs font-semibold text-slate-700">Detail 1 <span class="font-normal text-slate-400">(1600x900 | 16:9, opsional)</span></p>
               <input id="fieldImgD1" type="file" name="img_detail_1" accept="image/*"
                 class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-primary/10 file:text-primary">
               <div id="imgD1PreviewWrap" class="hidden mt-1">
@@ -211,7 +184,7 @@
             </div>
             {{-- Detail 2 --}}
             <div class="border border-slate-200 rounded-xl p-3 space-y-2">
-              <p class="text-xs font-semibold text-slate-700">Detail 2 <span class="font-normal text-slate-400">(opsional)</span></p>
+              <p class="text-xs font-semibold text-slate-700">Detail 2 <span class="font-normal text-slate-400">(1600x900 | 16:9, opsional)</span></p>
               <input id="fieldImgD2" type="file" name="img_detail_2" accept="image/*"
                 class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-primary/10 file:text-primary">
               <div id="imgD2PreviewWrap" class="hidden mt-1">
@@ -271,9 +244,7 @@
       document.getElementById('crudMethod').disabled = true;
       form.action = storeUrl;
       ['fieldTitle','fieldDesc','fieldAuthor'].forEach(id => { document.getElementById(id).value = ''; });
-      document.getElementById('fieldStatus').value = 'draft';
-      ['fieldImgCard','fieldImgCards','fieldImgD1','fieldImgD2'].forEach(id => { document.getElementById(id).value = ''; });
-      setPreview('','imgCardPreview','imgCardPreviewWrap','');
+      ['fieldImgCards','fieldImgD1','fieldImgD2'].forEach(id => { document.getElementById(id).value = ''; });
       setPreview('','imgCardsPreview','imgCardsPreviewWrap','');
       setPreview('','imgD1Preview','imgD1PreviewWrap','');
       setPreview('','imgD2Preview','imgD2PreviewWrap','');
@@ -287,9 +258,7 @@
       document.getElementById('fieldTitle').value  = tr.dataset.title  || '';
       document.getElementById('fieldDesc').value   = tr.dataset.desc   || '';
       document.getElementById('fieldAuthor').value = tr.dataset.author || '';
-      document.getElementById('fieldStatus').value = tr.dataset.status || 'draft';
-      ['fieldImgCard','fieldImgCards','fieldImgD1','fieldImgD2'].forEach(id => { document.getElementById(id).value = ''; });
-      setPreview('','imgCardPreview', 'imgCardPreviewWrap',  tr.dataset.imgCard    || '');
+      ['fieldImgCards','fieldImgD1','fieldImgD2'].forEach(id => { document.getElementById(id).value = ''; });
       setPreview('','imgCardsPreview','imgCardsPreviewWrap', tr.dataset.imgCards   || '');
       setPreview('','imgD1Preview',   'imgD1PreviewWrap',    tr.dataset.imgDetail1 || '');
       setPreview('','imgD2Preview',   'imgD2PreviewWrap',    tr.dataset.imgDetail2 || '');
@@ -303,10 +272,8 @@
     document.getElementById('crudBackdrop').addEventListener('click', closeModal);
 
     // File previews — via cropper modal
-    // img_card: slider/detail cover (2560×1130 ~2.3:1); img_cards: listing card (384:214 ~1.79:1); details: freeform
-    const cropRatios = { fieldImgCard: 2560/1130, fieldImgCards: 384/214, fieldImgD1: 16/9, fieldImgD2: 16/9 };
+    const cropRatios = { fieldImgCards: 384/214, fieldImgD1: 16/9, fieldImgD2: 16/9 };
     [
-      ['fieldImgCard', 'imgCardPreview', 'imgCardPreviewWrap'],
       ['fieldImgCards','imgCardsPreview','imgCardsPreviewWrap'],
       ['fieldImgD1',   'imgD1Preview',   'imgD1PreviewWrap'],
       ['fieldImgD2',   'imgD2Preview',   'imgD2PreviewWrap'],

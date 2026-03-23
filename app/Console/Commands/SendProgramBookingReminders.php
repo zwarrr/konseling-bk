@@ -126,7 +126,7 @@ class SendProgramBookingReminders extends Command
 
         $query = ProgramBooking::query()
             ->with(['program', 'user', 'respondedBy'])
-            ->where('status', 'approved')
+            ->where('state', 'approved')
             ->whereBetween('scheduled_at', [$start, $end])
             ->whereNull($reminderColumn);
 
@@ -246,7 +246,6 @@ class SendProgramBookingReminders extends Command
             'sender_role'       => 'system',
             'message'           => $body,
             'message_type'      => 'text',
-            'status'            => 'unread',
         ]);
     }
 
@@ -279,7 +278,7 @@ class SendProgramBookingReminders extends Command
 
         $bookings = ProgramBooking::query()
             ->with(['program', 'user', 'respondedBy'])
-            ->where('status', 'approved')
+            ->where('state', 'approved')
             ->where('booking_type', 'individu')
             ->where('method', 'chat')
             ->whereNotNull('responded_by')
@@ -318,7 +317,6 @@ class SendProgramBookingReminders extends Command
                 'sender_role'       => 'guru',
                 'message'           => $msg,
                 'message_type'      => 'text',
-                'status'            => 'unread',
             ]);
 
             app(PushNotificationService::class)->sendToUser(

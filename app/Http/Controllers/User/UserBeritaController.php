@@ -9,7 +9,7 @@ class UserBeritaController extends Controller
 {
     public function index()
     {
-        $news = BkNews::published()->paginate(9);
+        $news = BkNews::published()->paginate(6);
         return view('users.sections.berita', compact('news'));
     }
 

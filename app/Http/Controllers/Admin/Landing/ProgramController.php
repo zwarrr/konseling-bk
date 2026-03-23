@@ -21,7 +21,6 @@ class ProgramController extends Controller
             'title'           => 'required|string|max:50',
             'description'     => 'nullable|string|max:2500',
             'info_link'       => 'nullable|url|max:500',
-            'status'          => 'required|in:draft,publish',
             'peserta'         => 'nullable|integer|min:0',
             'guru_pembimbing' => 'nullable|string|max:100',
         ]);
@@ -50,7 +49,6 @@ class ProgramController extends Controller
             'title'           => 'required|string|max:50',
             'description'     => 'nullable|string|max:2500',
             'info_link'       => 'nullable|url|max:500',
-            'status'          => 'required|in:draft,publish',
             'peserta'         => 'nullable|integer|min:0',
             'guru_pembimbing' => 'nullable|string|max:100',
         ]);
@@ -69,15 +67,6 @@ class ProgramController extends Controller
         $program->update($data);
 
         return back()->with('program_success', 'Program dan kegiatan berhasil diperbarui.');
-    }
-
-    public function toggle(Program $program)
-    {
-        $program->update([
-            'status' => $program->status === 'publish' ? 'draft' : 'publish',
-        ]);
-
-        return back()->with('program_success', 'Status program dan kegiatan berhasil diubah.');
     }
 
     public function destroy(Program $program)

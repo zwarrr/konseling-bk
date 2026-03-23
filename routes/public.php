@@ -10,7 +10,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
-// PWA manifest is served as a static file: public/manifest.json
+// PWA is currently disabled (web-only).
 // ─── Auth ────────────────────────────────────────────────────────────
 Route::middleware(['maintenance'])->group(function () {
     Route::get('/auth/onboarding', function () {
@@ -65,12 +65,13 @@ Route::get('/', function () {
 
 // ─── Landing sub-pages ────────────────────────────────────────────────
 Route::get('/kontak', fn () => view('frontend.landingpage.sections.contact'))->name('landing.contact');
+Route::get('/profil-bk', fn () => view('frontend.landingpage.sections.profile_bk'))->name('landing.profile_bk');
 Route::get('/tim-bk', fn () => view('frontend.landingpage.sections.team'))->name('landing.team');
 Route::get('/copyright-team', fn () => view('frontend.landingpage.sections.copyright_team'))
     ->name('landing.copyright_team');
 
 Route::get('/berita', function () {
-    $news = \App\Models\BkNews::published()->paginate(9);
+    $news = \App\Models\BkNews::published()->paginate(6);
     return view('frontend.landingpage.sections.berita', compact('news'));
 })->name('landing.berita');
 
@@ -83,8 +84,8 @@ Route::get('/berita/{slug}', function ($slug) {
 use App\Models\ProgramReview;
 
 Route::get('/program/{slug}', function ($slug) {
-    $program        = \App\Models\Program::where('status', 'publish')->where('slug', $slug)->firstOrFail();
-    $allPrograms    = \App\Models\Program::where('status', 'publish')->orderByDesc('date')->get();
+    $program        = \App\Models\Program::where('slug', $slug)->firstOrFail();
+    $allPrograms    = \App\Models\Program::orderByDesc('date')->get();
     $reviews        = ProgramReview::where('program_id', $program->id)->latest()->paginate(5);
     $reviewsCount   = ProgramReview::where('program_id', $program->id)->count();
     $reviewsAvg     = (float) (ProgramReview::where('program_id', $program->id)->avg('rating') ?? 0);
@@ -97,7 +98,7 @@ Route::get('/program/{slug}', function ($slug) {
 })->name('landing.program.detail');
 
 Route::post('/program/{slug}/reviews', function ($slug, \Illuminate\Http\Request $request) {
-    $program = \App\Models\Program::where('status', 'publish')->where('slug', $slug)->firstOrFail();
+    $program = \App\Models\Program::where('slug', $slug)->firstOrFail();
     $request->validate([
         'name'    => 'required|string|max:100',
         'rating'  => 'required|integer|min:1|max:5',

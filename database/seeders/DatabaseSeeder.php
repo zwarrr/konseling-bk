@@ -16,7 +16,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             AuthSeeder::class,
-            SiswaSeeder::class,
             HomeSectionSeeder::class,
             AboutSectionSeeder::class,
             AboutFeatureSeeder::class,
@@ -27,6 +26,8 @@ class DatabaseSeeder extends Seeder
             ProgramSeeder::class,
             BkNewsSeeder::class,
             TeamMemberSeeder::class,
+            ProfileBkSectionSeeder::class,
+            ProfileBkGallerySeeder::class,
         ]);
     }
 }

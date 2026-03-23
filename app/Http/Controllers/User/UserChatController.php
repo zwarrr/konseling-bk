@@ -101,7 +101,7 @@ class UserChatController extends Controller
             $last   = Chat::where('room_id', $row->room_id)->latest()->first();
             $unread = Chat::where('room_id', $row->room_id)
                 ->where('sender_account_id', '!=', $authUser->account_id)
-                ->where('status', 'unread')
+                ->whereNull('read_at')
                 ->count();
             return [
                 'type'            => 'direct',
@@ -115,7 +115,7 @@ class UserChatController extends Controller
                 'last_message_type' => $last?->message_type ?? 'text',
                 'last_time'         => $last?->created_at,
                 'last_is_mine'      => $last ? ($last->sender_account_id === $authUser->account_id) : false,
-                'last_status'       => $last?->status,
+                'last_status'       => $last ? ($last->read_at ? 'read' : 'unread') : null,
                 'unread'            => $unread,
             ];
         })->sortByDesc(fn($c) => $c['last_time']?->timestamp ?? 0)->values();
@@ -243,7 +243,7 @@ class UserChatController extends Controller
             $unread = $roomId
                 ? Chat::where('room_id', $roomId)
                     ->where('sender_account_id', '!=', $authUser->account_id)
-                    ->where('status', 'unread')
+                    ->whereNull('read_at')
                     ->count()
                 : 0;
 
@@ -259,7 +259,7 @@ class UserChatController extends Controller
                 'last_message_type' => $last?->message_type ?? 'text',
                 'last_time'         => $last?->created_at,
                 'last_is_mine'      => $last ? ($last->sender_account_id === $authUser->account_id) : false,
-                'last_status'       => $last?->status,
+                'last_status'       => $last ? ($last->read_at ? 'read' : 'unread') : null,
                 'unread'            => $unread,
                 'has_room'          => (bool) $roomId,
             ];
@@ -273,7 +273,7 @@ class UserChatController extends Controller
             $last   = Chat::where('room_id', $sysRoomId)->latest()->first();
             $unread = Chat::where('room_id', $sysRoomId)
                 ->where('sender_account_id', '!=', $authUser->account_id)
-                ->where('status', 'unread')
+                ->whereNull('read_at')
                 ->count();
 
             $conversations = $conversations->push([
@@ -288,7 +288,7 @@ class UserChatController extends Controller
                 'last_message_type' => $last?->message_type ?? 'text',
                 'last_time'         => $last?->created_at,
                 'last_is_mine'      => $last ? ($last->sender_account_id === $authUser->account_id) : false,
-                'last_status'       => $last?->status,
+                'last_status'       => $last ? ($last->read_at ? 'read' : 'unread') : null,
                 'unread'            => $unread,
                 'has_room'          => true,
             ])->sortByDesc(fn($c) => $c['last_time']?->timestamp ?? 0)->values();
@@ -559,7 +559,7 @@ class UserChatController extends Controller
                 'filename'     => $m->message, // for document: message stores filename
                 'time'         => $m->created_at->format('H:i'),
                 'is_mine'      => $m->sender_account_id === $authUser->account_id,
-                'read'         => $m->status === 'read',
+                'read'         => $m->read_at !== null,
             ]);
 
         // Tell the sender whether ALL their messages in this room have been read.
@@ -567,7 +567,7 @@ class UserChatController extends Controller
         // flips within 2 s of the recipient opening the room — no refresh needed.
         $allMineRead = !Chat::where('room_id', $roomId)
             ->where('sender_account_id', $authUser->account_id)
-            ->where('status', 'unread')
+            ->whereNull('read_at')
             ->exists();
 
         return response()->json(['messages' => $messages, 'all_mine_read' => $allMineRead]);
@@ -593,7 +593,7 @@ class UserChatController extends Controller
                 $last   = Chat::where('room_id', $row->room_id)->latest()->first();
                 $unread = Chat::where('room_id', $row->room_id)
                     ->where('sender_account_id', '!=', $authUser->account_id)
-                    ->where('status', 'unread')
+                    ->whereNull('read_at')
                     ->count();
                 return [
                     'id'                => $row->room_id,
@@ -602,7 +602,7 @@ class UserChatController extends Controller
                     'last_message_type' => $last?->message_type ?? 'text',
                     'last_time_ts'      => $last?->created_at?->timestamp,
                     'last_is_mine'      => $last ? ($last->sender_account_id === $authUser->account_id) : false,
-                    'last_status'       => $last?->status,
+                    'last_status'       => $last ? ($last->read_at ? 'read' : 'unread') : null,
                     'unread'            => $unread,
                 ];
             });
@@ -695,7 +695,7 @@ class UserChatController extends Controller
                 $last   = Chat::where('room_id', $roomId)->latest()->first();
                 $unread = Chat::where('room_id', $roomId)
                     ->where('sender_account_id', '!=', $authUser->account_id)
-                    ->where('status', 'unread')
+                    ->whereNull('read_at')
                     ->count();
                 return [
                     'id'                => $roomId,
@@ -707,7 +707,7 @@ class UserChatController extends Controller
                     'last_message_type' => $last?->message_type ?? 'text',
                     'last_time_ts'      => $last?->created_at?->timestamp,
                     'last_is_mine'      => $last ? ($last->sender_account_id === $authUser->account_id) : false,
-                    'last_status'       => $last?->status,
+                    'last_status'       => $last ? ($last->read_at ? 'read' : 'unread') : null,
                     'unread'            => $unread,
                 ];
             })->filter()->values();
@@ -721,7 +721,7 @@ class UserChatController extends Controller
                 $last   = Chat::where('room_id', $sysRoomId)->latest()->first();
                 $unread = Chat::where('room_id', $sysRoomId)
                     ->where('sender_account_id', '!=', $authUser->account_id)
-                    ->where('status', 'unread')
+                    ->whereNull('read_at')
                     ->count();
 
                 $conversations = $conversations->push([
@@ -734,7 +734,7 @@ class UserChatController extends Controller
                     'last_message_type' => $last?->message_type ?? 'text',
                     'last_time_ts'      => $last?->created_at?->timestamp,
                     'last_is_mine'      => $last ? ($last->sender_account_id === $authUser->account_id) : false,
-                    'last_status'       => $last?->status,
+                    'last_status'       => $last ? ($last->read_at ? 'read' : 'unread') : null,
                     'unread'            => $unread,
                 ]);
             }
@@ -848,7 +848,6 @@ class UserChatController extends Controller
             'sender_role'       => $authUser->role,
             'message'           => $validated['message'],
             'message_type'      => 'text',
-            'status'            => 'unread',
         ]);
 
         return response()->json([
@@ -936,7 +935,6 @@ class UserChatController extends Controller
             'message'           => $message,
             'message_type'      => $type,
             'attachment'        => $path,
-            'status'            => 'unread',
         ]);
 
         return response()->json([

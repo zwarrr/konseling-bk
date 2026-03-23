@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Mail\SetupCompletedMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 
@@ -46,6 +49,23 @@ class SetupController extends Controller
             'password'             => Hash::make($validated['password']),
             'must_change_password' => false,
         ]);
+
+        if (config('mail.notifications_enabled')) {
+            try {
+                Mail::to($validated['email'])->send(new SetupCompletedMail(
+                    (string) $user->name,
+                    (string) ($user->role ?? 'user')
+                ));
+            } catch (\Throwable $e) {
+                // Do not block setup completion when SMTP is temporarily unavailable.
+                Log::warning('Gagal mengirim email notifikasi setup akun.', [
+                    'user_id' => $user->id,
+                    'table'   => $user->getTable(),
+                    'email'   => $validated['email'],
+                    'error'   => $e->getMessage(),
+                ]);
+            }
+        }
 
         return redirect()->route($user->role === 'guru' ? 'bk.home' : 'siswa.home')
             ->with('flash_success', 'Profil berhasil disiapkan. Selamat datang, ' . $user->name . '!');

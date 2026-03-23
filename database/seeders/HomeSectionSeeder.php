@@ -9,11 +9,15 @@ class HomeSectionSeeder extends Seeder
 {
     public function run(): void
     {
-        HomeSection::firstOrCreate([], [
+        $home = HomeSection::firstOrCreate([], [
             'title'       => 'Tumbuh Bersama',
             'subtitle'    => 'Bimbingan & Konseling',
             'description' => 'Platform digital E-Konseling yang menghubungkan siswa dengan guru konselor secara mudah, privat, dan profesional — kapan saja, di mana saja.',
-            'img'         => null,
+            'img'         => 'assets/img/promot_iphone3d.png',
         ]);
+
+        if ($home->img === null || $home->img === '' || $home->img === 'assets/img/iPhone.png') {
+            $home->update(['img' => 'assets/img/promot_iphone3d.png']);
+        }
     }
 }

@@ -138,6 +138,7 @@
                 <tr class="text-center text-slate-500 text-xs uppercase tracking-wider border-b border-slate-100">
                   <th class="px-4 py-3 font-medium">No</th>
                   <th class="px-4 py-3 font-medium text-left">Nama</th>
+                  <th class="px-4 py-3 font-medium">L/P</th>
                   <th class="px-4 py-3 font-medium">NIS</th>
                   <th class="px-4 py-3 font-medium">Kelas</th>
                   <th class="px-4 py-3 font-medium">Pembimbing</th>
@@ -149,6 +150,7 @@
                 <tr class="hover:bg-slate-50 transition text-center">
                   <td class="px-4 py-3 text-slate-400 text-xs">{{ ($siswaAccounts->currentPage()-1)*$siswaAccounts->perPage()+$loop->iteration }}</td>
                   <td class="px-4 py-3 font-medium text-slate-800 text-left">{{ $s->name }}</td>
+                  <td class="px-4 py-3 text-slate-700 text-xs font-semibold">{{ $s->jenis_kelamin ?? '—' }}</td>
                   <td class="px-4 py-3 text-slate-600 font-mono text-xs">{{ $s->login_id }}</td>
                   <td class="px-4 py-3">
                     @if($s->classroom)
@@ -168,13 +170,13 @@
                   </td>
                   <td class="px-4 py-3">
                     <button type="button" class="siswa-action-btn inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition"
-                      data-id="{{ $s->id }}" data-name="{{ $s->name }}" data-email="{{ $s->email }}" data-login-id="{{ $s->login_id }}" data-classroom-id="{{ $s->classroom_id }}">
+                      data-id="{{ $s->id }}" data-name="{{ $s->name }}" data-email="{{ $s->email }}" data-login-id="{{ $s->login_id }}" data-classroom-id="{{ $s->classroom_id }}" data-gender="{{ $s->jenis_kelamin }}">
                       <i class="fa-solid fa-ellipsis-vertical"></i>
                     </button>
                   </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="px-6 py-8 text-center text-slate-400">Belum ada akun Siswa/i.</td></tr>
+                <tr><td colspan="7" class="px-6 py-8 text-center text-slate-400">Belum ada akun Siswa/i.</td></tr>
                 @endforelse
               </tbody>
             </table>
@@ -254,6 +256,15 @@
               <label class="block text-sm font-medium text-slate-700 mb-1">Nama</label>
               <input id="siswaName" name="name" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600" required>
               @error('name')<div class="text-xs text-red-500 mt-1">{{ $message }}</div>@enderror
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Jenis Kelamin <span class="text-red-400">*</span></label>
+              <select id="siswaGender" name="jenis_kelamin" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+                <option value="">— Pilih —</option>
+                <option value="L">Laki-laki (L)</option>
+                <option value="P">Perempuan (P)</option>
+              </select>
+              @error('jenis_kelamin')<div class="text-xs text-red-500 mt-1">{{ $message }}</div>@enderror
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">NIS <span class="text-slate-400 text-xs">(maks 10 digit)</span></label>
@@ -351,9 +362,14 @@
           </div>
           <div class="bg-slate-50 rounded-xl p-4 text-xs text-slate-500 space-y-1">
             <p class="font-semibold text-slate-600 mb-1"><i class="fa-solid fa-circle-info mr-1 text-blue-500"></i> Format kolom:</p>
-            <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">name</span> — Nama (wajib)</div>
+            <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">name</span> / <span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">nama lengkap</span> — Nama (wajib)</div>
             <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">email</span> — @gmail.com (opsional)</div>
             <div id="importIdHint"><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">nip</span> — NIP 18 digit (wajib)</div>
+            <div id="importSiswaHint" class="hidden">
+              <span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">jenis kelamin</span> (P/L) dan
+              <span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">kelas</span> (contoh: 10PPLG / 11AKL / 12AKL1) wajib untuk siswa.
+              Nilai tersebut otomatis dipisah ke Kelas (10/11/12) dan Jurusan (PPLG/AKL).
+            </div>
           </div>
           <div class="flex items-center justify-end gap-2">
             <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition text-sm" data-close="importFormModal">Batal</button>
@@ -487,6 +503,7 @@
       siswaForm.action = @json(route('admin.accounts.siswa.store'));
       document.getElementById('siswaMethodField').disabled = true;
       document.getElementById('siswaName').value = '';
+      document.getElementById('siswaGender').value = '';
       document.getElementById('siswaEmail').value = '';
       document.getElementById('siswaLoginId').value = '';
       document.getElementById('siswaPassword').value = '';
@@ -498,11 +515,12 @@
       if (hint) { hint.textContent = ''; hint.className = 'text-xs mt-1.5 hidden'; }
       openModal('siswaModal');
     }
-    function openEditSiswa({ id, name, email, loginId, classroomId }) {
+    function openEditSiswa({ id, name, email, loginId, classroomId, gender }) {
       document.getElementById('siswaModalTitle').textContent = 'Edit Siswa/i';
       siswaForm.action = fillId(routes.siswaUpdate, id);
       document.getElementById('siswaMethodField').disabled = false;
       document.getElementById('siswaName').value = name || '';
+      document.getElementById('siswaGender').value = gender || '';
       document.getElementById('siswaEmail').value = email || '';
       document.getElementById('siswaLoginId').value = loginId || '';
       document.getElementById('siswaPassword').value = '';
@@ -558,7 +576,7 @@
         _active = {
           id: btn.dataset.id, name: btn.dataset.name,
           email: btn.dataset.email, loginId: btn.dataset.loginId,
-          classroomId: btn.dataset.classroomId,
+          classroomId: btn.dataset.classroomId, gender: btn.dataset.gender,
           type: btn.classList.contains('bk-action-btn') ? 'bk' : 'siswa',
         };
         positionPortal(btn);
@@ -590,9 +608,11 @@
       const isBk = type === 'bk';
       document.getElementById('importTypeInput').value = type;
       document.getElementById('importFormTitle').textContent = isBk ? 'Import Guru BK' : 'Import Siswa/i';
+      const siswaHint = document.getElementById('importSiswaHint');
       document.getElementById('importIdHint').innerHTML = isBk
         ? '<span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">nip</span> — NIP 18 digit (wajib) — jadi password awal'
         : '<span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">nis</span> — NIS maks 10 digit (wajib) — jadi password awal';
+      if (siswaHint) siswaHint.classList.toggle('hidden', isBk);
       const fi = document.getElementById('importFileInput');
       const fn = document.getElementById('importFileName');
       if (fi) fi.value = '';

@@ -8,9 +8,21 @@
     $pfx         = ($authUser->role ?? 'siswa') === 'guru' ? 'bk' : 'siswa';
     $authorName  = $item->author ?? 'Tim BK E-Konseling';
     $contentRaw  = (string) ($item->description ?? '');
-    $coverImage  = $item->img_card
-        ? (str_starts_with($item->img_card, 'http') ? $item->img_card : asset($item->img_card))
-        : null;
+    $defaultCardImage = asset('assets/img/default-cards-noimg.png');
+    $resolveImage = function ($path) use ($defaultCardImage) {
+        $path = trim((string) $path);
+        if ($path === '') {
+            return $defaultCardImage;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, 'data:')) {
+            return $path;
+        }
+
+        return asset(ltrim(str_replace('\\', '/', $path), '/'));
+    };
+
+    $coverImage  = $resolveImage($item->img_card);
     $detailImages = array_values(array_filter([
         $item->img_detail_1 ?? null,
         $item->img_detail_2 ?? null,
@@ -62,25 +74,21 @@
                     {{-- Cover image --}}
                     <div class="overflow-hidden rounded-xl border border-gray-200 bg-gray-100 mb-5"
                          style="aspect-ratio:384/214">
-                        @if($coverImage)
-                            <img src="{{ $coverImage }}" alt="{{ $item->title }}"
-                                 class="w-full h-full object-cover" loading="lazy">
-                        @else
-                            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-                                <i class="fa-solid fa-newspaper text-blue-200 text-5xl"></i>
-                            </div>
-                        @endif
+                        <img src="{{ $coverImage }}" alt="{{ $item->title }}"
+                             class="w-full h-full object-cover" loading="lazy"
+                             onerror="this.onerror=null;this.src='{{ $defaultCardImage }}';">
                     </div>
 
                     {{-- Detail images --}}
                     @if(count($detailImages) > 0)
                     <div class="mb-5 grid grid-cols-{{ count($detailImages) > 1 ? '2' : '1' }} gap-3">
                         @foreach($detailImages as $imgPath)
-                        @php $dImg = str_starts_with($imgPath, 'http') ? $imgPath : asset($imgPath); @endphp
+                        @php $dImg = $resolveImage($imgPath); @endphp
                         <div class="overflow-hidden rounded-xl border border-gray-200 bg-gray-100"
                              style="aspect-ratio:384/214">
                             <img src="{{ $dImg }}" alt="{{ $item->title }}"
-                                 class="w-full h-full object-cover" loading="lazy">
+                                 class="w-full h-full object-cover" loading="lazy"
+                                 onerror="this.onerror=null;this.src='{{ $defaultCardImage }}';">
                         </div>
                         @endforeach
                     </div>
@@ -109,21 +117,14 @@
                 <div class="p-3 space-y-2">
                     @forelse($related as $rel)
                     @php
-                        $relThumb = $rel->img_card
-                            ? (str_starts_with($rel->img_card, 'http') ? $rel->img_card : asset($rel->img_card))
-                            : null;
+                        $relThumb = $resolveImage($rel->img_card);
                     @endphp
                     <a href="{{ route($pfx . '.berita.detail', $rel->slug) }}"
                        class="group flex gap-3 p-2 rounded-xl hover:bg-gray-50 transition">
                         <div class="w-14 aspect-square flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
-                            @if($relThumb)
-                                <img src="{{ $relThumb }}" alt="{{ $rel->title }}"
-                                     class="w-full h-full object-cover" loading="lazy">
-                            @else
-                                <div class="w-full h-full flex items-center justify-center">
-                                    <i class="fa-solid fa-image text-gray-300 text-lg"></i>
-                                </div>
-                            @endif
+                            <img src="{{ $relThumb }}" alt="{{ $rel->title }}"
+                                 class="w-full h-full object-cover" loading="lazy"
+                                 onerror="this.onerror=null;this.src='{{ $defaultCardImage }}';">
                         </div>
                         <div class="min-w-0">
                             <p class="text-xs font-semibold text-gray-900 group-hover:text-blue-700 line-clamp-2 leading-snug transition">

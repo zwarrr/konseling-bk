@@ -20,10 +20,14 @@
       </li>
       {{-- Dropdown: Lainnya --}}
       <li class="relative" id="dropdown-li">
-        <button class="nav-link flex items-center gap-1 text-gray-600 hover:text-blue-700 transition font-semibold focus:outline-none" id="dropdown-btn">
+        <button type="button" aria-haspopup="true" aria-expanded="false" class="nav-link flex items-center gap-1 text-gray-600 hover:text-blue-700 transition font-semibold focus:outline-none" id="dropdown-btn">
           Lainnya <i class="fa-solid fa-chevron-down text-xs mt-0.5 transition-transform duration-200" id="dropdown-chevron"></i>
         </button>
         <div class="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-44 bg-white border border-gray-100 rounded-2xl shadow-xl py-2 z-50" id="dropdown-panel" style="display:none;">
+          <a href="{{ route('landing.profile_bk') }}" data-splash-nav
+             class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:text-blue-700 hover:bg-blue-50 transition text-sm font-medium">
+            <i class="fa-solid fa-id-card w-4 text-gray-400"></i> Profil BK
+          </a>
           <a href="{{ route('landing.team') }}" data-splash-nav
              class="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:text-blue-700 hover:bg-blue-50 transition text-sm font-medium">
             <i class="fa-solid fa-users w-4 text-gray-400"></i> Tim BK
@@ -43,7 +47,7 @@
     </a>
 
     {{-- Hamburger --}}
-    <button id="menu-toggle" class="md:hidden text-gray-700 text-2xl focus:outline-none ml-auto">
+    <button type="button" id="menu-toggle" aria-label="Buka menu" aria-controls="mobile-menu" aria-expanded="false" class="md:hidden text-gray-700 text-2xl focus:outline-none ml-auto">
       <i class="fa-solid fa-bars" id="menu-icon"></i>
     </button>
   </div>
@@ -53,6 +57,9 @@
     <a href="{{ request()->routeIs('landing') ? '#beranda' : url('/').'#beranda' }}" @if(!request()->routeIs('landing')) data-splash-nav @endif class="block py-2.5 border-b border-gray-100 text-gray-600 hover:text-blue-700 transition mobile-nav-link">Beranda</a>
     <a href="{{ request()->routeIs('landing') ? '#layanan' : url('/').'#layanan' }}" @if(!request()->routeIs('landing')) data-splash-nav @endif class="block py-2.5 border-b border-gray-100 text-gray-600 hover:text-blue-700 transition mobile-nav-link">Layanan</a>
     <a href="{{ request()->routeIs('landing') ? '#program' : url('/').'#program' }}" @if(!request()->routeIs('landing')) data-splash-nav @endif class="block py-2.5 border-b border-gray-100 text-gray-600 hover:text-blue-700 transition mobile-nav-link">Program</a>
+    <a href="{{ route('landing.profile_bk') }}" data-splash-nav class="block py-2.5 border-b border-gray-100 text-gray-600 hover:text-blue-700 transition">
+      <i class="fa-solid fa-id-card mr-2 text-gray-400"></i> Profil BK
+    </a>
     <a href="{{ route('landing.team') }}" data-splash-nav class="block py-2.5 border-b border-gray-100 text-gray-600 hover:text-blue-700 transition">
       <i class="fa-solid fa-users mr-2 text-gray-400"></i> Tim BK
     </a>
@@ -73,10 +80,12 @@
   toggle?.addEventListener('click', () => {
     mobileMenu.classList.toggle('hidden');
     menuIcon.className = mobileMenu.classList.contains('hidden') ? 'fa-solid fa-bars' : 'fa-solid fa-xmark';
+    toggle.setAttribute('aria-expanded', mobileMenu.classList.contains('hidden') ? 'false' : 'true');
   });
   document.querySelectorAll('.mobile-nav-link').forEach(l => l.addEventListener('click', () => {
     mobileMenu.classList.add('hidden');
     menuIcon.className = 'fa-solid fa-bars';
+    toggle?.setAttribute('aria-expanded', 'false');
   }));
 
   // Dropdown — hover + click
@@ -91,11 +100,13 @@
     dropPanel.style.display = 'block';
     dropChevron.style.transform = 'rotate(180deg)';
     dropOpen = true;
+    dropBtn?.setAttribute('aria-expanded', 'true');
   }
   function closeDrop() {
     dropPanel.style.display = 'none';
     dropChevron.style.transform = 'rotate(0deg)';
     dropOpen = false;
+    dropBtn?.setAttribute('aria-expanded', 'false');
   }
 
   // Hover open/close with small delay so moving into the panel doesn't close it

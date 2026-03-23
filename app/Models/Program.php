@@ -10,7 +10,7 @@ class Program extends Model
 {
     protected $table = 'programs';
 
-    protected $fillable = ['slug', 'img', 'img_detail_1', 'img_detail_2', 'category', 'date', 'title', 'description', 'benefits', 'info_link', 'classroom_id', 'status', 'peserta', 'guru_pembimbing', 'added_by'];
+    protected $fillable = ['slug', 'img', 'img_detail_1', 'img_detail_2', 'category', 'date', 'title', 'description', 'benefits', 'info_link', 'classroom_id', 'peserta', 'guru_pembimbing', 'added_by'];
 
     public function classroom(): BelongsTo
     {

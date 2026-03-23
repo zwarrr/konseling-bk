@@ -162,9 +162,9 @@
                                             <span class="inline-flex items-center text-[10px] font-extrabold px-2 py-0.5 rounded-full text-slate-600 shrink-0" style="background:#f1f5f9;border:1px solid #e2e8f0">INDIVIDU</span>
                                         @endif
 
-                                        @if(($booking->status ?? '') === 'approved')
+                                        @if(($booking->state ?? '') === 'approved')
                                             <span class="inline-flex items-center text-[10px] font-extrabold px-2 py-0.5 rounded-full text-white shrink-0" style="background:#16a34a">ACC</span>
-                                        @elseif(($booking->status ?? '') === 'rejected')
+                                        @elseif(($booking->state ?? '') === 'rejected')
                                             <span class="inline-flex items-center text-[10px] font-extrabold px-2 py-0.5 rounded-full text-white shrink-0" style="background:#dc2626">DITOLAK</span>
                                         @endif
                                     </div>

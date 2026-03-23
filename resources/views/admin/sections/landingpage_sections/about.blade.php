@@ -186,7 +186,7 @@
                 <input name="{{ $img['field'] }}" type="file" accept="image/*"
                   @change="window.__cropFile($event, 1).then(r => { if(r) {{ $img['preview'] }} = r.previewUrl; })"
                   class="w-full rounded-lg border border-gray-300 bg-white px-2 py-2 text-xs text-gray-700 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-primary/10 file:text-primary">
-                <p class="text-xs text-gray-400 mt-1">PNG, JPG, WEBP — maks. 5 MB</p>
+                <p class="text-xs text-gray-400 mt-1">1080x1080 | 1:1 - PNG, JPG, WEBP, maks. 5 MB</p>
                 @error($img['field'])<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
               </div>
               @endforeach

@@ -310,7 +310,7 @@
                 <span class="text-[10px] opacity-80 flex items-center justify-end gap-0.5 px-2 pb-1 mt-0.5 select-none">
                     <span>{{ $msg->created_at->format('H:i') }}</span>
                     @php
-                        $isRead    = $msg->status === 'read';
+                        $isRead    = $msg->read_at !== null;
                         $tickColor = $isRead ? '#60a5fa' : 'rgba(255,255,255,0.6)';
                         $tickPath  = $isRead
                             ? 'M4.5 12.75l4 4 8.5-8.5M9 12.75l4 4 8.5-8.5'

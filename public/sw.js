@@ -1,92 +1,35 @@
-/* public/sw.js — Service Worker: PWA install + Web Push */
+/*
+  public/sw.js — Service Worker kill-switch (web-only mode)
 
-const CACHE_NAME = 'e-konseling-v3';
-const PRECACHE = [
-    '/',
-    '/auth/onboarding',
-    '/auth/login',
-    '/manifest.json',
-    '/assets/img/app-icon.png',
-    '/favicon.png',
-    '/favicon.ico',
-];
+  PWA is currently disabled. This file exists only so that devices which
+  previously installed a service worker at /sw.js can fetch an update and
+  automatically remove it.
 
-/* ─── Install: pre-cache shell pages ─── */
-self.addEventListener('install', function (e) {
-    e.waitUntil(
-        caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE).catch(() => {}))
-    );
+  The app no longer registers any service worker.
+*/
+
+self.addEventListener('install', function () {
+  try { self.skipWaiting(); } catch (_) {}
 });
 
-/* ─── Activate: clean up old caches ─── */
 self.addEventListener('activate', function (e) {
-    e.waitUntil(
-        caches.keys().then(keys =>
-            Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-        ).then(() => self.clients.claim())
-    );
-});
-
-/* ─── Allow clients to trigger activation ─── */
-self.addEventListener('message', function (e) {
-    if (e.data && e.data.type === 'SKIP_WAITING') {
-        self.skipWaiting();
-    }
-});
-
-/* ─── Fetch: network-first, fall back to cache for navigations ─── */
-self.addEventListener('fetch', function (e) {
-    // Only handle GET, same-origin, navigation requests for offline fallback
-    if (e.request.method !== 'GET') return;
-    if (!e.request.url.startsWith(self.location.origin)) return;
-
-    if (e.request.mode === 'navigate') {
-        e.respondWith(
-            fetch(e.request).catch(() =>
-                caches.match('/').then(r => r || caches.match('/auth/login') || caches.match('/auth/onboarding'))
-            )
-        );
-    }
-});
-
-
-
-/* ─── Push event ─── */
-self.addEventListener('push', function (e) {
-    let data = {};
+  e.waitUntil((async function () {
     try {
-        data = e.data ? e.data.json() : {};
-    } catch (_) {
-        data = { title: 'Notifikasi Baru', body: e.data ? e.data.text() : '' };
-    }
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    } catch (_) {}
 
-    const title   = data.title  || 'Konseling BK';
-    const options = {
-        body:   data.body   || '',
-        icon:   '/assets/img/app-icon.png',
-        badge:  '/assets/img/app-icon.png',
-        data:   data.data   || {},
-        tag:    'konseling-notif',
-        renotify: true,
-    };
+    try { await self.registration.unregister(); } catch (_) {}
+    try { await self.clients.claim(); } catch (_) {}
 
-    e.waitUntil(self.registration.showNotification(title, options));
+    // Inform any open pages that SW has been disabled.
+    try {
+      const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      for (const client of clients) {
+        try { client.postMessage({ type: 'SW_DISABLED' }); } catch (_) {}
+      }
+    } catch (_) {}
+  })());
 });
 
-/* ─── Notification click → open/focus the app ─── */
-self.addEventListener('notificationclick', function (e) {
-    e.notification.close();
-    const url = e.notification.data?.url || '/';
-    e.waitUntil(
-        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clients) {
-            for (const client of clients) {
-                if (client.url === url && 'focus' in client) {
-                    return client.focus();
-                }
-            }
-            if (self.clients.openWindow) {
-                return self.clients.openWindow(url);
-            }
-        })
-    );
-});
+// No fetch handler: let the browser handle network normally.

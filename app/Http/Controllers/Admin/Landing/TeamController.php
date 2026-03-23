@@ -28,7 +28,7 @@ class TeamController extends Controller
         $uploaded         = $this->uploadImg($request, 'img-team', 'TEAM');
         $validated['img'] = $uploaded ?? null;
         TeamMember::create($validated);
-        return back()->with('success', 'Anggota tim ditambahkan.');
+        return back()->with('success', 'Tim BK diperbarui.');
     }
 
     public function update(Request $request, TeamMember $teamMember)
@@ -41,12 +41,12 @@ class TeamController extends Controller
         $uploaded         = $this->uploadImg($request, 'img-team', 'TEAM', $teamMember->img);
         $validated['img'] = $uploaded ?? $teamMember->img;
         $teamMember->update($validated);
-        return back()->with('success', 'Anggota tim diperbarui.');
+        return back()->with('success', 'Tim BK diperbarui.');
     }
 
     public function destroy(TeamMember $teamMember)
     {
         $teamMember->delete();
-        return back()->with('success', 'Anggota tim dihapus.');
+        return back()->with('success', 'Tim BK diperbarui.');
     }
 }

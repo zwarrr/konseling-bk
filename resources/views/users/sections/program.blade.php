@@ -7,6 +7,19 @@
     $authUser = auth()->user();
     $pfx      = ($authUser->role ?? 'siswa') === 'guru' ? 'bk' : 'siswa';
     $isGuru   = ($authUser->role ?? '') === 'guru';
+    $defaultProgramImage = asset('assets/img/default-cards-noimg.png');
+    $resolveProgramImage = function ($path) use ($defaultProgramImage) {
+        $path = trim((string) $path);
+        if ($path === '') {
+            return $defaultProgramImage;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, 'data:')) {
+            return $path;
+        }
+
+        return asset(ltrim(str_replace('\\', '/', $path), '/'));
+    };
 @endphp
 
 {{-- ── Header ── --}}
@@ -31,15 +44,10 @@
 
             {{-- Image --}}
             <a href="{{ route($pfx . '.program.detail', $programItem->slug) }}" class="block">
-                <div class="relative aspect-[384/241] w-full overflow-hidden bg-gray-200">
-                    @if($programItem->img)
-                        <img src="{{ $programItem->img }}" alt="{{ $programItem->title }}"
-                             class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                    @else
-                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
-                            <i class="fa-solid fa-calendar-days text-blue-400 text-4xl"></i>
-                        </div>
-                    @endif
+                <div class="relative w-full overflow-hidden bg-gray-200" style="aspect-ratio:384/214">
+                    <img src="{{ $resolveProgramImage($programItem->img) }}" alt="{{ $programItem->title }}"
+                         class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                         onerror="this.onerror=null;this.src='{{ $defaultProgramImage }}';">
                     <div class="absolute inset-0 bg-gradient-to-t from-[#0d1b2e]/80 via-transparent to-transparent"></div>
                     <span class="absolute top-3 left-3 bg-orange-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
                         {{ $programItem->category }}

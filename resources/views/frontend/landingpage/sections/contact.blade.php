@@ -72,14 +72,18 @@
             <p class="text-gray-500 text-sm">Hubungi kami melalui salah satu kanal berikut.</p>
           </div>
           @foreach([
-            ['fa-location-dot','Alamat','Jl. Pendidikan No. 1, Kota, Provinsi, Indonesia'],
-            ['fa-phone','Telepon','(021) 000-0000 &mdash; Senin–Jumat, 07.00–15.00'],
-            ['fa-envelope','Email','bk@smea.sch.id &mdash; Respon dalam 1×24 jam'],
-            ['fa-clock','Jam Layanan','Senin–Jumat: 07.00–15.00<br>Sabtu: 08.00–12.00'],
+            ['fa-location-dot','Alamat','Jl. Jend. Sudirman Lingk. Cibeureum No.269, RT.01/RW.09, Sindangrasa, Kec. Ciamis, Kabupaten Ciamis, Jawa Barat 46215'],
+            ['fa-envelope','Email','bksmknciamis@gmail.com'],
+            ['fa-clock','Jam Layanan','07.00–14.00 (Senin–Jumat)'],
+            ['fa-brands fa-instagram','Instagram','@bksmn1cms'],
           ] as [$icon,$title,$content])
             <div class="flex items-start gap-4 bg-white rounded-2xl p-5 border border-blue-100 shadow-sm card-lift">
               <div class="w-11 h-11 shrink-0 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl flex items-center justify-center text-base">
-                <i class="fa-solid {{ $icon }}"></i>
+                @if(str_contains($icon, 'fa-brands'))
+                  <i class="{{ $icon }}"></i>
+                @else
+                  <i class="fa-solid {{ $icon }}"></i>
+                @endif
               </div>
               <div class="min-w-0">
                 <h3 class="font-bold text-gray-900 text-sm mb-0.5">{{ $title }}</h3>

@@ -17,7 +17,6 @@ return new class extends Migration {
             $table->string('img_cards')->nullable();         // dedicated listing card thumbnail
             $table->string('img_detail_1')->nullable();      // optional detail image 1
             $table->string('img_detail_2')->nullable();      // optional detail image 2
-            $table->enum('status', ['draft', 'publish'])->default('draft'); // publish|draft
             $table->timestamps();
         });
     }

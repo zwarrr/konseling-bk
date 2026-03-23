@@ -18,9 +18,9 @@ return new class extends Migration
             $table->date('date');
             $table->string('title', 50);
             $table->text('description')->nullable();
+            $table->json('benefits')->nullable();
             $table->string('info_link', 500)->nullable();
             $table->string('classroom_id', 20)->nullable();
-            $table->enum('status', ['publish', 'draft'])->default('publish');
             $table->unsignedInteger('peserta')->default(0);
             $table->string('guru_pembimbing', 100)->nullable();
             $table->unsignedBigInteger('added_by')->nullable();

@@ -13,7 +13,6 @@ return new class extends Migration
             $table->string('name', 60);                    // e.g. "XII IPA 1"
             $table->string('bk_account_id', 20)->nullable();
             $table->text('description')->nullable();
-            $table->string('join_token', 16)->unique()->nullable();
             $table->unsignedInteger('students_count')->default(0);
             $table->timestamps();
         });

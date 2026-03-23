@@ -6,6 +6,19 @@
 @php
     $authUser = auth()->user();
     $pfx      = ($authUser->role ?? 'siswa') === 'guru' ? 'bk' : 'siswa';
+    $defaultCardImage = asset('assets/img/default-cards-noimg.png');
+    $resolveImage = function ($path) use ($defaultCardImage) {
+        $path = trim((string) $path);
+        if ($path === '') {
+            return $defaultCardImage;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, 'data:')) {
+            return $path;
+        }
+
+        return asset(ltrim(str_replace('\\', '/', $path), '/'));
+    };
 @endphp
 
 {{-- ── Header ── --}}
@@ -24,57 +37,16 @@
 <div class="px-4 md:px-8 py-6 pb-24">
 
     @if($news->count())
-
-        {{-- Featured card (first item) --}}
-        @php $first = $news->first(); @endphp
-        <a href="{{ route($pfx . '.berita.detail', $first->slug) }}"
-           class="group block rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 mb-8 bg-white">
-            <div class="grid grid-cols-1 md:grid-cols-2">
-                {{-- Image --}}
-                <div class="overflow-hidden bg-gray-100" style="aspect-ratio:384/214">
-                    @php $firstThumb = $first->img_cards ?: $first->img_card; @endphp
-                    @if($firstThumb)
-                        <img src="{{ $firstThumb }}" alt="{{ $first->title }}"
-                             class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                    @else
-                        <div class="w-full h-full flex items-center justify-center bg-slate-100">
-                            <i class="fa-solid fa-image text-5xl text-slate-300"></i>
-                        </div>
-                    @endif
-                </div>
-                {{-- Content --}}
-                <div class="p-6 flex flex-col justify-center">
-                    <h2 class="text-xl font-bold text-slate-900 leading-snug mb-2 group-hover:text-blue-700 transition-colors duration-200">
-                        {{ $first->title }}
-                    </h2>
-                    @if($first->description)
-                        <p class="text-sm text-slate-500 leading-relaxed line-clamp-3 mb-4">{{ $first->description }}</p>
-                    @endif
-                    <div class="flex items-center gap-2 text-xs text-slate-400 mt-auto">
-                        <i class="fa-solid fa-calendar-days"></i>
-                        {{ $first->created_at->translatedFormat('d F Y') }}
-                    </div>
-                </div>
-            </div>
-        </a>
-
-        {{-- Grid --}}
-        @if($news->count() > 1)
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            @foreach($news->skip(1) as $item)
+            @foreach($news as $item)
             <a href="{{ route($pfx . '.berita.detail', $item->slug) }}"
                class="group flex flex-col rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 bg-white">
                 {{-- Image --}}
                 <div class="overflow-hidden bg-gray-100" style="aspect-ratio:384/214">
-                    @php $cardThumb = $item->img_cards ?: $item->img_card; @endphp
-                    @if($cardThumb)
-                        <img src="{{ $cardThumb }}" alt="{{ $item->title }}"
-                             class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                    @else
-                        <div class="w-full h-full flex items-center justify-center bg-slate-100">
-                            <i class="fa-solid fa-image text-4xl text-slate-300"></i>
-                        </div>
-                    @endif
+                    @php $cardThumb = $item->img_cards ?: $item->img_detail_1 ?: $item->img_detail_2; @endphp
+                    <img src="{{ $resolveImage($cardThumb) }}" alt="{{ $item->title }}"
+                         class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                         onerror="this.onerror=null;this.src='{{ $defaultCardImage }}';">
                 </div>
                 {{-- Content --}}
                 <div class="p-4 flex flex-col flex-1">
@@ -92,7 +64,6 @@
             </a>
             @endforeach
         </div>
-        @endif
 
         {{-- Pagination --}}
         @if($news->hasPages())

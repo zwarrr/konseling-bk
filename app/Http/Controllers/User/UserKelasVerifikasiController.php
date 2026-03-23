@@ -25,13 +25,13 @@ class UserKelasVerifikasiController extends Controller
         // Program bookings (owned programs only)
         $pendingBookings = ProgramBooking::with(['program', 'user'])
             ->whereHas('program', fn($q) => $q->where('added_by', auth()->id()))
-            ->where('status', 'pending')
+            ->where('state', 'pending')
             ->latest('id')
             ->get();
 
         $bookingHistory = ProgramBooking::with(['program', 'user.classroom', 'respondedBy'])
             ->whereHas('program', fn($q) => $q->where('added_by', auth()->id()))
-            ->whereIn('status', ['approved', 'rejected'])
+            ->whereIn('state', ['approved', 'rejected'])
             ->latest('responded_at')
             ->latest('id')
             ->limit(30)

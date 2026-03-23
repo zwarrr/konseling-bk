@@ -2,7 +2,20 @@
 
   @php
     $programSection = \App\Models\ProgramSection::singleton();
-    $programs       = \App\Models\Program::where('status', 'publish')->orderBy('date', 'desc')->take(4)->get();
+    $programs       = \App\Models\Program::orderBy('date', 'desc')->take(4)->get();
+    $defaultProgramImage = asset('assets/img/default-cards-noimg.png');
+    $resolveProgramImage = function ($path) use ($defaultProgramImage) {
+      $path = trim((string) $path);
+      if ($path === '') {
+        return $defaultProgramImage;
+      }
+
+      if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, 'data:')) {
+        return $path;
+      }
+
+      return asset(ltrim(str_replace('\\', '/', $path), '/'));
+    };
   @endphp
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
@@ -28,15 +41,10 @@
            style="transition-delay: {{ $i * 80 }}ms">
 
           {{-- Image --}}
-          <div class="relative h-44 overflow-hidden bg-gray-200">
-            @if($a->img)
-              <img src="{{ $a->img }}" alt="{{ $a->title }}"
-                   class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
-            @else
-              <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
-                <i class="fa-solid fa-calendar-days text-blue-400 text-4xl"></i>
-              </div>
-            @endif
+          <div class="relative overflow-hidden bg-gray-200" style="aspect-ratio:384/214">
+            <img src="{{ $resolveProgramImage($a->img) }}" alt="{{ $a->title }}"
+               class="w-full h-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" decoding="async"
+               onerror="this.onerror=null;this.src='{{ $defaultProgramImage }}';">
             <div class="absolute inset-0 bg-gradient-to-t from-[#0d1b2e]/80 via-transparent to-transparent"></div>
             {{-- Tag badge --}}
             <span class="absolute top-3 left-3 bg-orange-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">

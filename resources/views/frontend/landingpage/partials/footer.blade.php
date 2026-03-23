@@ -11,8 +11,13 @@
         Layanan Bimbingan dan Konseling yang profesional untuk mendukung tumbuh kembang siswa secara akademik, karier, sosial, dan pribadi.
       </p>
       <div class="flex gap-4 mt-6">
-        @foreach([['fab fa-instagram','#'],['fab fa-facebook','#'],['fab fa-whatsapp','#'],['fab fa-youtube','#']] as [$icon,$href])
-          <a href="{{ $href }}" class="w-9 h-9 bg-white/10 hover:bg-white/25 rounded-full flex items-center justify-center transition text-sm">
+        @foreach([
+          ['Instagram','fab fa-instagram','https://www.instagram.com/bksmn1cms'],
+          ['Facebook','fab fa-facebook','#'],
+          ['WhatsApp','fab fa-whatsapp','#'],
+          ['YouTube','fab fa-youtube','#'],
+        ] as [$label,$icon,$href])
+          <a href="{{ $href }}" aria-label="{{ $label }}" title="{{ $label }}" class="w-9 h-9 bg-white/10 hover:bg-white/25 rounded-full flex items-center justify-center transition text-sm">
             <i class="{{ $icon }}"></i>
           </a>
         @endforeach
@@ -21,7 +26,7 @@
 
     {{-- Links --}}
     <div>
-      <h4 class="font-semibold text-white mb-4 text-sm uppercase tracking-wider">Navigasi</h4>
+      <h2 class="font-semibold text-white mb-4 text-sm uppercase tracking-wider">Navigasi</h2>
       <ul class="space-y-2 text-blue-200 text-sm">
         <li><a href="{{ request()->routeIs('landing') ? '#beranda' : url('/').'#beranda' }}" class="hover:text-white transition">Beranda</a></li>
         <li><a href="{{ request()->routeIs('landing') ? '#tentang' : url('/').'#tentang' }}" class="hover:text-white transition">Tentang Kami</a></li>
@@ -33,23 +38,23 @@
 
     {{-- Kontak --}}
     <div>
-      <h4 class="font-semibold text-white mb-4 text-sm uppercase tracking-wider">Kontak</h4>
+      <h2 class="font-semibold text-white mb-4 text-sm uppercase tracking-wider">Kontak</h2>
       <ul class="space-y-3 text-blue-200 text-sm">
         <li class="flex gap-3 items-start">
           <i class="fa-solid fa-location-dot text-blue-300 mt-1"></i>
-          <span>Jl. Pendidikan No. 1, Kota, Provinsi, Indonesia</span>
+          <span>Jl. Jend. Sudirman Lingk. Cibeureum No.269, RT.01/RW.09, Sindangrasa, Kec. Ciamis, Kabupaten Ciamis, Jawa Barat 46215</span>
         </li>
         <li class="flex gap-3 items-center">
-          <i class="fa-solid fa-phone text-blue-300"></i>
-          <span>(021) 000-0000</span>
+          <i class="fa-brands fa-instagram text-blue-300"></i>
+          <span>@bksmn1cms</span>
         </li>
         <li class="flex gap-3 items-center">
           <i class="fa-solid fa-envelope text-blue-300"></i>
-          <span>bk@smea.sch.id</span>
+          <span>bksmknciamis@gmail.com</span>
         </li>
         <li class="flex gap-3 items-center">
           <i class="fa-solid fa-clock text-blue-300"></i>
-          <span>Senin–Jumat, 07.00–15.00</span>
+          <span>Senin–Jumat, 07.00–14.00</span>
         </li>
       </ul>
     </div>

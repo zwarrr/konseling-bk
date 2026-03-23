@@ -16,16 +16,16 @@
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6">
     @php
-      $dbSlides = \App\Models\BkNews::published()->get()->map(fn($s) => [
+      $dbSlides = \App\Models\BkNews::published()->latest()->take(3)->get()->map(fn($s) => [
           'title' => $s->title,
-          'image' => $s->img_card ?: '/img/slider/placeholder.jpg',
+        'image' => $s->img_cards ?: $s->img_detail_1 ?: $s->img_detail_2 ?: asset('assets/img/default-slider-noimg.png'),
           'href'  => $s->slug ? route('landing.berita.detail', $s->slug) : '#',
       ])->toArray();
       if (empty($dbSlides)) {
           $dbSlides = [
-              ['title' => 'Layanan BK Online',      'image' => '/img/slider/slide1.svg'],
-              ['title' => 'Konseling Profesional',  'image' => '/img/slider/slide2.svg'],
-            ['title' => 'Tumbuh Bersama E-Konseling',  'image' => '/img/slider/slide3.svg'],
+              ['title' => 'Layanan BK Online',      'image' => asset('assets/img/default-slider-noimg.png')],
+              ['title' => 'Konseling Profesional',  'image' => asset('assets/img/default-slider-noimg.png')],
+              ['title' => 'Tumbuh Bersama E-Konseling',  'image' => asset('assets/img/default-slider-noimg.png')],
           ];
       }
       $slidesJson = json_encode($dbSlides, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT);
@@ -135,24 +135,29 @@
           @touchcancel="pointerUp()"
         >
           {{-- Dots --}}
-          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-3 py-2 rounded-full bg-black/30 backdrop-blur-sm" x-show="total > 0">
+          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/30 backdrop-blur-sm" x-show="total > 0">
             <template x-for="(s, i) in baseSlides" :key="i">
               <button
                 type="button"
-                class="w-2.5 h-2.5 rounded-full transition"
-                :class="i === activeDot ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/75'"
+                :aria-label="'Buka slide ' + (i + 1)"
+                class="w-7 h-7 rounded-full flex items-center justify-center transition"
                 @click="stopAuto(); goToDot(i); startAuto()"
-              ></button>
+              >
+                <span
+                  class="block w-2 h-2 rounded-full transition"
+                  :class="i === activeDot ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/75'"
+                ></span>
+              </button>
             </template>
           </div>
 
           {{-- Arrows --}}
-          <button type="button" x-show="total > 1"
+          <button type="button" x-show="total > 1" aria-label="Slide sebelumnya"
             class="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm flex items-center justify-center text-white transition opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto"
             @click="stopAuto(); prev(); startAuto()">
             <i class="fa-solid fa-chevron-left text-sm"></i>
           </button>
-          <button type="button" x-show="total > 1"
+          <button type="button" x-show="total > 1" aria-label="Slide berikutnya"
             class="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm flex items-center justify-center text-white transition opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto"
             @click="stopAuto(); next(); startAuto()">
             <i class="fa-solid fa-chevron-right text-sm"></i>
@@ -172,11 +177,11 @@
                   <img
                     :src="s.image"
                     :alt="s.title"
+                    x-on:error="$event.target.src='{{ asset('assets/img/default-slider-noimg.png') }}'"
                     class="absolute inset-0 w-full h-full object-cover"
                     draggable="false"
                     loading="eager"
                     decoding="async"
-                    onerror="this.src='/img/slider/placeholder.jpg'; this.onerror=null;"
                   />
                   <a :href="s.href" class="absolute inset-0 block" @click="if(isDragged) $event.preventDefault()"></a>
                 </div>

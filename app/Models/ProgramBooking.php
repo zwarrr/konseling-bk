@@ -15,7 +15,7 @@ class ProgramBooking extends Model
         'user_id',
         'scheduled_at',
         'message',
-        'status',
+        'state',
         'booking_type',
         'method',
         'participants',

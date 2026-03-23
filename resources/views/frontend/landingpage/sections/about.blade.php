@@ -10,16 +10,16 @@
       <div class="relative p-3 rounded-[2.5rem]">
         <div class="grid grid-cols-2 gap-3">
           <div class="overflow-hidden rounded-2xl aspect-square shadow-md">
-            <img src="{{ $about->img_1 }}" alt="Foto 1" class="w-full h-full object-cover hover:scale-105 transition duration-500">
+            <img src="{{ $about->img_1 }}" alt="Foto 1" loading="lazy" decoding="async" class="w-full h-full object-cover hover:scale-105 transition duration-500">
           </div>
           <div class="overflow-hidden rounded-2xl aspect-square shadow-md mt-6">
-            <img src="{{ $about->img_2 }}" alt="Foto 2" class="w-full h-full object-cover hover:scale-105 transition duration-500">
+            <img src="{{ $about->img_2 }}" alt="Foto 2" loading="lazy" decoding="async" class="w-full h-full object-cover hover:scale-105 transition duration-500">
           </div>
           <div class="overflow-hidden rounded-2xl aspect-square shadow-md">
-            <img src="{{ $about->img_3 }}" alt="Foto 3" class="w-full h-full object-cover hover:scale-105 transition duration-500">
+            <img src="{{ $about->img_3 }}" alt="Foto 3" loading="lazy" decoding="async" class="w-full h-full object-cover hover:scale-105 transition duration-500">
           </div>
           <div class="overflow-hidden rounded-2xl aspect-square shadow-md mt-6">
-            <img src="{{ $about->img_4 }}" alt="Foto 4" class="w-full h-full object-cover hover:scale-105 transition duration-500">
+            <img src="{{ $about->img_4 }}" alt="Foto 4" loading="lazy" decoding="async" class="w-full h-full object-cover hover:scale-105 transition duration-500">
           </div>
         </div>
       </div>
@@ -52,9 +52,9 @@
       </ul>
 
       <div class="flex justify-center sm:justify-end mt-8">
-        <a href="{{ route('landing.team') }}"
+        <a href="{{ route('landing.profile_bk') }}"
            class="btn-raise shrink-0 inline-flex items-center gap-2 text-blue-700 hover:text-white bg-transparent hover:bg-blue-700 border border-blue-200 hover:border-blue-700 rounded-full px-6 py-3 text-sm font-semibold transition">
-          Kenali Semua Guru BK <i class="fa-solid fa-arrow-right text-xs"></i>
+          Kenali BK lebih lanjut<i class="fa-solid fa-arrow-right text-xs"></i>
         </a>
       </div>
     </div>

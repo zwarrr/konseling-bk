@@ -130,6 +130,7 @@
               </div>
               <input id="fieldImg" type="file" name="img" accept="image/*"
                 class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-primary/10 file:text-primary">
+              <p class="text-xs text-slate-400 mt-1">900x1200 | 3:4 - PNG, JPG, WEBP, maks. 5 MB</p>
             </div>
           </div>
           <div class="flex items-center justify-end gap-2 pt-2">

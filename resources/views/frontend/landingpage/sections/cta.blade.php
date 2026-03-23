@@ -52,6 +52,8 @@
         <img
           src="{{ asset('assets/img/iPhone.png') }}"
           alt="E-Konseling App"
+          loading="lazy"
+          decoding="async"
           class="select-none pointer-events-none"
           style="width: 620px; height: auto; max-width: none; filter: drop-shadow(0 30px 60px rgba(15,76,154,0.5));"
           draggable="false"

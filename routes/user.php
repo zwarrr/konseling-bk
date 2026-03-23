@@ -56,7 +56,6 @@ Route::middleware(['auth:bk,siswa', 'maintenance', 'must.setup'])->group(functio
     Route::post('/bk/program',                 [UserProgramController::class, 'store'])->name('bk.program.store');
     Route::get('/bk/program/{slug}/edit',      [UserProgramController::class, 'edit'])->name('bk.program.edit');
     Route::put('/bk/program/{slug}',           [UserProgramController::class, 'update'])->name('bk.program.update');
-    Route::patch('/bk/program/{slug}/toggle',  [UserProgramController::class, 'toggle'])->name('bk.program.toggle');
     Route::delete('/bk/program/{slug}',        [UserProgramController::class, 'destroy'])->name('bk.program.destroy');
 
     // ─── Profile ─────────────────────────────────────────────────────────

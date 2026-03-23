@@ -49,7 +49,7 @@
 
       {{-- ── Hero Section Card ── --}}
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 hover:shadow-lg transition-all duration-300"
-        x-data="{ editing: false, imgPreview: '{{ $home->img ?? '' }}' }">
+        x-data="{ editing: false, imgPreview: '{{ $home->img ? addslashes(asset($home->img)) : '' }}' }">
 
         <div class="px-8 py-5 border-b border-gray-200 flex items-center justify-between">
           <div>
@@ -90,7 +90,7 @@
               <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Gambar</label>
               <div class="rounded-lg border border-gray-200 bg-gray-50 p-2">
                 @if($home->img)
-                  <img src="{{ $home->img }}" alt="IMG" class="max-h-56 w-full object-contain rounded">
+                  <img src="{{ asset($home->img) }}" alt="IMG" class="max-h-56 w-full object-contain rounded">
                 @else
                   <div class="flex items-center justify-center h-32 text-gray-300">
                     <i class="fa-solid fa-image text-4xl"></i>
@@ -150,7 +150,7 @@
                 <input name="img" type="file" accept="image/*"
                   @change="window.__cropFile($event, 1).then(r => { if(r) imgPreview = r.previewUrl; })"
                   class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900">
-                <p class="text-xs text-gray-500 mt-1">PNG, JPG, WEBP — maks. 5 MB</p>
+                <p class="text-xs text-gray-500 mt-1">1080x1080 | 1:1 - PNG, JPG, WEBP, maks. 5 MB</p>
                 @error('img')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
               </div>
 
@@ -163,7 +163,7 @@
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-              <button @click="$refs.homeForm.reset(); editing = false; imgPreview = '{{ $home->img ?? '' }}'" type="button"
+              <button @click="$refs.homeForm.reset(); editing = false; imgPreview = '{{ $home->img ? addslashes(asset($home->img)) : '' }}'" type="button"
                 class="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 text-sm font-medium">
                 Batal
               </button>

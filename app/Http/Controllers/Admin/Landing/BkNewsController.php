@@ -24,8 +24,6 @@ class BkNewsController extends Controller
             'title'        => 'required|string|max:50',
             'description'  => 'nullable|string|max:2500',
             'author'       => 'nullable|string|max:100',
-            'status'       => 'required|in:draft,publish',
-            'img_card'     => 'nullable|image|max:5120',
             'img_cards'    => 'nullable|image|max:5120',
             'img_detail_1' => 'nullable|image|max:5120',
             'img_detail_2' => 'nullable|image|max:5120',
@@ -38,11 +36,9 @@ class BkNewsController extends Controller
             'slug'         => BkNews::generateUniqueSlug($title),
             'description'  => $request->input('description'),
             'author'       => $request->input('author'),
-            'img_card'     => $this->uploadImgField($request, 'img_card',  'NEWS-CARD'),
             'img_cards'    => $this->uploadImgField($request, 'img_cards', 'NEWS-CARDS'),
             'img_detail_1' => $this->uploadImgField($request, 'img_detail_1', 'NEWS-D1'),
             'img_detail_2' => $this->uploadImgField($request, 'img_detail_2', 'NEWS-D2'),
-            'status'       => $request->input('status', 'draft'),
         ]);
 
         return back()->with('success', 'Berita ditambahkan.');
@@ -54,17 +50,12 @@ class BkNewsController extends Controller
             'title'        => 'required|string|max:50',
             'description'  => 'nullable|string|max:2500',
             'author'       => 'nullable|string|max:100',
-            'status'       => 'required|in:draft,publish',
-            'img_card'     => 'nullable|image|max:5120',
             'img_cards'    => 'nullable|image|max:5120',
             'img_detail_1' => 'nullable|image|max:5120',
             'img_detail_2' => 'nullable|image|max:5120',
         ]);
 
         $newTitle = $request->input('title');
-        $imgCard  = $this->uploadImgField($request, 'img_card', 'NEWS-CARD', $bkNews->img_card)
-                   ?? $bkNews->img_card;
-
         // Regenerate slug only if title changed and slug has not been manually set
         $newSlug = ($bkNews->title !== $newTitle)
             ? BkNews::generateUniqueSlug($newTitle, $bkNews->id)
@@ -75,14 +66,12 @@ class BkNewsController extends Controller
             'slug'         => $newSlug,
             'description'  => $request->input('description'),
             'author'       => $request->input('author'),
-            'img_card'     => $imgCard,
             'img_cards'    => $this->uploadImgField($request, 'img_cards', 'NEWS-CARDS', $bkNews->img_cards)
                               ?? $bkNews->img_cards,
             'img_detail_1' => $this->uploadImgField($request, 'img_detail_1', 'NEWS-D1', $bkNews->img_detail_1)
                               ?? $bkNews->img_detail_1,
             'img_detail_2' => $this->uploadImgField($request, 'img_detail_2', 'NEWS-D2', $bkNews->img_detail_2)
                               ?? $bkNews->img_detail_2,
-            'status'       => $request->input('status', $bkNews->status),
         ]);
 
         return back()->with('success', 'Berita diperbarui.');
@@ -92,15 +81,6 @@ class BkNewsController extends Controller
     {
         $bkNews->delete();
         return back()->with('success', 'Berita dihapus.');
-    }
-
-    public function toggle(BkNews $bkNews)
-    {
-        $bkNews->update([
-            'status' => $bkNews->status === 'publish' ? 'draft' : 'publish',
-        ]);
-        $msg = $bkNews->status === 'publish' ? 'Berita dipublish.' : 'Berita dijadikan draft.';
-        return back()->with('success', $msg);
     }
 
     /** Upload helper that maps a named file input (not always 'img'). */

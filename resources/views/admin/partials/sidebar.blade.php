@@ -127,6 +127,12 @@
       <span class="font-medium sb-text">Tim BK</span>
     </a>
 
+    <a href="{{ route('admin.landing.profileBk') }}"
+       class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('admin.landing.profileBk*') ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+      <i class="fa-solid fa-id-card w-5 text-center flex-shrink-0"></i>
+      <span class="font-medium sb-text">Profil BK</span>
+    </a>
+
     <a href="{{ route('admin.booking.index') }}"
        class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('admin.booking.*') ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
       <i class="fa-solid fa-table-list w-5 text-center flex-shrink-0"></i>

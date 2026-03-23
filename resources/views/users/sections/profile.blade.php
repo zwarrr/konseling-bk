@@ -636,47 +636,7 @@
     }
 
     checkUpdateBtn?.addEventListener('click', async () => {
-        // Web mode: tombol ini tidak pernah muncul
-        if (!isStandalonePwa()) return;
-        if (!('serviceWorker' in navigator)) {
-            window.showFlashModal?.('error', 'Update tidak didukung di perangkat ini.');
-            return;
-        }
-        if (navigator.onLine === false) {
-            window.showFlashModal?.('error', 'Tidak ada koneksi internet untuk cek update.');
-            return;
-        }
-
-        setUpdateBusy(true);
-
-        try {
-            let reg = await withTimeout(navigator.serviceWorker.getRegistration('/'), 6000);
-            if (!reg) {
-                reg = await withTimeout(navigator.serviceWorker.register('/sw.js', { scope: '/' }), 8000);
-            }
-
-            // Trigger update check
-            try { await withTimeout(reg.update(), 6000); } catch (_) {}
-
-            // Wait for waiting worker to appear (if update exists)
-            const waiting = await waitForWaitingWorker(reg, 7000);
-
-            if (waiting) {
-                setUpdateBusy(false);
-                closeAppInfo();
-                window.dispatchEvent(new CustomEvent('pwa:sw-update', { detail: { registration: reg } }));
-            } else {
-                setUpdateBusy(false);
-                closeAppInfo();
-                window.showFlashModal?.('success', 'Sudah versi terbaru.');
-            }
-        } catch (_) {
-            setUpdateBusy(false);
-            closeAppInfo();
-            window.showFlashModal?.('error', 'Gagal cek update. Coba lagi.');
-        } finally {
-            setUpdateBusy(false);
-        }
+        window.showFlashModal?.('info', 'Mode web-only: fitur update aplikasi (PWA) dinonaktifkan.');
     });
 })();
 

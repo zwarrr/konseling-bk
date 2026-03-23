@@ -13,6 +13,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');       // SiswaAccount.id
             $table->string('classroom_id', 10);          // Classroom.id
             $table->unsignedBigInteger('cutoff_message_id')->default(0);
+            $table->unsignedBigInteger('left_cutoff_message_id')->nullable();
             // Messages with id <= cutoff_message_id are hidden from this user.
             // 0 means show all history (e.g. BK / founding members).
             $table->timestamps();

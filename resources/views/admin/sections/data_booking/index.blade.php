@@ -51,7 +51,7 @@
             <td class="px-4 py-3 text-slate-700 text-xs font-semibold">{{ $b->scheduled_at ? $b->scheduled_at->format('d M Y, H:i') : '—' }}</td>
             <td class="px-4 py-3">
               @php
-                $st = (string) ($b->status ?? '');
+                $st = (string) ($b->state ?? '');
                 $stLabel = match ($st) {
                   'approved' => 'APPROVED',
                   'rejected' => 'REJECTED',
