@@ -26,7 +26,7 @@ return new class extends Migration
 
             $table->index('status');
             $table->index('email');
-            $table->foreign('replied_by')->references('id')->on('admin_accounts')->nullOnDelete();
+            $table->foreign('replied_by')->references('id')->on('admin_account')->nullOnDelete();
         });
     }
 
