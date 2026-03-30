@@ -53,6 +53,9 @@
     <h1 class="reveal text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
       {{ $profile->title }}
     </h1>
+          <p class="text-gray-500 max-w-xl mx-auto text-sm">
+            {{ $profile->subtitle }}
+          </p>
   </section>
 
   <main class="py-12 sm:py-16 bg-white">

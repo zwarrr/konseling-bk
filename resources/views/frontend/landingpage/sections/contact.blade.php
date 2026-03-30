@@ -36,6 +36,8 @@
     .btn-raise { transition:transform .15s ease,box-shadow .15s ease; }
     .btn-raise:hover  { transform:translateY(-3px); box-shadow:0 10px 24px rgba(0,0,0,.18)!important; }
     .btn-raise:active { transform:translateY(1px);  box-shadow:0 2px 6px rgba(0,0,0,.12)!important; }
+    .spin { animation:spin 1s linear infinite; }
+    @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
 
   </style>
 </head>
@@ -98,38 +100,55 @@
           <h3 class="text-2xl font-extrabold text-gray-900 mb-2">Kirim Pesan</h3>
           <p class="text-gray-500 text-sm mb-6">Ada pertanyaan? Tim BK kami siap menjawab.</p>
 
-          <form class="space-y-4" onsubmit="handleContactForm(event)">
+          @if (session('success'))
+            <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              {{ session('success') }}
+            </div>
+          @endif
+
+          <form id="contact-form" class="space-y-4" method="POST" action="{{ route('landing.contact.store') }}">
+          @csrf
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="text-xs font-semibold text-gray-600 mb-1 block">Nama Lengkap</label>
-              <input type="text" placeholder="Nama Anda" required
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+              <input type="text" name="name" value="{{ old('name') }}" placeholder="Nama Anda" required
+                class="w-full border {{ $errors->has('name') ? 'border-red-300' : 'border-gray-200' }} rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+              @error('name')
+                <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+              @enderror
             </div>
             <div>
-              <label class="text-xs font-semibold text-gray-600 mb-1 block">Email / WhatsApp</label>
-              <input type="text" placeholder="email@contoh.com" required
-                class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+              <label class="text-xs font-semibold text-gray-600 mb-1 block">Email</label>
+              <input type="email" name="email" value="{{ old('email') }}" placeholder="email@contoh.com" required
+                class="w-full border {{ $errors->has('email') ? 'border-red-300' : 'border-gray-200' }} rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+              @error('email')
+                <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+              @enderror
             </div>
           </div>
           <div>
             <label class="text-xs font-semibold text-gray-600 mb-1 block">Topik</label>
-            <select class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-gray-600">
+            <select name="topic" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-gray-600">
               <option value="">-- Pilih Topik --</option>
-              <option>Konseling Individual</option>
-              <option>Bimbingan Karier</option>
-              <option>Masalah Belajar</option>
-              <option>Kesehatan Mental</option>
-              <option>Lainnya</option>
+              <option value="Konseling Individual" {{ old('topic') === 'Konseling Individual' ? 'selected' : '' }}>Konseling Individual</option>
+              <option value="Bimbingan Karier" {{ old('topic') === 'Bimbingan Karier' ? 'selected' : '' }}>Bimbingan Karier</option>
+              <option value="Masalah Belajar" {{ old('topic') === 'Masalah Belajar' ? 'selected' : '' }}>Masalah Belajar</option>
+              <option value="Kesehatan Mental" {{ old('topic') === 'Kesehatan Mental' ? 'selected' : '' }}>Kesehatan Mental</option>
+              <option value="Lainnya" {{ old('topic') === 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
             </select>
           </div>
           <div>
             <label class="text-xs font-semibold text-gray-600 mb-1 block">Pesan</label>
-            <textarea rows="5" placeholder="Ceritakan kebutuhanmu di sini..." required
-              class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"></textarea>
+            <textarea name="message" rows="5" placeholder="Ceritakan kebutuhanmu di sini..." required
+              class="w-full border {{ $errors->has('message') ? 'border-red-300' : 'border-gray-200' }} rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none">{{ old('message') }}</textarea>
+            @error('message')
+              <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+            @enderror
           </div>
           <button type="submit" id="contact-btn"
             class="btn-raise w-full text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-700/30 transition flex items-center justify-center gap-2" style="background:#0F4C9A">
-            <i class="fa-solid fa-paper-plane"></i> Kirim Pesan
+            <i class="fa-solid fa-paper-plane" data-icon></i>
+            <span data-label>Kirim Pesan</span>
           </button>
         </form>
         </div>{{-- /kanan --}}
@@ -145,19 +164,22 @@
     const ro = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:.12});
     document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
 
-    function handleContactForm(e) {
-      e.preventDefault();
+    // Submit state animation
+    (function () {
+      const form = document.getElementById('contact-form');
       const btn = document.getElementById('contact-btn');
-      btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Pesan Terkirim!';
-      btn.style.background = '#16a34a';
-      btn.disabled = true;
-      setTimeout(() => {
-        btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Kirim Pesan';
-        btn.style.background = '#0F4C9A';
-        btn.disabled = false;
-        e.target.reset();
-      }, 3000);
-    }
+      const icon = btn?.querySelector('[data-icon]');
+      const label = btn?.querySelector('[data-label]');
+
+      form?.addEventListener('submit', function () {
+        if (!btn || !icon || !label) return;
+
+        btn.disabled = true;
+        btn.classList.add('opacity-90', 'cursor-not-allowed');
+        label.textContent = 'Memproses...';
+        icon.className = 'fa-solid fa-spinner spin';
+      });
+    })();
 
   </script>
 </body>

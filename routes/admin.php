@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\Landing\ProgramSectionController;
 use App\Http\Controllers\Admin\Landing\ProgramController;
 use App\Http\Controllers\Admin\Landing\ProfileBkController;
 use App\Http\Controllers\Admin\AdminBookingController;
+use App\Http\Controllers\Admin\AdminMessageController;
 
 // ─── Admin (guard: admin) ──────────────────────────────────────────
 Route::prefix('admin')->middleware(['auth:admin', 'admin'])->group(function () {
@@ -132,4 +133,8 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin'])->group(function () {
 	Route::get('/data-booking', [AdminBookingController::class, 'index'])->name('admin.booking.index');
 	Route::get('/data-booking/export/excel', [AdminBookingController::class, 'exportExcel'])->name('admin.booking.export.excel');
 	Route::get('/data-booking/export/pdf', [AdminBookingController::class, 'exportPdf'])->name('admin.booking.export.pdf');
+
+	// ─── Data Pesan (Landing Contact Messages) ─────────────────────────
+	Route::get('/data-pesan', [AdminMessageController::class, 'index'])->name('admin.messages.index');
+	Route::post('/data-pesan/{message}/reply', [AdminMessageController::class, 'reply'])->name('admin.messages.reply');
 });

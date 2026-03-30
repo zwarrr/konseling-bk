@@ -9,6 +9,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Landing\ContactMessageController;
 
 // PWA is currently disabled (web-only).
 // ─── Auth ────────────────────────────────────────────────────────────
@@ -79,7 +80,10 @@ Route::get('/_fragments/landing/{section}', function (string $section) {
 
 // ─── Landing sub-pages ────────────────────────────────────────────────
 Route::get('/kontak', fn () => view('frontend.landingpage.sections.contact'))->name('landing.contact');
+Route::post('/kontak', [ContactMessageController::class, 'store'])->name('landing.contact.store');
 Route::get('/profil-bk', fn () => view('frontend.landingpage.sections.profile_bk'))->name('landing.profile_bk');
+Route::get('/profile-bk/galery', fn () => view('frontend.landingpage.sections.profile_bk'))->name('landing.profile_bk.gallery');
+Route::get('/profil-bk/galery', fn () => redirect()->route('landing.profile_bk.gallery'));
 Route::get('/tim-bk', fn () => view('frontend.landingpage.sections.team'))->name('landing.team');
 Route::get('/copyright-team', fn () => view('frontend.landingpage.sections.copyright_team'))
     ->name('landing.copyright_team');

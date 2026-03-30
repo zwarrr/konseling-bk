@@ -139,6 +139,12 @@
       <span class="font-medium sb-text">Data Booking</span>
     </a>
 
+     <a href="{{ route('admin.messages.index') }}"
+       class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('admin.messages.*') ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+      <i class="fa-solid fa-envelope-open-text w-5 text-center flex-shrink-0"></i>
+      <span class="font-medium sb-text">Data Pesan</span>
+     </a>
+
     <a href="{{ route('admin.settings') }}"
        class="group flex items-center gap-3 px-3 py-2.5 rounded-xl transition {{ request()->routeIs('admin.settings*') ? 'bg-primary/10 text-primary' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
       <i class="fa-solid fa-gear w-5 text-center flex-shrink-0"></i>

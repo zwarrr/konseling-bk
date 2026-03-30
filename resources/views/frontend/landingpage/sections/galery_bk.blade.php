@@ -29,12 +29,31 @@
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
 
     <div class="reveal text-center mb-10">
-      <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900">Galeri BK</h2>
-      <p class="text-gray-500 text-sm mt-2">Dokumentasi kegiatan dan layanan BK.</p>
+    <h1 class="reveal text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
+      Galery
+    </h1>
+      <p class="text-gray-500 max-w-xl mx-auto text-sm">Dokumentasi kegiatan BK</p>
     </div>
 
     @php
-      $galleryItems = \App\Models\ProfileBkGallery::orderBy('sort_order')->orderByDesc('id')->paginate(6);
+      $defaultGalleryImage = asset('assets/img/default-cards-noimg.png');
+      $resolveGalleryImage = function ($path) use ($defaultGalleryImage) {
+        $path = trim((string) $path);
+        if ($path === '') {
+          return $defaultGalleryImage;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, 'data:')) {
+          return $path;
+        }
+
+        return asset(ltrim(str_replace('\\', '/', $path), '/'));
+      };
+
+      $galleryItems = \App\Models\ProfileBkGallery::orderBy('sort_order')
+        ->orderByDesc('id')
+        ->paginate(6)
+        ->withPath(route('landing.profile_bk.gallery'));
     @endphp
 
     @if($galleryItems->isEmpty())
@@ -48,18 +67,19 @@
     @else
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         @foreach($galleryItems as $item)
-          @php $img = $item->img ?: asset('favicon.png'); @endphp
+          @php $img = $resolveGalleryImage($item->img); @endphp
           <div
             class="reveal galeri-card group relative block text-left rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
             style="transition-property:transform,box-shadow,opacity;"
           >
-            <div class="aspect-[4/3] bg-gray-100 overflow-hidden">
+            <div class="bg-gray-100 overflow-hidden" style="aspect-ratio:384/214">
               <img
                 src="{{ $img }}"
                 alt="{{ $item->title }}"
                 class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
                 loading="lazy"
                 decoding="async"
+                onerror="this.onerror=null;this.src='{{ $defaultGalleryImage }}';"
               />
             </div>
 
