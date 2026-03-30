@@ -1,49 +1,52 @@
-name: Deploy Laravel ke Server (Fresh DB)
+name: Deploy Laravel ke Server
 
 on:
   push:
     branches:
-      - Zwar  # branch utama
+      - Zwar
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      DEPLOY_BRANCH: Zwar
 
     steps:
-    # Checkout repository
+    # 1. Checkout repo (optional, tapi tetap bagus ada)
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Setup SSH connection
+    # 2. Setup SSH ke server
     - name: Setup SSH connection
       uses: webfactory/ssh-agent@v0.9.0
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    # Deploy via SSH
-    - name: Deploy to server via SSH
+    # 3. Deploy ke server
+    - name: Deploy via SSH
       run: |
         ssh -p 21032 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
           set -e
+
           cd web
 
-          # Sinkron semua file dengan GitHub (token auth, tidak tergantung SSH key server)
-          git remote set-url origin https://x-access-token:${{ secrets.DEPLOY_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git fetch --prune origin ${{ env.DEPLOY_BRANCH }}
-          git checkout -B ${{ env.DEPLOY_BRANCH }} origin/${{ env.DEPLOY_BRANCH }}
-          git reset --hard origin/${{ env.DEPLOY_BRANCH }}
-          git clean -fd
+          # Start ssh-agent & load key khusus git (yang dulu working)
+          eval \$(ssh-agent -s)
+          ssh-add ~/.ssh/zwar
+
+          # Pastikan pakai SSH, bukan HTTPS
+          git remote set-url origin git@github.com:${{ github.repository }}.git
+
+          # Pull branch Zwar
+          git fetch origin Zwar
+          git checkout Zwar || git checkout -b Zwar
+          git reset --hard origin/Zwar
 
           # Install dependencies
           composer install --no-interaction --prefer-dist --optimize-autoloader
           npm install
           npm run build
 
-          # Laravel tasks
-          php artisan migrate:fresh --seed --force
-          php artisan storage:link
+          # Laravel optimization
+          php artisan migrate --force
           php artisan optimize
           php artisan config:cache
           php artisan route:cache
