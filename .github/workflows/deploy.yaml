@@ -8,6 +8,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_BRANCH: Zwar
 
     steps:
     # Checkout repository
@@ -24,11 +26,14 @@ jobs:
     - name: Deploy to server via SSH
       run: |
         ssh -p 21032 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
+          set -e
           cd web
 
-          # Sinkron semua file dengan GitHub
-          git fetch origin Zwar
-          git reset --hard origin/Zwar
+          # Sinkron semua file dengan GitHub (token auth, tidak tergantung SSH key server)
+          git remote set-url origin https://x-access-token:${{ secrets.DEPLOY_GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git fetch --prune origin ${{ env.DEPLOY_BRANCH }}
+          git checkout -B ${{ env.DEPLOY_BRANCH }} origin/${{ env.DEPLOY_BRANCH }}
+          git reset --hard origin/${{ env.DEPLOY_BRANCH }}
           git clean -fd
 
           # Install dependencies
