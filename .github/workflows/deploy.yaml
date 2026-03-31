@@ -1,52 +1,44 @@
-name: Deploy Laravel ke Server
+name: Deploy Laravel ke Server (Fresh DB)
 
 on:
   push:
     branches:
-      - Zwar
+      - Zwar  # branch utama
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Checkout repo (optional, tapi tetap bagus ada)
+    # Checkout repository
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # 2. Setup SSH ke server
+    # Setup SSH connection
     - name: Setup SSH connection
       uses: webfactory/ssh-agent@v0.9.0
       with:
         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    # 3. Deploy ke server
-    - name: Deploy via SSH
+    # Deploy via SSH
+    - name: Deploy to server via SSH
       run: |
         ssh -p 21032 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "
-          set -e
-
           cd web
 
-          # Start ssh-agent & load key khusus git (yang dulu working)
-          eval \$(ssh-agent -s)
-          ssh-add ~/.ssh/zwar
-
-          # Pastikan pakai SSH, bukan HTTPS
-          git remote set-url origin git@github.com:${{ github.repository }}.git
-
-          # Pull branch Zwar
+          # Sinkron semua file dengan GitHub
           git fetch origin Zwar
-          git checkout Zwar || git checkout -b Zwar
           git reset --hard origin/Zwar
+          git clean -fd
 
           # Install dependencies
           composer install --no-interaction --prefer-dist --optimize-autoloader
           npm install
           npm run build
 
-          # Laravel optimization
+          # Laravel tasks
           php artisan migrate --force
+          php artisan storage:link
           php artisan optimize
           php artisan config:cache
           php artisan route:cache
