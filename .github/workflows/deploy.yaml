@@ -27,9 +27,10 @@ jobs:
           cd web
 
           # Sinkron semua file dengan GitHub
-          git fetch origin Zwar
+          GIT_SSH_COMMAND='ssh -i ~/.ssh/zwar -o IdentitiesOnly=yes' git fetch origin Zwar
           git reset --hard origin/Zwar
-          git clean -fd
+          git checkout Zwar || git checkout -b Zwar
+          git reset --hard origin/Zwar
 
           # Install dependencies
           composer install --no-interaction --prefer-dist --optimize-autoloader
