@@ -15,6 +15,7 @@ class GenericSystemNotificationMail extends Mailable
     public function __construct(
         public string $title,
         public string $body,
+        public array $context = [],
     ) {
     }
 
@@ -33,6 +34,7 @@ class GenericSystemNotificationMail extends Mailable
             with: [
                 'title' => $this->title,
                 'body' => $this->body,
+                'context' => $this->context,
             ]
         );
     }

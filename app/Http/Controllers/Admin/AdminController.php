@@ -345,6 +345,32 @@ class AdminController extends Controller
             ->with('flash_notes', $notes);
     }
 
+    public function downloadAccountImportTemplate(string $type)
+    {
+        $map = [
+            'bk' => ['contoh_import_guru_bk.xlsx', 'contoh_import_guru_bk.csv'],
+            'siswa' => ['contoh_import_siswa.xlsx', 'contoh_import_siswa.csv'],
+        ];
+
+        $candidates = $map[$type] ?? null;
+        if (!$candidates) {
+            abort(404);
+        }
+
+        $found = collect($candidates)
+            ->map(fn (string $name) => [
+                'name' => $name,
+                'path' => public_path('templates/import/' . $name),
+            ])
+            ->first(fn (array $f) => is_file($f['path']));
+
+        if (!$found) {
+            abort(404, 'Template tidak ditemukan.');
+        }
+
+        return response()->download($found['path'], $found['name']);
+    }
+
     // ─── Settings ─────────────────────────────────────────────
 
     public function settings()

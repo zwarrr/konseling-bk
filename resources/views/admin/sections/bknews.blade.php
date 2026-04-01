@@ -37,6 +37,22 @@
     <div class="px-3 sm:px-6 py-4 sm:py-6">
       <div class="max-w-7xl mx-auto">
         <div class="bg-white rounded-xl border border-gray-200">
+          @php
+            $defaultCardImage = asset('assets/img/default-cards-noimg.png');
+            $resolveImage = function ($path) use ($defaultCardImage) {
+              $path = trim((string) $path);
+              if ($path === '') {
+                return $defaultCardImage;
+              }
+
+              if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, 'data:')) {
+                return $path;
+              }
+
+              return asset(ltrim(str_replace('\\', '/', $path), '/'));
+            };
+          @endphp
+
           <div class="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h3 class="text-lg font-bold text-gray-900 uppercase tracking-wide">BK News</h3>
@@ -71,11 +87,12 @@
                     data-img-detail2="{{ $item->img_detail_2 }}">
                   <td class="px-6 py-3 text-center">
                     @php $thumb = $item->img_cards ?: $item->img_card; @endphp
-                    @if($thumb)
-                      <img src="{{ $thumb }}" class="w-16 h-10 object-cover rounded-lg mx-auto" loading="lazy">
-                    @else
-                      <div class="w-16 h-10 bg-gray-100 rounded-lg flex items-center justify-center mx-auto text-gray-300"><i class="fa-solid fa-image"></i></div>
-                    @endif
+                    <img
+                      src="{{ $resolveImage($thumb) }}"
+                      class="w-16 h-10 object-cover rounded-lg mx-auto bg-gray-100"
+                      loading="lazy"
+                      onerror="this.onerror=null;this.src='{{ $defaultCardImage }}';"
+                    >
                   </td>
                   <td class="px-6 py-3 text-center max-w-[180px]">
                     <div class="font-medium text-gray-800 leading-snug line-clamp-2">{{ $item->title }}</div>
@@ -107,6 +124,10 @@
               </tbody>
             </table>
           </div>
+
+          <div class="px-4 py-3 border-t border-slate-100">
+            {{ $items->links('components.pagination.default') }}
+          </div>
         </div>
 
       </div>
@@ -117,84 +138,87 @@
   <div id="crudModal" class="fixed inset-0 z-[9999] hidden">
     <div class="absolute inset-0 bg-black/40" id="crudBackdrop"></div>
     <div class="absolute inset-0 flex items-center justify-center p-4">
-      <div class="w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-xl max-h-[90vh] flex flex-col">
+      <div class="w-full max-w-6xl bg-white rounded-2xl border border-slate-200 shadow-xl max-h-[90vh] flex flex-col">
         <div class="px-6 py-4 border-b border-slate-200 shrink-0">
           <div class="text-sm text-slate-500">Landing Page — BK News</div>
           <div id="crudTitle" class="text-lg font-semibold text-slate-900">Tambah Berita</div>
         </div>
 
-        <form id="crudForm" method="POST" action="{{ route('admin.landing.bkNewsStore') }}" enctype="multipart/form-data" class="p-6 space-y-4 overflow-y-auto">
+        <form id="crudForm" method="POST" action="{{ route('admin.landing.bkNewsStore') }}" enctype="multipart/form-data" class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-y-auto">
           @csrf
           <input id="crudMethod" type="hidden" name="_method" value="PUT" disabled>
 
-          {{-- Judul --}}
-          <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Judul <span class="text-red-500">*</span></label>
-            <input id="fieldTitle" name="title" required maxlength="50"
-              class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
-            <p class="text-xs text-slate-400 mt-1">Maks. 50 karakter</p>
-          </div>
+          <div class="space-y-4">
+            {{-- Judul --}}
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Judul <span class="text-red-500">*</span></label>
+              <input id="fieldTitle" name="title" required maxlength="50"
+                class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+              <p class="text-xs text-slate-400 mt-1">Maks. 50 karakter</p>
+            </div>
 
-          {{-- Deskripsi --}}
-          <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Deskripsi / Isi Berita</label>
-            <textarea id="fieldDesc" name="description" rows="3" maxlength="2500"
-              class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"></textarea>
-            <p class="text-xs text-slate-400 mt-1">Maks. 2500 karakter</p>
-          </div>
+            {{-- Deskripsi --}}
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Deskripsi / Isi Berita</label>
+              <textarea id="fieldDesc" name="description" rows="4" maxlength="2500"
+                class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"></textarea>
+              <p class="text-xs text-slate-400 mt-1">Maks. 2500 karakter</p>
+            </div>
 
-          {{-- Author & Status --}}
-          <div class="grid grid-cols-1 gap-3">
+            {{-- Author --}}
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Penulis / Author</label>
               <input id="fieldAuthor" name="author" placeholder="Nama penulis (opsional)"
                 class="w-full border border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
             </div>
-          </div>
 
-          <div class="rounded-xl border border-blue-100 bg-blue-50/60 p-3 text-xs text-blue-700 leading-relaxed">
-            <div class="font-semibold mb-1">Panduan ukuran gambar BK News</div>
-            <div>Card listing (/berita): 1536x856 | 384:214.</div>
-            <div>Detail 1 & Detail 2: 1600x900 | 16:9.</div>
-          </div>
-
-          {{-- Gambar Cards Listing (card thumbnail khusus /berita) --}}
-          <div class="border border-blue-100 rounded-xl p-4 space-y-2 bg-blue-50/30">
-            <p class="text-sm font-semibold text-slate-700">Gambar Card Listing <span class="font-normal text-slate-400 text-xs">(1536x856 | 384:214, opsional)</span></p>
-            <p class="text-xs text-blue-600">Jika kosong, sistem akan pakai placeholder default.</p>
-            <input id="fieldImgCards" type="file" name="img_cards" accept="image/*"
-              class="w-full text-sm text-slate-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-blue-100 file:text-blue-600">
-            <div id="imgCardsPreviewWrap" class="hidden mt-2">
-              <img id="imgCardsPreview" class="max-w-full rounded-lg object-contain border border-slate-200">
-              <p class="text-xs text-slate-400 mt-1">IMG</p>
+            <div class="rounded-xl border border-blue-100 bg-blue-50/60 p-3 text-xs text-blue-700 leading-relaxed">
+              <div class="font-semibold mb-1">Panduan ukuran gambar BK News</div>
+              <div>Card listing (/berita): 1536x856 | 384:214.</div>
+              <div>Detail 1 & Detail 2: 1600x900 | 16:9.</div>
             </div>
+
           </div>
 
-          {{-- Gambar Detail 1 & 2 (grid 2 col) --}}
-          <div class="grid grid-cols-2 gap-3">
-            {{-- Detail 1 --}}
-            <div class="border border-slate-200 rounded-xl p-3 space-y-2">
-              <p class="text-xs font-semibold text-slate-700">Detail 1 <span class="font-normal text-slate-400">(1600x900 | 16:9, opsional)</span></p>
-              <input id="fieldImgD1" type="file" name="img_detail_1" accept="image/*"
-                class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-primary/10 file:text-primary">
-              <div id="imgD1PreviewWrap" class="hidden mt-1">
-                <img id="imgD1Preview" class="max-w-full rounded-lg object-contain border border-slate-200">
-                <p class="text-xs text-slate-400 mt-0.5">IMG</p>
+          <div class="space-y-4">
+            {{-- Gambar Cards Listing (card thumbnail khusus /berita) --}}
+            <div class="border border-blue-100 rounded-xl p-4 space-y-2 bg-blue-50/30">
+              <p class="text-sm font-semibold text-slate-700">Gambar Card Listing <span class="font-normal text-slate-400 text-xs">(1536x856 | 384:214, opsional)</span></p>
+              <p class="text-xs text-blue-600">Jika kosong, sistem akan pakai placeholder default.</p>
+              <input id="fieldImgCards" type="file" name="img_cards" accept="image/*"
+                class="w-full text-sm text-slate-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-blue-100 file:text-blue-600">
+              <div id="imgCardsPreviewWrap" class="hidden mt-2">
+                <img id="imgCardsPreview" class="max-w-full rounded-lg object-contain border border-slate-200">
+                <p class="text-xs text-slate-400 mt-1">IMG</p>
               </div>
             </div>
-            {{-- Detail 2 --}}
-            <div class="border border-slate-200 rounded-xl p-3 space-y-2">
-              <p class="text-xs font-semibold text-slate-700">Detail 2 <span class="font-normal text-slate-400">(1600x900 | 16:9, opsional)</span></p>
-              <input id="fieldImgD2" type="file" name="img_detail_2" accept="image/*"
-                class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-primary/10 file:text-primary">
-              <div id="imgD2PreviewWrap" class="hidden mt-1">
-                <img id="imgD2Preview" class="max-w-full rounded-lg object-contain border border-slate-200">
-                <p class="text-xs text-slate-400 mt-0.5">IMG</p>
+
+            {{-- Gambar Detail 1 & 2 (grid 2 col) --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {{-- Detail 1 --}}
+              <div class="border border-slate-200 rounded-xl p-3 space-y-2">
+                <p class="text-xs font-semibold text-slate-700">Detail 1 <span class="font-normal text-slate-400">(1600x900 | 16:9, opsional)</span></p>
+                <input id="fieldImgD1" type="file" name="img_detail_1" accept="image/*"
+                  class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-primary/10 file:text-primary">
+                <div id="imgD1PreviewWrap" class="hidden mt-1">
+                  <img id="imgD1Preview" class="max-w-full rounded-lg object-contain border border-slate-200">
+                  <p class="text-xs text-slate-400 mt-0.5">IMG</p>
+                </div>
+              </div>
+              {{-- Detail 2 --}}
+              <div class="border border-slate-200 rounded-xl p-3 space-y-2">
+                <p class="text-xs font-semibold text-slate-700">Detail 2 <span class="font-normal text-slate-400">(1600x900 | 16:9, opsional)</span></p>
+                <input id="fieldImgD2" type="file" name="img_detail_2" accept="image/*"
+                  class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-primary/10 file:text-primary">
+                <div id="imgD2PreviewWrap" class="hidden mt-1">
+                  <img id="imgD2Preview" class="max-w-full rounded-lg object-contain border border-slate-200">
+                  <p class="text-xs text-slate-400 mt-0.5">IMG</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="flex items-center justify-end gap-2 pt-2">
+          <div class="lg:col-span-2 flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
             <button type="button" id="crudCancel" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition text-sm font-medium">Batal</button>
             <button type="submit" class="px-5 py-2 rounded-xl bg-primary text-white font-medium hover:bg-primary/90 transition text-sm">Simpan</button>
           </div>

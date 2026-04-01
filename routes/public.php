@@ -79,7 +79,7 @@ Route::get('/_fragments/landing/{section}', function (string $section) {
 })->name('landing.fragments');
 
 // ─── Landing sub-pages ────────────────────────────────────────────────
-Route::get('/kontak', fn () => view('frontend.landingpage.sections.contact'))->name('landing.contact');
+Route::get('/kontak', [ContactMessageController::class, 'show'])->name('landing.contact');
 Route::post('/kontak', [ContactMessageController::class, 'store'])->name('landing.contact.store');
 Route::get('/profil-bk', fn () => view('frontend.landingpage.sections.profile_bk'))->name('landing.profile_bk');
 Route::get('/profile-bk/galery', fn () => view('frontend.landingpage.sections.profile_bk'))->name('landing.profile_bk.gallery');

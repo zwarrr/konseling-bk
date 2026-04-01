@@ -12,7 +12,6 @@
     // ── Greeting ─────────────────────────────────────────────
     $hour     = now()->hour;
     $greeting = $hour < 11 ? 'Selamat Pagi'  : ($hour < 15 ? 'Selamat Siang' : ($hour < 18 ? 'Selamat Sore'  : 'Selamat Malam'));
-    $emoji    = '👋';
     $sub      = $hour < 11 ? 'Semangat menjalani hari ini!' : ($hour < 15 ? 'Jangan lupa istirahat ya.' : ($hour < 18 ? 'Sore yang menyenangkan!' : 'Istirahat yang baik malam ini.'));
 
     $defaultCardImage = asset('assets/img/default-slider-noimg.png');
@@ -72,7 +71,7 @@
             <div class="flex-1 min-w-0">
                 <p class="text-blue-200 text-xs font-medium leading-none mb-0.5">{{ $greeting }},</p>
                 <h1 class="text-white font-extrabold leading-tight text-xl md:text-2xl">
-                    {{ $authUser->name ?? 'Pengguna' }}! <span>{{ $emoji }}</span>
+                    {{ $authUser->name ?? 'Pengguna' }}!
                 </h1>
                 <p class="text-blue-200 text-xs mt-0.5">{{ $sub }}</p>
             </div>

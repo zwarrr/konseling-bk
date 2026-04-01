@@ -37,6 +37,23 @@
 
 <div class="px-4 md:px-10 py-6 pb-28">
 
+    {{-- Filter bidang --}}
+    <div class="mb-5">
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            <a href="{{ route($pfx . '.program') }}"
+               class="shrink-0 inline-flex items-center px-4 py-2 rounded-full text-xs font-semibold border transition {{ empty($activeBidang) ? 'bg-blue-700 text-white border-blue-700' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-700' }}">
+                Semua Bidang
+            </a>
+
+            @foreach(($bidangOptions ?? collect()) as $bidang)
+                <a href="{{ route($pfx . '.program', ['bidang' => $bidang]) }}"
+                   class="shrink-0 inline-flex items-center px-4 py-2 rounded-full text-xs font-semibold border transition {{ ($activeBidang ?? '') === $bidang ? 'bg-blue-700 text-white border-blue-700' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-700' }}">
+                    {{ $bidang }}
+                </a>
+            @endforeach
+        </div>
+    </div>
+
     {{-- Grid --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         @forelse($programs as $programItem)
@@ -49,21 +66,14 @@
                          class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                          onerror="this.onerror=null;this.src='{{ $defaultProgramImage }}';">
                     <div class="absolute inset-0 bg-gradient-to-t from-[#0d1b2e]/80 via-transparent to-transparent"></div>
-                    <span class="absolute top-3 left-3 bg-orange-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
-                        {{ $programItem->category }}
-                    </span>
                 </div>
             </a>
 
             {{-- Body --}}
             <div class="flex flex-col flex-1 p-5">
-                <div class="flex items-center gap-2 text-gray-400 text-xs mb-3">
-                    <i class="fa-regular fa-calendar text-[10px]"></i>
+                <div class="flex items-center gap-1.5 text-slate-400 text-[11px] mb-3">
+                    <i class="fa-regular fa-calendar text-[9px]"></i>
                     <span>{{ $programItem->date ? $programItem->date->format('d M Y') : '—' }}</span>
-                    @if($programItem->guru_pembimbing)
-                        <span class="text-gray-200">·</span>
-                        <span class="truncate">{{ $programItem->guru_pembimbing }}</span>
-                    @endif
                 </div>
 
                 <a href="{{ route($pfx . '.program.detail', $programItem->slug) }}" class="flex-1">
@@ -86,7 +96,9 @@
                 <div class="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center">
                     <i class="fa-regular fa-calendar-xmark text-3xl text-blue-300"></i>
                 </div>
-                <p class="text-sm text-slate-400 font-medium">Belum ada program dan kegiatan aktif.</p>
+                <p class="text-sm text-slate-400 font-medium">
+                    {{ !empty($activeBidang) ? 'Belum ada program pada bidang ' . $activeBidang . '.' : 'Belum ada program dan kegiatan aktif.' }}
+                </p>
             </div>
         @endforelse
     </div>

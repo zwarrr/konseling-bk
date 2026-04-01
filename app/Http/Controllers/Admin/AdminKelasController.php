@@ -35,16 +35,17 @@ class AdminKelasController extends Controller
             'kelas.regex' => 'Kelas hanya boleh mengandung angka atau huruf romawi (misalnya XII, X, 10).',
         ]);
 
+        $data['kelas'] = $this->normalizeKelasToRoman($data['kelas']);
+
         // Unique check
-        if (Kelas::where('kelas', strtoupper($data['kelas']))->where('jurusan', $data['jurusan'])->exists()) {
+        if (Kelas::where('kelas', $data['kelas'])->where('jurusan', $data['jurusan'])->exists()) {
             return response()->json(['errors' => ['kelas' => ['Kombinasi kelas dan jurusan sudah ada.']]], 422);
         }
 
-        $data['kelas'] = strtoupper($data['kelas']);
         $mk = Kelas::create($data);
 
-        // Sync bk_account_id on any existing classrooms linked to this kelas
-        $this->syncClassroomBk($mk);
+        // Sync kelas->classroom->bk and related student assignments
+        KelasSync::fromKelas($mk->fresh());
 
         return response()->json(['class' => $mk], 201);
     }
@@ -60,15 +61,16 @@ class AdminKelasController extends Controller
             'kelas.regex' => 'Kelas hanya boleh mengandung angka atau huruf romawi (misalnya XII, X, 10).',
         ]);
 
+        $data['kelas'] = $this->normalizeKelasToRoman($data['kelas']);
+
         // Unique check (exclude self)
-        if (Kelas::where('kelas', strtoupper($data['kelas']))
+        if (Kelas::where('kelas', $data['kelas'])
             ->where('jurusan', $data['jurusan'])
             ->where('id', '!=', $masterKela->id)
             ->exists()) {
             return response()->json(['errors' => ['kelas' => ['Kombinasi kelas dan jurusan sudah ada.']]], 422);
         }
 
-        $data['kelas'] = strtoupper($data['kelas']);
         $masterKela->update($data);
 
         // Cascade bk assignment to classrooms + students
@@ -124,7 +126,11 @@ class AdminKelasController extends Controller
 
         $kelasCol   = $colMap['kelas']          ?? null;
         $jurusanCol = $colMap['jurusan']         ?? null;
-        $jumlahCol  = $colMap['jumlah_siswa_i'] ?? $colMap['jumlah'] ?? null;
+        $jumlahCol  = $colMap['jumlah_siswa_i']
+            ?? $colMap['jumlah siswa/i']
+            ?? $colMap['jumlah siswa i']
+            ?? $colMap['jumlah']
+            ?? null;
         $bkCol      = $colMap['bk']             ?? $colMap['pembimbing'] ?? null;
 
         if (!$kelasCol || !$jurusanCol) {
@@ -137,7 +143,7 @@ class AdminKelasController extends Controller
 
         foreach ($rows as $ri => $row) {
             if ($ri === $headerIdx) continue;
-            $kelas   = strtoupper(trim((string) ($row[$kelasCol]   ?? '')));
+            $kelas   = $this->normalizeKelasToRoman((string) ($row[$kelasCol] ?? ''));
             $jurusan = trim((string) ($row[$jurusanCol] ?? ''));
             if (!$kelas || !$jurusan) continue;
 
@@ -180,6 +186,34 @@ class AdminKelasController extends Controller
         return redirect()->route('admin.kelas.index')
             ->with('success', $msg)
             ->with('flash_notes', $notes);
+    }
+
+    private function normalizeKelasToRoman(string $kelas): string
+    {
+        $k = strtoupper(trim($kelas));
+        return match ($k) {
+            '10' => 'X',
+            '11' => 'XI',
+            '12' => 'XII',
+            default => $k,
+        };
+    }
+
+    public function downloadKelasImportTemplate()
+    {
+        $candidates = ['contoh_import_data_kelas.xlsx', 'contoh_import_data_kelas.csv'];
+        $found = collect($candidates)
+            ->map(fn (string $name) => [
+                'name' => $name,
+                'path' => public_path('templates/import/' . $name),
+            ])
+            ->first(fn (array $f) => is_file($f['path']));
+
+        if (!$found) {
+            abort(404, 'Template tidak ditemukan.');
+        }
+
+        return response()->download($found['path'], $found['name']);
     }
 
     /** API: Return all data kelas as JSON (used by BK dropdown). */

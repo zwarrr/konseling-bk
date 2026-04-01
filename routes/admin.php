@@ -55,11 +55,16 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin'])->group(function () {
 
 		// Import (Excel)
 		Route::post('/akun/import',         [AdminController::class, 'importAccounts'])->name('admin.accounts.import');
+		Route::get('/akun/import-template/{type}', [AdminController::class, 'downloadAccountImportTemplate'])
+			->whereIn('type', ['bk', 'siswa'])
+			->name('admin.accounts.import.template');
 
 		// Data Kelas
 		Route::get('/data-kelas',              [AdminKelasController::class, 'index'])    ->name('admin.kelas.index');
 		Route::post('/data-kelas',             [AdminKelasController::class, 'store'])    ->name('admin.kelas.store');
 		Route::post('/data-kelas/import',      [AdminKelasController::class, 'importKelas'])->name('admin.kelas.import');
+		Route::get('/data-kelas/import-template', [AdminKelasController::class, 'downloadKelasImportTemplate'])
+			->name('admin.kelas.import.template');
 		Route::put('/data-kelas/{masterKela}',    [AdminKelasController::class, 'update'])  ->name('admin.kelas.update');
 		Route::delete('/data-kelas/{masterKela}', [AdminKelasController::class, 'destroy']) ->name('admin.kelas.destroy');
 	});
@@ -137,4 +142,7 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin'])->group(function () {
 	// ─── Data Pesan (Landing Contact Messages) ─────────────────────────
 	Route::get('/data-pesan', [AdminMessageController::class, 'index'])->name('admin.messages.index');
 	Route::post('/data-pesan/{message}/reply', [AdminMessageController::class, 'reply'])->name('admin.messages.reply');
+	Route::post('/data-pesan/topics', [AdminMessageController::class, 'storeTopic'])->name('admin.messages.topics.store');
+	Route::put('/data-pesan/topics/{topic}', [AdminMessageController::class, 'updateTopic'])->name('admin.messages.topics.update');
+	Route::delete('/data-pesan/topics/{topic}', [AdminMessageController::class, 'destroyTopic'])->name('admin.messages.topics.destroy');
 });

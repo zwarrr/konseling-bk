@@ -46,22 +46,14 @@
                class="w-full h-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" decoding="async"
                onerror="this.onerror=null;this.src='{{ $defaultProgramImage }}';">
             <div class="absolute inset-0 bg-gradient-to-t from-[#0d1b2e]/80 via-transparent to-transparent"></div>
-            {{-- Tag badge --}}
-            <span class="absolute top-3 left-3 bg-orange-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
-              {{ $a->category }}
-            </span>
           </div>
 
           {{-- Body --}}
           <div class="flex flex-col flex-1 p-5">
             {{-- Meta --}}
-            <div class="flex items-center gap-2 text-gray-400 text-xs mb-3">
-              <i class="fa-solid fa-calendar-days text-[10px]"></i>
+            <div class="flex items-center gap-1.5 text-slate-400 text-[11px] mb-3">
+              <i class="fa-solid fa-calendar-days text-[9px]"></i>
               <span>{{ $a->date->translatedFormat('d F Y') }}</span>
-              @if($a->guru_pembimbing)
-              <span class="text-gray-200">·</span>
-              <span class="truncate">{{ $a->guru_pembimbing }}</span>
-              @endif
             </div>
 
             {{-- Title --}}

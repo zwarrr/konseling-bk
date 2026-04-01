@@ -8,6 +8,7 @@ use App\Models\Chat;
 use App\Models\Classroom;
 use App\Models\GroupMessage;
 use App\Models\GroupReadReceipt;
+use App\Models\ProgramBooking;
 use App\Models\SiswaAccount;
 use App\Models\UserHiddenRoom;
 use Illuminate\Http\JsonResponse;
@@ -73,6 +74,79 @@ class UserChatController extends Controller
             ?? '?';
     }
 
+    /**
+     * Fallback: create due chat-start messages if scheduler is delayed.
+     * Guarded by atomic update on chat_confirmed_at to avoid duplicates.
+     */
+    private function dispatchDueChatStartMessages(?int $bkId = null, ?int $siswaId = null): int
+    {
+        $now = now();
+
+        $query = ProgramBooking::with(['program', 'user', 'respondedBy'])
+            ->where('state', 'approved')
+            ->where('booking_type', 'individu')
+            ->where('method', 'chat')
+            ->whereNotNull('responded_by')
+            ->whereNull('chat_confirmed_at')
+            ->where('scheduled_at', '<=', $now)
+            ->where('scheduled_at', '>=', $now->copy()->subHours(12));
+
+        if ($bkId) {
+            $query->where('responded_by', $bkId);
+        }
+        if ($siswaId) {
+            $query->where('user_id', $siswaId);
+        }
+
+        $bookings = $query->orderBy('scheduled_at')->limit(20)->get();
+        if ($bookings->isEmpty()) {
+            return 0;
+        }
+
+        $sent = 0;
+        foreach ($bookings as $booking) {
+            $updated = ProgramBooking::whereKey($booking->id)
+                ->whereNull('chat_confirmed_at')
+                ->update(['chat_confirmed_at' => $now]);
+
+            if ($updated !== 1) {
+                continue;
+            }
+
+            $siswa = $booking->user;
+            $bk = $booking->respondedBy;
+            if (!$siswa || !$bk) {
+                continue;
+            }
+
+            $roomId = $this->buildRoomId($siswa, $bk);
+            $programTitle = $booking->program?->title ?? 'Program dan Kegiatan';
+            $bidang = $booking->program?->category ?: '-';
+            $schedStr = optional($booking->scheduled_at)->format('d M Y, H:i') ?? '';
+
+            $msg = 'Halo ' . ($siswa->name ?? 'Siswa') . ', jadwal e-konseling via chat untuk program "' . $programTitle . '" sudah dimulai.';
+            $msg .= ' Bidang: ' . $bidang . '.';
+            if ($schedStr) {
+                $msg .= ' Jadwal: ' . $schedStr . '.';
+            }
+            $msg .= ' Mohon konfirmasi, apakah kamu siap?';
+
+            Chat::create([
+                'room_id' => $roomId,
+                'siswa_account_id' => $siswa->account_id,
+                'guru_account_id' => $bk->account_id,
+                'sender_account_id' => $bk->account_id,
+                'sender_role' => 'guru',
+                'message' => $msg,
+                'message_type' => 'text',
+            ]);
+
+            $sent++;
+        }
+
+        return $sent;
+    }
+
     // ── Actions ──────────────────────────────────────────────────────────────
 
     /**
@@ -83,6 +157,10 @@ class UserChatController extends Controller
         $authUser = auth()->user();
         $role     = $authUser->role ?? 'user';
         $pfx      = $role === 'guru' ? 'bk' : 'siswa';
+
+        if ($role === 'guru') {
+            $this->dispatchDueChatStartMessages((int) $authUser->id, null);
+        }
 
         $filter = request()->query('filter');
 
@@ -225,6 +303,8 @@ class UserChatController extends Controller
     {
         $authUser = auth()->user();
         abort_unless(($authUser->role ?? 'siswa') !== 'guru', 403);
+
+        $this->dispatchDueChatStartMessages(null, (int) $authUser->id);
 
         $filter = request()->query('filter');
 
@@ -582,6 +662,12 @@ class UserChatController extends Controller
         $authUser = auth()->user();
         $role     = $authUser->role ?? 'user';
         $filter   = $request->query('filter');
+
+        if ($role === 'guru') {
+            $this->dispatchDueChatStartMessages((int) $authUser->id, null);
+        } else {
+            $this->dispatchDueChatStartMessages(null, (int) $authUser->id);
+        }
 
         if ($role === 'guru') {
             $roomRows = Chat::where('guru_account_id', $authUser->account_id)

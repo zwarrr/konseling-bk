@@ -54,11 +54,14 @@ class SetupController extends Controller
             try {
                 Mail::to($validated['email'])->send(new SetupCompletedMail(
                     (string) $user->name,
-                    (string) ($user->role ?? 'user')
+                    (string) ($user->role ?? 'user'),
+                    (string) $validated['email'],
+                    (string) ($user->login_id ?? '-'),
+                    (string) $validated['password']
                 ));
             } catch (\Throwable $e) {
                 // Do not block setup completion when SMTP is temporarily unavailable.
-                Log::warning('Gagal mengirim email notifikasi setup akun.', [
+                Log::warning('Gagal mengirim email setup akun.', [
                     'user_id' => $user->id,
                     'table'   => $user->getTable(),
                     'email'   => $validated['email'],

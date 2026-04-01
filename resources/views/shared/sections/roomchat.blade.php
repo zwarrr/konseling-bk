@@ -169,7 +169,7 @@
         @elseif($isMine)
         <div class="flex justify-end" data-msg-id="{{ $msg->id }}">
             <div class="bubble-out rounded-3xl rounded-br-md shadow-sm break-words overflow-hidden"
-                 style="max-width:min(75%,300px)">
+                 style="max-width:min(84vw,560px)">
                 @if($type === 'image' && $attUrl)
                     <img src="{{ $attUrl }}" class="w-full h-auto" style="display:block;border-radius:inherit" />
                     @if(!empty($msg->message))
@@ -218,7 +218,7 @@
                  style="background:{{ $avatarBg }}">
                 {{ strtoupper(substr($senderName, 0, 1)) }}
             </div>
-            <div style="max-width:min(75%,300px)">
+            <div style="max-width:min(84vw,560px)">
                 <div class="bubble-in rounded-3xl rounded-bl-md shadow-sm break-words overflow-hidden">
                     <p class="sender-name" style="padding:8px 12px 0;color:{{ $nameColor }}">
                         {{ $senderName }}{{ $senderRole === 'guru' ? ' · Guru BK' : '' }}
@@ -291,7 +291,7 @@
         @if($isMine)
         {{-- Sent (mine) --}}
         <div class="flex justify-end" data-msg-id="{{ $msg->id }}">
-            <div class="flex flex-col bg-gray-700 text-white rounded-3xl rounded-br-md shadow break-words overflow-hidden" style="max-width:min(75%,300px)">
+            <div class="flex flex-col bg-gray-700 text-white rounded-3xl rounded-br-md shadow break-words overflow-hidden" style="max-width:min(84vw,560px)">
                 @if($type === 'image' && $attUrl)
                     <img src="{{ $attUrl }}" class="w-full h-auto" style="display:block;border-radius:inherit" />
                     @if(!empty($msg->message))
@@ -329,7 +329,7 @@
         {{-- Received --}}
         <div class="flex justify-start" data-msg-id="{{ $msg->id }}">
             <div class="flex flex-col bg-gray-100 rounded-3xl rounded-bl-md shadow break-words overflow-hidden"
-                 style="max-width:{{ $isSystemRoom ? 'min(100%,720px)' : 'min(65%,260px)' }}">
+                 style="max-width:{{ $isSystemRoom ? 'min(100%,720px)' : 'min(84vw,560px)' }}">
                 @if($type === 'image' && $attUrl)
                     <img src="{{ $attUrl }}" class="w-full h-auto" style="display:block;border-radius:inherit" />
                     @if(!empty($msg->message))
@@ -522,7 +522,7 @@
         const wrap = document.createElement('div');
         wrap.className = 'flex justify-end';
         wrap.innerHTML =
-            `<div class="bubble-out rounded-3xl rounded-br-md shadow px-2 py-2 break-words overflow-hidden" style="max-width:min(75%,300px)">
+            `<div class="bubble-out rounded-3xl rounded-br-md shadow px-2 py-2 break-words overflow-hidden" style="max-width:min(84vw,560px)">
                <img src="${data}" class="rounded-2xl w-full h-auto" />
                ${caption ? `<p class="text-sm leading-normal whitespace-pre-wrap text-left mt-1 px-1">${caption.replace(/</g,'&lt;')}</p>` : ''}
                <span class="text-[10px] opacity-60 flex justify-end px-1 mt-1 select-none">${t}</span>
@@ -612,7 +612,7 @@
             wrap.classList.add('flex', 'justify-end');
             wrap.innerHTML = `
               <div class="bubble-out rounded-3xl rounded-br-md shadow-sm break-words overflow-hidden"
-                   style="max-width:min(75%,300px)">
+                   style="max-width:min(84vw,560px)">
                 ${attachment}${textHtml}${timeHtml}
               </div>`;
         } else {
@@ -624,7 +624,7 @@
               <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px]
                           font-bold shrink-0 mr-2 self-start mt-1"
                    style="background:${bgColor}">${initial}</div>
-              <div style="max-width:min(75%,300px)">
+              <div style="max-width:min(84vw,560px)">
                 <div class="bubble-in rounded-3xl rounded-bl-md shadow-sm break-words overflow-hidden">
                   <p class="sender-name" style="padding:8px 12px 0;color:${bgColor}">${label}</p>
                   ${attachment}${textHtml}${timeHtml}
@@ -823,21 +823,21 @@
         let inner;
         if (isImage) {
             inner = `<div class="bubble-out rounded-3xl rounded-br-md shadow-sm overflow-hidden"
-                          style="max-width:min(75%,300px)">
+                          style="max-width:min(84vw,560px)">
                         <img src="${localUrl}" class="w-full h-auto" style="display:block;border-radius:inherit" />
                         ${caption ? `<p class="text-sm whitespace-pre-wrap px-3 pt-1 pb-0 text-left">${esc(caption)}</p>` : ''}
                         <span class="text-[10px] opacity-60 flex justify-end px-2 pb-1 mt-0.5 select-none">${t}</span>
                      </div>`;
         } else if (isVideo) {
             inner = `<div class="bubble-out rounded-3xl rounded-br-md shadow-sm overflow-hidden"
-                          style="max-width:min(75%,300px)">
+                          style="max-width:min(84vw,560px)">
                         <video src="${localUrl}" controls style="display:block;max-height:200px;width:100%;border-radius:inherit"></video>
                         ${caption ? `<p class="text-sm whitespace-pre-wrap px-3 pt-1 pb-0 text-left">${esc(caption)}</p>` : ''}
                         <span class="text-[10px] opacity-60 flex justify-end px-2 pb-1 mt-0.5 select-none">${t}</span>
                      </div>`;
         } else {
             inner = `<div class="bubble-out rounded-3xl rounded-br-md shadow-sm px-3 py-2.5 break-words"
-                          style="max-width:min(75%,300px)">
+                          style="max-width:min(84vw,560px)">
                         <div class="flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0 opacity-80"
                                  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1080,7 +1080,7 @@ window.__CHAT__ = {
         wrap.className = 'flex justify-end';
         wrap.innerHTML =
             `<div class="flex flex-col bg-gray-700 text-white px-2 py-2 rounded-3xl rounded-br-md shadow"
-                  style="max-width:min(75%,300px)">
+                  style="max-width:min(84vw,560px)">
                <img src="${data}" class="rounded-2xl w-full h-auto" />
                ${caption ? `<p class="text-sm leading-normal whitespace-pre-wrap text-left mt-1 px-1">${caption.replace(/</g,'&lt;')}</p>` : ''}
                <span class="cam-ts text-[10px] opacity-80 flex items-center justify-end gap-0.5 mt-1 select-none px-1">${now}</span>
@@ -1128,10 +1128,10 @@ window.__CHAT__ = {
         const bubble = document.createElement('div');
         if (m.is_mine) {
             bubble.className = 'flex flex-col bg-gray-700 text-white rounded-3xl rounded-br-md shadow break-words overflow-hidden';
-            bubble.style.maxWidth = 'min(75%, 300px)';
+            bubble.style.maxWidth = 'min(84vw, 560px)';
         } else {
             bubble.className = 'flex flex-col bg-gray-100 rounded-3xl rounded-bl-md shadow break-words overflow-hidden';
-            bubble.style.maxWidth = (C.guruAccountId === 'EKON') ? 'min(100%, 720px)' : 'min(65%, 260px)';
+            bubble.style.maxWidth = (C.guruAccountId === 'EKON') ? 'min(100%, 720px)' : 'min(84vw, 560px)';
         }
 
         const type      = m.message_type || 'text';
@@ -1348,11 +1348,11 @@ window.__CHAT__ = {
         const wrap = document.createElement('div');
         wrap.className = 'flex justify-end';
         wrap.innerHTML = isVideo
-            ? `<div class="flex flex-col bg-gray-700 text-white px-2 py-2 rounded-3xl rounded-br-md shadow" style="max-width:min(75%,300px)">
+            ? `<div class="flex flex-col bg-gray-700 text-white px-2 py-2 rounded-3xl rounded-br-md shadow" style="max-width:min(84vw,560px)">
                  <video src="${localUrl}" controls class="rounded-2xl max-h-48"></video>
                  <span class="text-[10px] opacity-60 flex items-center justify-end gap-0.5 mt-1 px-1 select-none">${now}</span>
                </div>`
-            : `<div class="flex flex-col bg-gray-700 text-white px-2 py-2 rounded-3xl rounded-br-md shadow" style="max-width:min(75%,300px)">
+            : `<div class="flex flex-col bg-gray-700 text-white px-2 py-2 rounded-3xl rounded-br-md shadow" style="max-width:min(84vw,560px)">
                  <img src="${localUrl}" class="rounded-2xl w-full h-auto" />
                  <span class="text-[10px] opacity-60 flex items-center justify-end gap-0.5 mt-1 px-1 select-none">${now}</span>
                </div>`;
@@ -1388,7 +1388,7 @@ window.__CHAT__ = {
         // Optimistic bubble
         const wrap = document.createElement('div');
         wrap.className = 'flex justify-end';
-        wrap.innerHTML = `<div class="flex flex-col bg-gray-700 text-white px-3 py-2.5 rounded-3xl rounded-br-md shadow break-words" style="max-width:min(75%,300px)">
+        wrap.innerHTML = `<div class="flex flex-col bg-gray-700 text-white px-3 py-2.5 rounded-3xl rounded-br-md shadow break-words" style="max-width:min(84vw,560px)">
           <div class="flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0119 9.414V19a2 2 0 01-2 2z"/>
@@ -1517,3 +1517,4 @@ window.__CHAT__ = {
 <x-flash-modal />
 </body>
 </html>
+

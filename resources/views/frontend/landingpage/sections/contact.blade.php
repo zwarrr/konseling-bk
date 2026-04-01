@@ -130,17 +130,19 @@
             <label class="text-xs font-semibold text-gray-600 mb-1 block">Topik</label>
             <select name="topic" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-gray-600">
               <option value="">-- Pilih Topik --</option>
-              <option value="Konseling Individual" {{ old('topic') === 'Konseling Individual' ? 'selected' : '' }}>Konseling Individual</option>
-              <option value="Bimbingan Karier" {{ old('topic') === 'Bimbingan Karier' ? 'selected' : '' }}>Bimbingan Karier</option>
-              <option value="Masalah Belajar" {{ old('topic') === 'Masalah Belajar' ? 'selected' : '' }}>Masalah Belajar</option>
-              <option value="Kesehatan Mental" {{ old('topic') === 'Kesehatan Mental' ? 'selected' : '' }}>Kesehatan Mental</option>
-              <option value="Lainnya" {{ old('topic') === 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
+              @foreach(($topicOptions ?? []) as $topic)
+                <option value="{{ $topic }}" {{ old('topic') === $topic ? 'selected' : '' }}>{{ $topic }}</option>
+              @endforeach
             </select>
+            @error('topic')
+              <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+            @enderror
           </div>
           <div>
             <label class="text-xs font-semibold text-gray-600 mb-1 block">Pesan</label>
-            <textarea name="message" rows="5" placeholder="Ceritakan kebutuhanmu di sini..." required
+            <textarea id="contact-message" name="message" rows="5" placeholder="Ceritakan kebutuhanmu di sini..." required maxlength="1000"
               class="w-full border {{ $errors->has('message') ? 'border-red-300' : 'border-gray-200' }} rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none">{{ old('message') }}</textarea>
+            <div class="mt-1 text-right text-[11px] text-slate-400"><span id="contact-message-counter">{{ mb_strlen((string) old('message')) }}</span>/1000</div>
             @error('message')
               <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
             @enderror
@@ -170,6 +172,15 @@
       const btn = document.getElementById('contact-btn');
       const icon = btn?.querySelector('[data-icon]');
       const label = btn?.querySelector('[data-label]');
+      const messageInput = document.getElementById('contact-message');
+      const counter = document.getElementById('contact-message-counter');
+
+      const syncCounter = () => {
+        if (!messageInput || !counter) return;
+        counter.textContent = String((messageInput.value || '').length);
+      };
+      messageInput?.addEventListener('input', syncCounter);
+      syncCounter();
 
       form?.addEventListener('submit', function () {
         if (!btn || !icon || !label) return;

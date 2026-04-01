@@ -8,9 +8,26 @@ use App\Models\SiswaAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Eloquent\Model;
 
 class AuthController extends Controller
 {
+    /**
+     * Try to find a user by role ID fields (login_id/account_id), then optional email.
+     */
+    private function findByIdentifier(string $modelClass, string $identifier, bool $allowEmail = true): ?Model
+    {
+        $q = $modelClass::query()
+            ->where('login_id', $identifier)
+            ->orWhere('account_id', $identifier);
+
+        if ($allowEmail && filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+            $q->orWhere('email', $identifier);
+        }
+
+        return $q->first();
+    }
+
     public function showLogin(Request $request)
     {
         if (Auth::guard('admin')->check()) {
@@ -33,10 +50,11 @@ class AuthController extends Controller
             'password' => ['required', 'min:6', 'max:18'],
         ]);
 
-        $id = $validated['id'];
+        $identifier = trim((string) $validated['id']);
 
         // ── Cek admin dulu ────────────────────────────────────────────────
-        $admin = AdminAccount::where('login_id', $id)->first();
+        // Admin table does not have email, so admin uses login_id/account_id.
+        $admin = $this->findByIdentifier(AdminAccount::class, $identifier, false);
         if ($admin && Hash::check($validated['password'], $admin->password)) {
             // Ensure we never keep BK/Siswa sessions alongside admin in the same browser session.
             Auth::guard('bk')->logout();
@@ -47,23 +65,35 @@ class AuthController extends Controller
         }
 
         // ── BK / Siswa login ──────────────────────────────────────────────
-        // 18 digit angka = NIP (BK), selainnya = NIS (Siswa)
-        $idLength = strlen(preg_replace('/\D/', '', $id));
+        $isEmail = filter_var($identifier, FILTER_VALIDATE_EMAIL) !== false;
+        $isNumericId = preg_match('/^\d+$/', $identifier) === 1;
 
-        if ($idLength === 18) {
-            $user  = BkAccount::where('login_id', $id)->first();
-            $guard = 'bk';
+        $candidates = [];
+        if ($isEmail) {
+            $candidates[] = ['guard' => 'bk', 'user' => $this->findByIdentifier(BkAccount::class, $identifier, true)];
+            $candidates[] = ['guard' => 'siswa', 'user' => $this->findByIdentifier(SiswaAccount::class, $identifier, true)];
+        } elseif ($isNumericId && strlen($identifier) === 18) {
+            // Keep previous behavior for NIP-like IDs: prioritize BK.
+            $candidates[] = ['guard' => 'bk', 'user' => $this->findByIdentifier(BkAccount::class, $identifier, false)];
+            $candidates[] = ['guard' => 'siswa', 'user' => $this->findByIdentifier(SiswaAccount::class, $identifier, false)];
         } else {
-            $user = SiswaAccount::where('login_id', $id)->first();
-            if (!$user) {
-                $user  = BkAccount::where('login_id', $id)->first();
-                $guard = 'bk';
-            } else {
-                $guard = 'siswa';
+            // Default role-ID flow: siswa first, fallback to BK.
+            $candidates[] = ['guard' => 'siswa', 'user' => $this->findByIdentifier(SiswaAccount::class, $identifier, false)];
+            $candidates[] = ['guard' => 'bk', 'user' => $this->findByIdentifier(BkAccount::class, $identifier, false)];
+        }
+
+        $user = null;
+        $guard = null;
+        foreach ($candidates as $candidate) {
+            $candidateUser = $candidate['user'] ?? null;
+            if ($candidateUser && Hash::check($validated['password'], $candidateUser->password)) {
+                $user = $candidateUser;
+                $guard = $candidate['guard'];
+                break;
             }
         }
 
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
+        if (!$user || !$guard) {
             return back()->withErrors(['id' => 'ID / password tidak valid.'])->withInput();
         }
 

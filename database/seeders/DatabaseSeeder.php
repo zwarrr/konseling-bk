@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             ProgramSectionSeeder::class,
             ProgramBidangSeeder::class,
             ProgramSeeder::class,
+            ContactMessageTopicSeeder::class,
             BkNewsSeeder::class,
             TeamMemberSeeder::class,
             ProfileBkSectionSeeder::class,

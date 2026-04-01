@@ -14,7 +14,7 @@ class BkNewsController extends Controller
     public function index()
     {
         return view('admin.sections.bknews', [
-            'items' => BkNews::latest()->get(),
+            'items' => BkNews::latest()->paginate(10),
         ]);
     }
 

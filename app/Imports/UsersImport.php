@@ -6,6 +6,7 @@ use App\Models\BkAccount;
 use App\Models\Classroom;
 use App\Models\Kelas;
 use App\Models\SiswaAccount;
+use App\Services\KelasSync;
 use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -14,7 +15,6 @@ class UsersImport
     private string $importType; // 'bk' | 'siswa'
     private array  $importErrors    = [];
     private array  $importedRecords = [];
-    private array  $touchedClassIds = [];
     private int    $imported = 0;
     private int    $skipped  = 0;
 
@@ -93,10 +93,10 @@ class UsersImport
 
         $isBk     = $this->importType === 'bk';
         $nameCol  = $findCol($colMap, ['name', 'nama', 'nama lengkap']);
-        $emailCol = $findCol($colMap, ['email', 'alamat email', 'e mail']);
+        $emailCol = $findCol($colMap, ['email', 'alamat email', 'email address', 'e mail']);
         $idCol    = $isBk
-            ? $findCol($colMap, ['nip', 'nip bk'])
-            : $findCol($colMap, ['nis', 'nis siswa']);
+            ? $findCol($colMap, ['nip', 'nip bk', 'nis', 'id'])
+            : $findCol($colMap, ['nis', 'nis siswa', 'nip', 'id']);
 
         if (!$nameCol) {
             $this->importErrors[] = ['reason' => 'Kolom "name" / "nama" tidak ditemukan di header.'];
@@ -107,8 +107,8 @@ class UsersImport
             return $this->result();
         }
 
-        $kelasCol   = !$isBk ? $findCol($colMap, ['kelas']) : null;
-        $jurusanCol = !$isBk ? $findCol($colMap, ['jurusan']) : null;
+        $kelasCol   = $findCol($colMap, ['kelas']);
+        $jurusanCol = $findCol($colMap, ['jurusan']);
         $genderCol  = !$isBk
             ? $findCol($colMap, ['jenis kelamin', 'jk', 'gender', 'p/l', 'pl'])
             : null;
@@ -136,6 +136,9 @@ class UsersImport
                 $rawId = rtrim(number_format((float) $rawIdVal, 0, '.', ''), '.');
             } else {
                 $rawId = ltrim(trim((string) $rawIdVal), "'");
+                if (preg_match('/^[0-9]+(?:\.[0-9]+)?e\+[0-9]+$/i', $rawId)) {
+                    $rawId = rtrim(number_format((float) $rawId, 0, '.', ''), '.');
+                }
             }
             $email      = $emailCol   ? trim((string) ($row[$emailCol]   ?? '')) : '';
             $kelasVal   = $kelasCol   ? trim((string) ($row[$kelasCol]   ?? '')) : '';
@@ -172,7 +175,19 @@ class UsersImport
                 continue;
             }
 
-            if ($model::where('login_id', $loginId)->exists()) {
+            $existing = $model::where('login_id', $loginId)->first();
+            if ($existing) {
+                if ($isBk && $existing instanceof BkAccount && $kelasVal) {
+                    $this->syncBkAssignments($existing, $kelasVal, $jurusanVal);
+                    $this->importedRecords[] = [
+                        'name' => $existing->name ?: $name,
+                        'id_label' => $idLabel,
+                        'id' => $loginId,
+                    ];
+                    $this->imported++;
+                    continue;
+                }
+
                 $this->importErrors[] = ['name' => $name, 'id_label' => $idLabel, 'id' => $loginId, 'reason' => 'sudah terdaftar.'];
                 $this->skipped++;
                 continue;
@@ -215,7 +230,7 @@ class UsersImport
             $resolvedClassId = $resolvedClass['_class_id'] ?? null;
             unset($resolvedClass['_class_id']);
 
-            $model::create([
+            $created = $model::create([
                 'name'                 => $name,
                 'email'                => $cleanEmail,
                 'login_id'             => $loginId,
@@ -225,15 +240,13 @@ class UsersImport
                 ...$resolvedClass,
             ]);
 
-            if ($resolvedClassId) {
-                $this->touchedClassIds[(int) $resolvedClassId] = true;
+            if ($isBk && $created instanceof BkAccount && $kelasVal) {
+                $this->syncBkAssignments($created, $kelasVal, $jurusanVal);
             }
 
             $this->importedRecords[] = ['name' => $name, 'id_label' => $idLabel, 'id' => $loginId];
             $this->imported++;
         }
-
-        $this->syncClassTotals();
 
         return $this->result();
     }
@@ -243,17 +256,14 @@ class UsersImport
         if ($isBk || !$kelas) return [];
 
         [$kelasNormalized, $jurusanFromKelas] = $this->splitKelasDanJurusan($kelas);
-        $jurusanNormalized = strtoupper(trim($jurusan));
+        $jurusanNormalized = $this->normalizeJurusan($jurusan);
         if (!$jurusanNormalized) {
-            $jurusanNormalized = $jurusanFromKelas;
+            $jurusanNormalized = $this->normalizeJurusan($jurusanFromKelas);
         }
 
         if (!$kelasNormalized || !$jurusanNormalized) return [];
 
-        $kelasRecord = Kelas::firstOrCreate(
-            ['kelas' => $kelasNormalized, 'jurusan' => $jurusanNormalized],
-            ['jumlah_siswa_i' => 0]
-        );
+        $kelasRecord = $this->findOrCreateKelasRecord($kelasNormalized, $jurusanNormalized);
 
         $bkAccountId = null;
         if ($kelasRecord->bk_id) {
@@ -279,6 +289,111 @@ class UsersImport
         ];
     }
 
+    private function syncBkAssignments(BkAccount $bk, string $kelasValue, string $jurusanValue): void
+    {
+        $chunks = preg_split('/[,;]+/', $kelasValue) ?: [];
+        foreach ($chunks as $chunk) {
+            $raw = trim($chunk);
+            if ($raw === '') continue;
+
+            [$kelasNormalized, $jurusanFromKelas] = $this->splitKelasDanJurusan($raw);
+            $jurusanNormalized = $this->normalizeJurusan($jurusanValue ?: $jurusanFromKelas);
+            if (!$kelasNormalized || !$jurusanNormalized) {
+                continue;
+            }
+
+            $kelasRecord = $this->findOrCreateKelasRecord($kelasNormalized, $jurusanNormalized);
+            if (!$kelasRecord->bk_id || (int) $kelasRecord->bk_id !== (int) $bk->id) {
+                $kelasRecord->update(['bk_id' => $bk->id]);
+            }
+
+            KelasSync::fromKelas($kelasRecord->fresh());
+        }
+    }
+
+    private function findOrCreateKelasRecord(string $kelas, string $jurusan): Kelas
+    {
+        $canonicalKelas = $this->toRomanKelas($kelas);
+        $kelasCandidates = collect([$canonicalKelas, $this->toNumericKelas($canonicalKelas)])
+            ->filter()
+            ->unique()
+            ->values();
+
+        $matches = Kelas::query()
+            ->whereIn('kelas', $kelasCandidates->all())
+            ->where('jurusan', $jurusan)
+            ->orderBy('id')
+            ->get();
+
+        if ($matches->isNotEmpty()) {
+            $primary = $matches->firstWhere('kelas', $canonicalKelas) ?? $matches->first();
+            $secondary = $matches->where('id', '!=', $primary->id);
+
+            if ($primary->kelas !== $canonicalKelas) {
+                $primary->kelas = $canonicalKelas;
+            }
+
+            foreach ($secondary as $dup) {
+                Classroom::where('class_id', $dup->id)->update(['class_id' => $primary->id]);
+
+                if (!$primary->bk_id && $dup->bk_id) {
+                    $primary->bk_id = $dup->bk_id;
+                }
+                if ($primary->jumlah_siswa_i === null && $dup->jumlah_siswa_i !== null) {
+                    $primary->jumlah_siswa_i = $dup->jumlah_siswa_i;
+                }
+
+                $dup->delete();
+            }
+
+            if ($primary->isDirty()) {
+                $primary->save();
+            }
+
+            return $primary->fresh();
+        }
+
+        return Kelas::create([
+            'kelas' => $canonicalKelas,
+            'jurusan' => $jurusan,
+            'jumlah_siswa_i' => null,
+        ]);
+    }
+
+    private function normalizeJurusan(string $value): string
+    {
+        $jurusan = strtoupper(trim(preg_replace('/\s+/', '', $value)));
+        if ($jurusan === '') return '';
+
+        if (preg_match('/^([A-Z\/-]+)\d+$/', $jurusan, $m)) {
+            return $m[1];
+        }
+
+        return $jurusan;
+    }
+
+    private function toNumericKelas(string $kelas): string
+    {
+        $k = strtoupper(trim($kelas));
+        return match ($k) {
+            'X' => '10',
+            'XI' => '11',
+            'XII' => '12',
+            default => $k,
+        };
+    }
+
+    private function toRomanKelas(string $kelas): string
+    {
+        $k = strtoupper(trim($kelas));
+        return match ($k) {
+            '10' => 'X',
+            '11' => 'XI',
+            '12' => 'XII',
+            default => $k,
+        };
+    }
+
     private function normalizeJenisKelamin(string $value): ?string
     {
         $v = strtolower(trim($value));
@@ -296,12 +411,20 @@ class UsersImport
 
     private function splitKelasDanJurusan(string $kelasRaw): array
     {
-        $value = strtoupper(preg_replace('/\s+/', '', trim($kelasRaw)));
-        if ($value === '') return ['', ''];
+        $clean = strtoupper(trim(preg_replace('/\s+/', ' ', $kelasRaw)));
+        if ($clean === '') return ['', ''];
+
+        if (preg_match('/^(10|11|12|X|XI|XII)\s+([A-Z][A-Z0-9\/-]*)(?:\s*\d+)?$/', $clean, $m)) {
+            $kelas = $this->toRomanKelas($m[1]);
+            $jurusan = $this->normalizeJurusan($m[2]);
+            return [$kelas, $jurusan];
+        }
+
+        $value = strtoupper(preg_replace('/\s+/', '', $clean));
 
         // Preferred import format: one column like 10PPLG / 11AKL / 12RPL1.
         if (preg_match('/^(10|11|12)([A-Z][A-Z0-9\/-]*)$/', $value, $m)) {
-            return [$m[1], strtoupper($m[2])];
+            return [$this->toRomanKelas($m[1]), $this->normalizeJurusan($m[2])];
         }
 
         // Backward compatibility for roman numerals (X/XI/XII) in legacy sheets.
@@ -312,23 +435,10 @@ class UsersImport
                 'XII' => '12',
                 default => '',
             };
-            return [$kelas, strtoupper($m[2])];
+            return [$this->toRomanKelas($kelas), $this->normalizeJurusan($m[2])];
         }
 
         return [strtoupper($value), ''];
-    }
-
-    private function syncClassTotals(): void
-    {
-        if (empty($this->touchedClassIds)) return;
-
-        foreach (array_keys($this->touchedClassIds) as $classId) {
-            $count = SiswaAccount::whereHas('classroom', function ($q) use ($classId) {
-                $q->where('class_id', $classId);
-            })->count();
-
-            Kelas::whereKey($classId)->update(['jumlah_siswa_i' => $count]);
-        }
     }
 
     private function result(): array

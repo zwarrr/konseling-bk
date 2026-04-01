@@ -15,6 +15,9 @@ class SetupCompletedMail extends Mailable
     public function __construct(
         public string $name,
         public string $role,
+        public string $email,
+        public string $loginId,
+        public string $plainPassword,
     ) {
     }
 
@@ -22,7 +25,7 @@ class SetupCompletedMail extends Mailable
     {
         return new Envelope(
             from: new \Illuminate\Mail\Mailables\Address('bksmknciamis@gmail.com', 'BK SMKN 1 Ciamis'),
-            subject: 'Notifikasi Setup Akun Berhasil',
+            subject: 'Setup Akun Berhasil',
         );
     }
 
@@ -33,6 +36,9 @@ class SetupCompletedMail extends Mailable
             with: [
                 'name' => $this->name,
                 'roleLabel' => $this->roleLabel(),
+                'email' => $this->email,
+                'loginId' => $this->loginId,
+                'plainPassword' => $this->plainPassword,
             ]
         );
     }

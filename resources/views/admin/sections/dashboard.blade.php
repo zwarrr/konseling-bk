@@ -45,7 +45,7 @@
         {{-- Greeting Banner --}}
         <div class="bg-gradient-to-r from-blue-600 to-blue-500 rounded-2xl px-6 py-5 mb-7 flex items-center justify-between shadow-sm">
           <div>
-            <h2 class="text-white text-xl font-bold"><span id="greetingText">Selamat Pagi,</span> {{ auth('admin')->user()->name ?? 'Admin' }} 👋</h2>
+            <h2 class="text-white text-xl font-bold"><span id="greetingText">Selamat Pagi,</span> {{ auth('admin')->user()->name ?? 'Admin' }}</h2>
             <p class="text-blue-200 text-xs mt-1">Berikut ringkasan aktivitas konseling hari ini.</p>
           </div>
           <div class="hidden sm:flex w-16 h-16 rounded-2xl bg-white/10 items-center justify-center">

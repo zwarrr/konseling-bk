@@ -108,11 +108,18 @@
             </div>
             <div class="bg-slate-50 rounded-xl p-4 text-xs text-slate-500 space-y-1">
                 <p class="font-semibold text-slate-600 mb-1"><i class="fa-solid fa-circle-info mr-1 text-blue-500"></i> Format kolom:</p>
-                <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">kelas</span> — Angka / romawi, mis. XII (wajib)</div>
-                <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">jurusan</span> — Mis. RPL, TKJ (wajib)</div>
-                <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">jumlah_siswa_i</span> — Angka (opsional)</div>
-                <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">bk</span> — Nama BK pembimbing (opsional)</div>
+                <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">No</span> — Opsional</div>
+                <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">Kelas</span> — Angka / romawi, mis. XII (wajib)</div>
+                <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">Jurusan</span> — Mis. AKL, MPLB, PPLG (wajib)</div>
+                <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">Jumlah Siswa/i</span> — Angka (opsional)</div>
                 <p class="text-slate-400 mt-1">Jika kelas+jurusan sudah ada, datanya akan diperbarui.</p>
+                <div class="pt-2">
+                    <a href="{{ route('admin.kelas.import.template') }}"
+                       class="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-semibold">
+                        <i class="fa-solid fa-download text-[11px]"></i>
+                        Download Contoh Data Kelas
+                    </a>
+                </div>
             </div>
             <div class="flex items-center justify-end gap-2">
                 <button type="button" onclick="document.getElementById('importKelasModal').classList.add('hidden')"

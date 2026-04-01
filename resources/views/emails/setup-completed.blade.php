@@ -22,11 +22,35 @@
               <p style="margin:0 0 10px;font-size:14px;line-height:1.7;">
                 Akun {{ $roleLabel }} kamu sudah berhasil disiapkan.
               </p>
-              <p style="margin:0 0 10px;font-size:14px;line-height:1.7;">
-                Mulai sekarang, notifikasi email dari sistem akan dikirim ke alamat ini.
-              </p>
+
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:14px 0;background:#f8fbff;border:1px solid #dce9fb;border-radius:10px;">
+                <tr>
+                  <td style="padding:12px 14px 4px 14px;font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.3px;font-weight:700;">Informasi Akun</td>
+                </tr>
+                <tr>
+                  <td style="padding:0 14px 4px 14px;font-size:13px;color:#334155;line-height:1.7;">
+                    <strong>Role:</strong> {{ $roleLabel }}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 14px 4px 14px;font-size:13px;color:#334155;line-height:1.7;">
+                    <strong>Email:</strong> {{ $email }}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 14px 4px 14px;font-size:13px;color:#334155;line-height:1.7;">
+                    <strong>ID Login:</strong> {{ $loginId }}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 14px 14px 14px;font-size:13px;color:#334155;line-height:1.7;">
+                    <strong>Password:</strong> {{ $plainPassword }}
+                  </td>
+                </tr>
+              </table>
+
               <p style="margin:16px 0 0;font-size:13px;color:#64748b;line-height:1.7;">
-                Jika kamu merasa tidak melakukan perubahan ini, segera hubungi tim BK.
+                Simpan informasi ini dengan aman. Jika kamu merasa tidak melakukan perubahan ini, segera hubungi tim BK.
               </p>
             </td>
           </tr>

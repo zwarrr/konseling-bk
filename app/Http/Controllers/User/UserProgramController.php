@@ -14,12 +14,27 @@ class UserProgramController extends Controller
 {
     public function index(Request $request)
     {
-        $programs = Program::query()
+        $activeBidang = trim((string) $request->query('bidang', ''));
+
+        $programQuery = Program::query();
+        if ($activeBidang !== '') {
+            $programQuery->where('category', $activeBidang);
+        }
+
+        $programs = $programQuery
             ->orderByDesc('date')
             ->paginate(12)
             ->withQueryString();
 
-        return view('users.sections.program', compact('programs'));
+        $bidangOptions = Program::query()
+            ->select('category')
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
+
+        return view('users.sections.program', compact('programs', 'bidangOptions', 'activeBidang'));
     }
 
     public function kelola()

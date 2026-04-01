@@ -362,13 +362,20 @@
           </div>
           <div class="bg-slate-50 rounded-xl p-4 text-xs text-slate-500 space-y-1">
             <p class="font-semibold text-slate-600 mb-1"><i class="fa-solid fa-circle-info mr-1 text-blue-500"></i> Format kolom:</p>
-            <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">name</span> / <span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">nama lengkap</span> — Nama (wajib)</div>
-            <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">email</span> — @gmail.com (opsional)</div>
-            <div id="importIdHint"><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">nip</span> — NIP 18 digit (wajib)</div>
-            <div id="importSiswaHint" class="hidden">
-              <span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">jenis kelamin</span> (P/L) dan
-              <span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">kelas</span> (contoh: 10PPLG / 11AKL / 12AKL1) wajib untuk siswa.
-              Nilai tersebut otomatis dipisah ke Kelas (10/11/12) dan Jurusan (PPLG/AKL).
+            <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">No.</span> — Opsional (boleh dikosongkan)</div>
+            <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">Nama Lengkap</span> — Wajib</div>
+            <div id="importGenderHint" class="hidden"><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">Jenis Kelamin (P/L)</span> — Wajib untuk siswa</div>
+            <div id="importUsiaHint" class="hidden"><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">Usia</span> — Opsional (diabaikan sistem)</div>
+            <div id="importKelasHint"><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">Kelas</span> — Siswa: wajib, BK: opsional (untuk sinkron BK pembimbing ke Data Kelas)</div>
+            <div id="importIdHint"><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">NIP</span> — Wajib untuk BK (9-18 digit)</div>
+            <div id="importEmailHint"><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">Email / Alamat Email</span> — Opsional (@gmail.com)</div>
+            <div class="text-[11px] text-slate-400 mt-1">Untuk mencegah angka berubah jadi `1.98E+17`, set kolom NIP/NIS ke format Text di Excel.</div>
+            <div class="pt-2">
+              <a id="importSampleLink" href="/templates/import/contoh_import_guru_bk.csv" download
+                 class="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-semibold">
+                <i class="fa-solid fa-download text-[11px]"></i>
+                <span id="importSampleText">Download Contoh Guru BK</span>
+              </a>
             </div>
           </div>
           <div class="flex items-center justify-end gap-2">
@@ -606,13 +613,34 @@
 
     function openImportForm(type) {
       const isBk = type === 'bk';
+      const downloadRoutes = {
+        bk: @json(route('admin.accounts.import.template', ['type' => 'bk'])),
+        siswa: @json(route('admin.accounts.import.template', ['type' => 'siswa'])),
+      };
+      const sampleLink = document.getElementById('importSampleLink');
+      const sampleText = document.getElementById('importSampleText');
+      const genderHint = document.getElementById('importGenderHint');
+      const usiaHint = document.getElementById('importUsiaHint');
+      const kelasHint = document.getElementById('importKelasHint');
+      const emailHint = document.getElementById('importEmailHint');
       document.getElementById('importTypeInput').value = type;
       document.getElementById('importFormTitle').textContent = isBk ? 'Import Guru BK' : 'Import Siswa/i';
-      const siswaHint = document.getElementById('importSiswaHint');
       document.getElementById('importIdHint').innerHTML = isBk
-        ? '<span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">nip</span> — NIP 18 digit (wajib) — jadi password awal'
-        : '<span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">nis</span> — NIS maks 10 digit (wajib) — jadi password awal';
-      if (siswaHint) siswaHint.classList.toggle('hidden', isBk);
+        ? '<span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">NIP</span> — Wajib untuk BK (9-18 digit), jadi password awal'
+        : '<span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">NIS</span> — Wajib untuk siswa (maks 10 digit), jadi password awal';
+      if (genderHint) genderHint.classList.toggle('hidden', isBk);
+      if (usiaHint) usiaHint.classList.toggle('hidden', isBk);
+      if (kelasHint) {
+        kelasHint.classList.remove('hidden');
+        kelasHint.innerHTML = isBk
+          ? '<span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">Kelas</span> — Opsional untuk BK. Jika diisi (contoh: XII AKL 1), sistem sinkron ke Data Kelas.'
+          : '<span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">Kelas</span> — Wajib untuk siswa (contoh: XII AKL 1 / XII PPLG), otomatis sinkron ke Data Kelas.';
+      }
+      if (emailHint) emailHint.classList.toggle('hidden', !isBk);
+      if (sampleLink && sampleText) {
+        sampleLink.href = isBk ? downloadRoutes.bk : downloadRoutes.siswa;
+        sampleText.textContent = isBk ? 'Download Contoh Guru BK' : 'Download Contoh Siswa/i';
+      }
       const fi = document.getElementById('importFileInput');
       const fn = document.getElementById('importFileName');
       if (fi) fi.value = '';

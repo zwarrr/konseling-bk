@@ -27,7 +27,7 @@
         </div>
       </div>
 
-      <p class="text-sm text-slate-600 mb-6">Masukkan ID (NIP BK / NIS Siswa) dan password kamu.</p>
+      <p class="text-sm text-slate-600 mb-6">Masukkan ID (NIP / NIS) atau email, lalu password kamu.</p>
 
       @if ($errors->any())
         {{-- trigger flash-modal for validation errors --}}
@@ -38,7 +38,7 @@
         @csrf
 
         <div>
-          <label class="block text-sm text-slate-700 mb-2">ID</label>
+          <label class="block text-sm text-slate-700 mb-2">ID/Email</label>
           <div class="relative">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
               <i class="fa-solid fa-id-card"></i>
@@ -46,7 +46,7 @@
             <input
               name="id"
               value="{{ old('id') }}"
-              inputmode="numeric"
+              placeholder=""
               class="w-full border rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 {{ $errors->has('id') ? 'border-red-300 focus:ring-red-500' : 'border-slate-300 focus:ring-blue-600' }}"
               required
             />
@@ -129,10 +129,6 @@
         window.showFlashModal && window.showFlashModal('error', message);
       }
 
-      function onlyDigits(value) {
-        return String(value || '').replace(/\D+/g, '');
-      }
-
       passwordInfoBtn?.addEventListener('click', (e) => {
         e.preventDefault();
         openModal(passwordInfoModal);
@@ -144,11 +140,6 @@
           if (!targetId) return;
           closeModal(document.getElementById(targetId));
         });
-      });
-
-      idInput?.addEventListener('input', () => {
-        const v = onlyDigits(idInput.value);
-        if (idInput.value !== v) idInput.value = v;
       });
 
       function setLoginFieldState(el, state) {
@@ -166,14 +157,9 @@
         }
       }
 
-      function isNip(idVal) {
-        return idVal.length === 18;
-      }
-
       passwordInput?.addEventListener('input', () => {
         const val   = passwordInput.value || '';
-        const idVal = onlyDigits(idInput?.value);
-        const maxLen = isNip(idVal) ? 18 : 12;
+        const maxLen = 18;
         if (!val) { setLoginFieldState(passwordInput, 'neutral'); return; }
         setLoginFieldState(passwordInput, val.length >= 6 && val.length <= maxLen ? 'valid' : 'invalid');
       });
@@ -182,18 +168,17 @@
       idInput?.addEventListener('input', () => {
         const val = passwordInput.value || '';
         if (!val) return;
-        const idVal  = onlyDigits(idInput.value);
-        const maxLen = isNip(idVal) ? 18 : 12;
+        const maxLen = 18;
         setLoginFieldState(passwordInput, val.length >= 6 && val.length <= maxLen ? 'valid' : 'invalid');
       });
 
       form?.addEventListener('submit', (e) => {
-        const idVal = onlyDigits(idInput?.value);
+        const idVal = (idInput?.value || '').trim();
         const passVal = passwordInput?.value || '';
 
         if (!idVal) {
           e.preventDefault();
-          openValidation('ID wajib diisi dan harus berupa angka.');
+          openValidation('ID atau email wajib diisi.');
           return;
         }
 
@@ -203,12 +188,10 @@
           return;
         }
 
-        const maxLen = isNip(idVal) ? 18 : 12;
+        const maxLen = 18;
         if (passVal.length < 6 || passVal.length > maxLen) {
           e.preventDefault();
-          openValidation(isNip(idVal)
-            ? 'Password harus 6\u201318 karakter.'
-            : 'Password harus 6\u201312 karakter.');
+          openValidation('Password harus 6\u201318 karakter.');
           return;
         }
 
