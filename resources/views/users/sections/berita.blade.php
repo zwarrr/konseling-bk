@@ -37,12 +37,12 @@
 <div class="px-4 md:px-8 py-6 pb-24">
 
     @if($news->count())
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 justify-items-center">
             @foreach($news as $item)
             <a href="{{ route($pfx . '.berita.detail', $item->slug) }}"
-               class="group flex flex-col rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 bg-white">
+             class="group w-full max-w-[390px] flex flex-col rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 bg-white">
                 {{-- Image --}}
-                <div class="overflow-hidden bg-gray-100" style="aspect-ratio:384/214">
+                <div class="overflow-hidden bg-gray-100" style="aspect-ratio:16/9">
                     @php $cardThumb = $item->img_cards ?: $item->img_detail_1 ?: $item->img_detail_2; @endphp
                     <img src="{{ $resolveImage($cardThumb) }}" alt="{{ $item->title }}"
                          class="w-full h-full object-cover group-hover:scale-105 transition duration-500"

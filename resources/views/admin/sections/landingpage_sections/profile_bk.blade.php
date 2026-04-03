@@ -305,7 +305,7 @@
                 <td class="px-6 py-3 text-gray-400">{{ $loop->iteration }}</td>
                 <td class="px-6 py-3">
                   <div class="flex justify-center">
-                    <div class="w-20 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden" style="aspect-ratio:4/3;">
+                    <div class="w-20 rounded-lg border border-gray-200 bg-gray-50 overflow-hidden" style="aspect-ratio:16/9;">
                       @if($it->img)
                         <img src="{{ $it->img }}" alt="{{ $it->title }}" class="w-full h-full object-cover">
                       @else
@@ -388,13 +388,13 @@
               <p class="text-xs text-gray-400 mt-1">Lebih kecil = tampil lebih dulu</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Gambar (4:3)</label>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Gambar (16:9)</label>
               <input id="galInputImg" name="img" type="file" accept="image/*"
                 class="w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs text-gray-700 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-primary/10 file:text-primary">
-              <p class="text-xs text-gray-400 mt-1">1200x900 | 4:3 - PNG, JPG, WEBP, maks. 5 MB</p>
+              <p class="text-xs text-gray-400 mt-1">1920x1080 | 16:9 - PNG, JPG, WEBP, maks. 5 MB</p>
             </div>
           </div>
-          <div id="galImgPreviewWrap" class="hidden rounded-xl border border-slate-200 bg-slate-50 overflow-hidden" style="aspect-ratio:4/3;">
+          <div id="galImgPreviewWrap" class="hidden rounded-xl border border-slate-200 bg-slate-50 overflow-hidden" style="aspect-ratio:16/9;">
             <img id="galImgPreview" alt="Preview" class="w-full h-full object-cover">
           </div>
 
@@ -550,9 +550,9 @@
     document.getElementById('galDeleteCancel')?.addEventListener('click', () => closeModal(deleteModal));
     document.getElementById('galDeleteBackdrop')?.addEventListener('click', () => closeModal(deleteModal));
 
-    // Cropper preview for image input (4:3)
+    // Cropper preview for image input (16:9)
     inputImg?.addEventListener('change', async function(e) {
-      const result = await window.__cropFile(e, 4/3);
+      const result = await window.__cropFile(e, 16/9);
       if (result) setPreview(result.previewUrl);
       else setPreview(previewImg.getAttribute('src') || '');
     });

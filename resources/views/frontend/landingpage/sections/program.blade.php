@@ -2,7 +2,7 @@
 
   @php
     $programSection = \App\Models\ProgramSection::singleton();
-    $programs       = \App\Models\Program::orderBy('date', 'desc')->take(4)->get();
+    $programs       = \App\Models\Program::orderBy('date', 'desc')->take(3)->get();
     $defaultProgramImage = asset('assets/img/default-cards-noimg.png');
     $resolveProgramImage = function ($path) use ($defaultProgramImage) {
       $path = trim((string) $path);
@@ -34,14 +34,14 @@
 
     {{-- Cards --}}
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
       @foreach($programs as $i => $a)
         <a href="{{ route('landing.program.detail', $a->slug) }}"
-           class="reveal group flex flex-col rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300"
+           class="reveal group w-full max-w-[390px] flex flex-col rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300"
            style="transition-delay: {{ $i * 80 }}ms">
 
           {{-- Image --}}
-          <div class="relative overflow-hidden bg-gray-200" style="aspect-ratio:384/214">
+          <div class="relative overflow-hidden bg-gray-200" style="aspect-ratio:16/9">
             <img src="{{ $resolveProgramImage($a->img) }}" alt="{{ $a->title }}"
                class="w-full h-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" decoding="async"
                onerror="this.onerror=null;this.src='{{ $defaultProgramImage }}';">

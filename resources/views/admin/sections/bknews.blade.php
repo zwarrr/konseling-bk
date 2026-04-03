@@ -174,8 +174,8 @@
 
             <div class="rounded-xl border border-blue-100 bg-blue-50/60 p-3 text-xs text-blue-700 leading-relaxed">
               <div class="font-semibold mb-1">Panduan ukuran gambar BK News</div>
-              <div>Card listing (/berita): 1536x856 | 384:214.</div>
-              <div>Detail 1 & Detail 2: 1600x900 | 16:9.</div>
+              <div>Card listing (/berita): 1920x1080 | 16:9.</div>
+              <div>Detail 1 & Detail 2: 1920x1080 | 16:9.</div>
             </div>
 
           </div>
@@ -183,7 +183,7 @@
           <div class="space-y-4">
             {{-- Gambar Cards Listing (card thumbnail khusus /berita) --}}
             <div class="border border-blue-100 rounded-xl p-4 space-y-2 bg-blue-50/30">
-              <p class="text-sm font-semibold text-slate-700">Gambar Card Listing <span class="font-normal text-slate-400 text-xs">(1536x856 | 384:214, opsional)</span></p>
+              <p class="text-sm font-semibold text-slate-700">Gambar Card Listing <span class="font-normal text-slate-400 text-xs">(1920x1080 | 16:9, opsional)</span></p>
               <p class="text-xs text-blue-600">Jika kosong, sistem akan pakai placeholder default.</p>
               <input id="fieldImgCards" type="file" name="img_cards" accept="image/*"
                 class="w-full text-sm text-slate-500 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-sm file:bg-blue-100 file:text-blue-600">
@@ -197,7 +197,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               {{-- Detail 1 --}}
               <div class="border border-slate-200 rounded-xl p-3 space-y-2">
-                <p class="text-xs font-semibold text-slate-700">Detail 1 <span class="font-normal text-slate-400">(1600x900 | 16:9, opsional)</span></p>
+                <p class="text-xs font-semibold text-slate-700">Detail 1 <span class="font-normal text-slate-400">(1920x1080 | 16:9, opsional)</span></p>
                 <input id="fieldImgD1" type="file" name="img_detail_1" accept="image/*"
                   class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-primary/10 file:text-primary">
                 <div id="imgD1PreviewWrap" class="hidden mt-1">
@@ -207,7 +207,7 @@
               </div>
               {{-- Detail 2 --}}
               <div class="border border-slate-200 rounded-xl p-3 space-y-2">
-                <p class="text-xs font-semibold text-slate-700">Detail 2 <span class="font-normal text-slate-400">(1600x900 | 16:9, opsional)</span></p>
+                <p class="text-xs font-semibold text-slate-700">Detail 2 <span class="font-normal text-slate-400">(1920x1080 | 16:9, opsional)</span></p>
                 <input id="fieldImgD2" type="file" name="img_detail_2" accept="image/*"
                   class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-xs file:bg-primary/10 file:text-primary">
                 <div id="imgD2PreviewWrap" class="hidden mt-1">
@@ -296,7 +296,7 @@
     document.getElementById('crudBackdrop').addEventListener('click', closeModal);
 
     // File previews — via cropper modal
-    const cropRatios = { fieldImgCards: 384/214, fieldImgD1: 16/9, fieldImgD2: 16/9 };
+    const cropRatios = { fieldImgCards: 16/9, fieldImgD1: 16/9, fieldImgD2: 16/9 };
     [
       ['fieldImgCards','imgCardsPreview','imgCardsPreviewWrap'],
       ['fieldImgD1',   'imgD1Preview',   'imgD1PreviewWrap'],

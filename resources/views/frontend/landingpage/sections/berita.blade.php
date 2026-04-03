@@ -55,11 +55,11 @@
     <div class="max-w-6xl mx-auto">
 
       @if($news->count())
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7 justify-items-center">
             @foreach($news as $item)
-              <a href="{{ route('landing.berita.detail', $item->slug) }}" class="news-card group flex flex-col rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 bg-white reveal">
+              <a href="{{ route('landing.berita.detail', $item->slug) }}" class="news-card group w-full max-w-[390px] flex flex-col rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 bg-white reveal">
                 {{-- Image --}}
-                <div class="overflow-hidden bg-gray-100" style="aspect-ratio:384/214">
+                <div class="overflow-hidden bg-gray-100" style="aspect-ratio:16/9">
                   @php $cardThumb = $item->img_cards ?: $item->img_detail_1 ?: $item->img_detail_2; @endphp
                   @if($cardThumb)
                     <img src="{{ $cardThumb }}" alt="{{ $item->title }}"

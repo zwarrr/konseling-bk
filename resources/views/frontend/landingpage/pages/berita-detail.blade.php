@@ -135,7 +135,7 @@
 
               {{-- Cover image --}}
               <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-gray-100"
-                   style="aspect-ratio:384/214">
+                    style="aspect-ratio:16/9">
                 @if($coverImage)
                   <img src="{{ $coverImage }}" alt="{{ $item->title }}"
                        class="w-full h-full object-cover" loading="lazy" decoding="async">
@@ -154,7 +154,7 @@
                   $dImg = str_starts_with($imgPath, 'http') ? $imgPath : asset($imgPath);
                 @endphp
                 <div class="overflow-hidden rounded-xl border border-gray-200 bg-gray-100"
-                     style="aspect-ratio:384/214">
+                   style="aspect-ratio:16/9">
                   <img src="{{ $dImg }}" alt="{{ $item->title }}"
                        class="w-full h-full object-cover" loading="lazy" decoding="async">
                 </div>

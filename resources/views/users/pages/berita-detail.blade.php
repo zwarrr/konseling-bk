@@ -73,7 +73,7 @@
 
                     {{-- Cover image --}}
                     <div class="overflow-hidden rounded-xl border border-gray-200 bg-gray-100 mb-5"
-                         style="aspect-ratio:384/214">
+                        style="aspect-ratio:16/9">
                         <img src="{{ $coverImage }}" alt="{{ $item->title }}"
                              class="w-full h-full object-cover" loading="lazy"
                              onerror="this.onerror=null;this.src='{{ $defaultCardImage }}';">
@@ -85,7 +85,7 @@
                         @foreach($detailImages as $imgPath)
                         @php $dImg = $resolveImage($imgPath); @endphp
                         <div class="overflow-hidden rounded-xl border border-gray-200 bg-gray-100"
-                             style="aspect-ratio:384/214">
+                                style="aspect-ratio:16/9">
                             <img src="{{ $dImg }}" alt="{{ $item->title }}"
                                  class="w-full h-full object-cover" loading="lazy"
                                  onerror="this.onerror=null;this.src='{{ $defaultCardImage }}';">

@@ -55,13 +55,13 @@
     </div>
 
     {{-- Grid --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 justify-items-center">
         @forelse($programs as $programItem)
-        <div class="group flex flex-col rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300">
+        <div class="group w-full max-w-[390px] flex flex-col rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300">
 
             {{-- Image --}}
             <a href="{{ route($pfx . '.program.detail', $programItem->slug) }}" class="block">
-                <div class="relative w-full overflow-hidden bg-gray-200" style="aspect-ratio:384/214">
+                <div class="relative w-full overflow-hidden bg-gray-200" style="aspect-ratio:16/9">
                     <img src="{{ $resolveProgramImage($programItem->img) }}" alt="{{ $programItem->title }}"
                          class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                          onerror="this.onerror=null;this.src='{{ $defaultProgramImage }}';">
