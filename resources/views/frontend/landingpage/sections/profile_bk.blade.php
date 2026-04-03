@@ -49,7 +49,7 @@
   @endphp
 
   {{-- HERO --}}
-  <section class="pt-28 sm:pt-32 lg:pt-36 pb-10 sm:pb-12 px-4 sm:px-6 text-center bg-white">
+  <section class="pt-24 sm:pt-28 lg:pt-32 pb-4 sm:pb-6 px-4 sm:px-6 text-center bg-white">
     <h1 class="reveal text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
       {{ $profile->title }}
     </h1>
@@ -58,15 +58,15 @@
           </p>
   </section>
 
-  <main class="py-12 sm:py-16 bg-white">
+  <main class="py-6 sm:py-8 bg-white">
     <div class="max-w-6xl mx-auto px-4 sm:px-6">
 
       {{-- Profil (Ilustrasi kiri, konten kanan) --}}
-      <section class="reveal grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+      <section class="reveal grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         @php
           $illustration = asset('assets/img/ilustrasi_profil_bk.png');
         @endphp
-        <div class="order-1">
+        <div class="order-1 -mt-8 sm:-mt-10 lg:-mt-12">
 <img
   src="{{ $illustration }}"
   alt="Ilustrasi Profil BK"
@@ -77,7 +77,7 @@
 />
         </div>
 
-        <div class="order-2 lg:-mt-10 xl:-mt-12">
+        <div class="order-2 lg:pt-4">
           <h2 class="font-extrabold text-gray-900 leading-tight mb-4 text-2xl sm:text-3xl">
             Bimbingan &amp; Konseling
           </h2>
