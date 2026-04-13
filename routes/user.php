@@ -61,6 +61,8 @@ Route::middleware(['auth:bk,siswa', 'maintenance', 'must.setup'])->group(functio
     // ─── Profile ─────────────────────────────────────────────────────────
     Route::get('/bk/profile',    [UserProfileController::class, 'show'])->name('bk.profile');
     Route::get('/siswa/profile', [UserProfileController::class, 'show'])->name('siswa.profile');
+    Route::get('/bk/panduan',    [UserProfileController::class, 'guide'])->name('bk.guide')->middleware('bk.only');
+    Route::get('/siswa/panduan', [UserProfileController::class, 'guide'])->name('siswa.guide');
     Route::get('/profile', function () {
         $role = auth()->user()->role ?? null;
         return $role === 'guru'

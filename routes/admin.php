@@ -129,6 +129,7 @@ Route::prefix('admin')->middleware(['auth:admin', 'admin'])->group(function () {
 
 	// ─── System Settings ──────────────────────────────────────────────
 	Route::get('/settings',                         [AdminController::class, 'settings'])                ->name('admin.settings');
+	Route::get('/settings/guide',                   [AdminController::class, 'guide'])                   ->name('admin.settings.guide');
 	Route::post('/settings/maintenance/toggle',     [AdminController::class, 'toggleMaintenance'])       ->name('admin.settings.maintenance.toggle');
 	Route::post('/settings/maintenance/message',    [AdminController::class, 'saveMaintenanceMessage'])  ->name('admin.settings.maintenance.message');
 	Route::post('/settings/maintenance/admin-url',  [AdminController::class, 'saveMaintenanceAdminUrl']) ->name('admin.settings.maintenance.adminUrl');

@@ -389,6 +389,48 @@ class AdminController extends Controller
         ));
     }
 
+    public function guide()
+    {
+        $admin = auth('admin')->user();
+
+        $sections = [
+            [
+                'title' => 'Kelola Landing Page',
+                'items' => [
+                    'Atur konten Home, About, Service, Program, Profil BK, Team, dan BK News dari menu Landing.',
+                    'Gunakan ukuran gambar yang disarankan agar tampilan konsisten di desktop dan mobile.',
+                    'Pastikan perubahan konten penting dicek ulang sebelum dipublikasikan.',
+                ],
+            ],
+            [
+                'title' => 'Kelola Akun dan Kelas',
+                'items' => [
+                    'Gunakan menu Kelola Akun untuk tambah, ubah, hapus, dan import data BK maupun Siswa/i.',
+                    'Gunakan menu Data Kelas untuk menyinkronkan kelas induk dan data turunan classroom.',
+                    'Verifikasi hasil import agar pembagian pembimbing BK tetap tepat.',
+                ],
+            ],
+            [
+                'title' => 'Monitoring dan Komunikasi',
+                'items' => [
+                    'Pantau Data Booking untuk laporan pemesanan program.',
+                    'Kelola Data Pesan untuk balas kontak masuk dan atur topik pesan.',
+                    'Gunakan BK News untuk menyampaikan informasi terbaru kepada seluruh pengguna.',
+                ],
+            ],
+            [
+                'title' => 'Pengaturan Sistem',
+                'items' => [
+                    'Aktifkan mode maintenance saat perlu perbaikan sistem.',
+                    'Atur URL admin darurat untuk akses saat maintenance aktif.',
+                    'Perbarui versi aplikasi dan catatan update untuk informasi pengguna.',
+                ],
+            ],
+        ];
+
+        return view('admin.sections.guide', compact('admin', 'sections'));
+    }
+
     public function toggleMaintenance()
     {
         $current = AppSetting::maintenanceMode();

@@ -225,6 +225,29 @@
         </div>
       </div>
 
+      {{-- ── Buku Panduan Admin ────────────────────────────────────────── --}}
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100"
+             style="background:linear-gradient(135deg,#0f4c9a08,#1a6fd408)">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+               style="background:#e8f0fe">
+            <i class="fa-solid fa-book text-sm" style="color:#0f4c9a"></i>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-slate-800">Buku Panduan Admin</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Ringkasan alur kerja fitur inti untuk admin E-Konseling</p>
+          </div>
+        </div>
+        <div class="px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <p class="text-sm text-slate-600">Buka panduan untuk melihat langkah penggunaan menu landing, data, monitoring, dan pengaturan sistem.</p>
+          <a href="{{ route('admin.settings.guide') }}"
+             class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition whitespace-nowrap">
+            <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+            Buka Panduan
+          </a>
+        </div>
+      </div>
+
     </div>
   </main>
 

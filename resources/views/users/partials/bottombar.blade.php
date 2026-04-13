@@ -37,6 +37,7 @@
         request()->routeIs($pfx . '.chat')           => 'chat',
         request()->routeIs('chat.room')              => 'chat',
         request()->routeIs($pfx . '.profile')        => 'profile',
+        request()->routeIs($pfx . '.guide')          => 'profile',
         default                                      => '',
     };
 @endphp

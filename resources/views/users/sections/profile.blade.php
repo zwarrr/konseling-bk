@@ -265,6 +265,27 @@
             </button>
         </div>
 
+        {{-- ── Buku Panduan (role-based) ───────────────────── --}}
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-3">
+            <div class="px-5 py-3 border-b border-slate-100">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Buku Panduan</span>
+            </div>
+            <div class="flex items-center gap-4 px-5 py-4">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background:#e8f0fe;">
+                    <i class="fa-solid fa-book text-sm" style="color:#0F4C9A;"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm text-slate-800 font-semibold">Panduan penggunaan sesuai role kamu</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Berisi langkah penggunaan fitur utama di E-Konseling.</p>
+                </div>
+                <a href="{{ route($pfx . '.guide') }}"
+                   class="shrink-0 px-4 py-2 rounded-xl text-white text-sm font-semibold transition"
+                   style="background:#0F4C9A;">
+                    Buka
+                </a>
+            </div>
+        </div>
+
         {{-- ── App info + update (PWA) ───────────────────────── --}}
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-3">
             <div class="px-5 py-3 border-b border-slate-100">
