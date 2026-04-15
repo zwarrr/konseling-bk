@@ -633,8 +633,8 @@
       if (kelasHint) {
         kelasHint.classList.remove('hidden');
         kelasHint.innerHTML = isBk
-          ? '<span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">Kelas</span> — Opsional untuk BK. Jika diisi (contoh: XII AKL 1), sistem sinkron ke Data Kelas.'
-          : '<span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">Kelas</span> — Wajib untuk siswa (contoh: XII AKL 1 / XII PPLG), otomatis sinkron ke Data Kelas.';
+          ? '<span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">Kelas</span> — Opsional untuk BK. Jika diisi (contoh: 10 AKL 1 / 10 AKL), sistem sinkron ke Data Kelas. Tingkat 10/11/12 otomatis jadi X/XI/XII.'
+          : '<span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-xs">Kelas</span> — Wajib untuk siswa (contoh: 10 AKL 1 / 10 AKL). Jika ada angka paralel (1/2/3), nilainya dipakai sebagai pembeda jurusan (AKL 1, AKL 2).';
       }
       if (emailHint) emailHint.classList.toggle('hidden', !isBk);
       if (sampleLink && sampleText) {

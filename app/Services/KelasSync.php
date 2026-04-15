@@ -79,8 +79,10 @@ class KelasSync
     // 3. A student was assigned to (or removed from) a classroom
     //    ↓ update that student's bk_id from the classroom's Kelas
     // ──────────────────────────────────────────────────────────────────
-    public static function forStudent(SiswaAccount $student): void
+    public static function forStudent(SiswaAccount $student, ?string $previousClassroomId = null): void
     {
+        $affectedClassroomIds = array_filter([$previousClassroomId, $student->classroom_id]);
+
         if ($student->classroom_id) {
             $bkId = Classroom::with('dataKelas')
                 ->find($student->classroom_id)
@@ -95,5 +97,48 @@ class KelasSync
                 $student->update(['bk_id' => null]);
             });
         }
+
+        self::syncJumlahSiswaForClassroomIds($affectedClassroomIds);
+    }
+
+    /**
+     * Recalculate jumlah_siswa_i on classes linked to provided classroom IDs.
+     */
+    public static function syncJumlahSiswaForClassroomIds(array $classroomIds): void
+    {
+        $classroomIds = collect($classroomIds)
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($classroomIds->isEmpty()) {
+            return;
+        }
+
+        $classIds = Classroom::query()
+            ->whereIn('id', $classroomIds->all())
+            ->whereNotNull('class_id')
+            ->pluck('class_id')
+            ->unique()
+            ->values();
+
+        if ($classIds->isEmpty()) {
+            return;
+        }
+
+        $counts = SiswaAccount::query()
+            ->join('classrooms', 'classrooms.id', '=', 'siswa_i_account.classroom_id')
+            ->whereIn('classrooms.class_id', $classIds->all())
+            ->selectRaw('classrooms.class_id as class_id, COUNT(siswa_i_account.id) as total')
+            ->groupBy('classrooms.class_id')
+            ->pluck('total', 'classrooms.class_id');
+
+        Kelas::withoutEvents(function () use ($classIds, $counts) {
+            foreach ($classIds as $classId) {
+                Kelas::where('id', $classId)->update([
+                    'jumlah_siswa_i' => (int) ($counts[$classId] ?? 0),
+                ]);
+            }
+        });
     }
 }

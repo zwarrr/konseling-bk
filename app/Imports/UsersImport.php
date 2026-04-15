@@ -15,6 +15,7 @@ class UsersImport
     private string $importType; // 'bk' | 'siswa'
     private array  $importErrors    = [];
     private array  $importedRecords = [];
+    private array  $touchedKelasIds = [];
     private int    $imported = 0;
     private int    $skipped  = 0;
 
@@ -222,7 +223,7 @@ class UsersImport
                     'name' => $name,
                     'id_label' => $idLabel,
                     'id' => $loginId,
-                    'reason' => 'format kelas tidak valid. Gunakan format seperti 10PPLG, 11AKL, atau isi jurusan di kolom terpisah.',
+                    'reason' => 'format kelas tidak valid. Gunakan format seperti 10 AKL 1, 10 AKL, 10AKL1, atau isi jurusan di kolom terpisah. Tingkat 10/11/12 otomatis dikonversi ke romawi.',
                 ];
                 $this->skipped++;
                 continue;
@@ -248,6 +249,10 @@ class UsersImport
             $this->imported++;
         }
 
+        if (!$isBk) {
+            $this->syncJumlahSiswaForTouchedKelas();
+        }
+
         return $this->result();
     }
 
@@ -264,6 +269,7 @@ class UsersImport
         if (!$kelasNormalized || !$jurusanNormalized) return [];
 
         $kelasRecord = $this->findOrCreateKelasRecord($kelasNormalized, $jurusanNormalized);
+        $this->touchedKelasIds[] = $kelasRecord->id;
 
         $bkAccountId = null;
         if ($kelasRecord->bk_id) {
@@ -318,10 +324,11 @@ class UsersImport
             ->filter()
             ->unique()
             ->values();
+        $jurusanCompact = preg_replace('/\s+/', '', $jurusan);
 
         $matches = Kelas::query()
             ->whereIn('kelas', $kelasCandidates->all())
-            ->where('jurusan', $jurusan)
+            ->whereRaw("REPLACE(jurusan, ' ', '') = ?", [$jurusanCompact])
             ->orderBy('id')
             ->get();
 
@@ -331,6 +338,9 @@ class UsersImport
 
             if ($primary->kelas !== $canonicalKelas) {
                 $primary->kelas = $canonicalKelas;
+            }
+            if ($primary->jurusan !== $jurusan) {
+                $primary->jurusan = $jurusan;
             }
 
             foreach ($secondary as $dup) {
@@ -362,11 +372,11 @@ class UsersImport
 
     private function normalizeJurusan(string $value): string
     {
-        $jurusan = strtoupper(trim(preg_replace('/\s+/', '', $value)));
+        $jurusan = strtoupper(trim(preg_replace('/\s+/', ' ', $value)));
         if ($jurusan === '') return '';
 
-        if (preg_match('/^([A-Z\/-]+)\d+$/', $jurusan, $m)) {
-            return $m[1];
+        if (preg_match('/^([A-Z\/-]+)\s*(\d+)$/', $jurusan, $m)) {
+            return trim($m[1]) . ' ' . $m[2];
         }
 
         return $jurusan;
@@ -414,7 +424,7 @@ class UsersImport
         $clean = strtoupper(trim(preg_replace('/\s+/', ' ', $kelasRaw)));
         if ($clean === '') return ['', ''];
 
-        if (preg_match('/^(10|11|12|X|XI|XII)\s+([A-Z][A-Z0-9\/-]*)(?:\s*\d+)?$/', $clean, $m)) {
+        if (preg_match('/^(10|11|12|X|XI|XII)\s+([A-Z][A-Z0-9\/-]*(?:\s*\d+)?)$/', $clean, $m)) {
             $kelas = $this->toRomanKelas($m[1]);
             $jurusan = $this->normalizeJurusan($m[2]);
             return [$kelas, $jurusan];
@@ -422,7 +432,9 @@ class UsersImport
 
         $value = strtoupper(preg_replace('/\s+/', '', $clean));
 
-        // Preferred import format: one column like 10PPLG / 11AKL / 12RPL1.
+        // Preferred import format: one column like 10 AKL 1 / 10 AKL / 10AKL1.
+        // Parallel number at the end (e.g. 1/2/3) is optional, and if present
+        // it is preserved as part of jurusan (AKL 1, AKL 2, dst).
         if (preg_match('/^(10|11|12)([A-Z][A-Z0-9\/-]*)$/', $value, $m)) {
             return [$this->toRomanKelas($m[1]), $this->normalizeJurusan($m[2])];
         }
@@ -449,5 +461,30 @@ class UsersImport
             'errors'           => $this->importErrors,
             'imported_records' => $this->importedRecords,
         ];
+    }
+
+    private function syncJumlahSiswaForTouchedKelas(): void
+    {
+        $kelasIds = collect($this->touchedKelasIds)
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($kelasIds->isEmpty()) {
+            return;
+        }
+
+        $counts = SiswaAccount::query()
+            ->join('classrooms', 'classrooms.id', '=', 'siswa_i_account.classroom_id')
+            ->whereIn('classrooms.class_id', $kelasIds->all())
+            ->selectRaw('classrooms.class_id as class_id, COUNT(siswa_i_account.id) as total')
+            ->groupBy('classrooms.class_id')
+            ->pluck('total', 'class_id');
+
+        foreach ($kelasIds as $kelasId) {
+            Kelas::where('id', $kelasId)->update([
+                'jumlah_siswa_i' => (int) ($counts[$kelasId] ?? 0),
+            ]);
+        }
     }
 }

@@ -110,7 +110,7 @@
                 <p class="font-semibold text-slate-600 mb-1"><i class="fa-solid fa-circle-info mr-1 text-blue-500"></i> Format kolom:</p>
                 <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">No</span> — Opsional</div>
                 <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">Kelas</span> — Angka / romawi, mis. XII (wajib)</div>
-                <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">Jurusan</span> — Mis. AKL, MPLB, PPLG (wajib)</div>
+                <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">Jurusan</span> — Mis. AKL, AKL 1, AKL 2, MPLB (wajib)</div>
                 <div><span class="font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded">Jumlah Siswa/i</span> — Angka (opsional)</div>
                 <p class="text-slate-400 mt-1">Jika kelas+jurusan sudah ada, datanya akan diperbarui.</p>
                 <div class="pt-2">

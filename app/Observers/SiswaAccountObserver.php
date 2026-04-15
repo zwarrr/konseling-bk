@@ -14,14 +14,25 @@ class SiswaAccountObserver
      */
     public function saved(SiswaAccount $siswa): void
     {
-        if ($siswa->wasChanged('classroom_id')) {
-            KelasSync::forStudent($siswa);
+        if ($siswa->wasChanged('classroom_id') || ($siswa->wasRecentlyCreated && $siswa->classroom_id)) {
+            $previousClassroomId = $siswa->getOriginal('classroom_id');
+            KelasSync::forStudent($siswa, $previousClassroomId);
 
             // When a student is (re-)assigned to a primary classroom, record
             // a cutoff so they only see messages sent after they joined.
             if ($siswa->classroom_id) {
                 GroupMemberCutoff::recordJoin($siswa->id, $siswa->classroom_id);
             }
+        }
+    }
+
+    /**
+     * Keep class totals in sync when a student account is deleted.
+     */
+    public function deleted(SiswaAccount $siswa): void
+    {
+        if ($siswa->classroom_id) {
+            KelasSync::syncJumlahSiswaForClassroomIds([$siswa->classroom_id]);
         }
     }
 }

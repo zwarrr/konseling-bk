@@ -36,6 +36,7 @@ class AdminKelasController extends Controller
         ]);
 
         $data['kelas'] = $this->normalizeKelasToRoman($data['kelas']);
+        $data['jurusan'] = $this->normalizeJurusan($data['jurusan']);
 
         // Unique check
         if (Kelas::where('kelas', $data['kelas'])->where('jurusan', $data['jurusan'])->exists()) {
@@ -62,6 +63,7 @@ class AdminKelasController extends Controller
         ]);
 
         $data['kelas'] = $this->normalizeKelasToRoman($data['kelas']);
+        $data['jurusan'] = $this->normalizeJurusan($data['jurusan']);
 
         // Unique check (exclude self)
         if (Kelas::where('kelas', $data['kelas'])
@@ -144,7 +146,7 @@ class AdminKelasController extends Controller
         foreach ($rows as $ri => $row) {
             if ($ri === $headerIdx) continue;
             $kelas   = $this->normalizeKelasToRoman((string) ($row[$kelasCol] ?? ''));
-            $jurusan = trim((string) ($row[$jurusanCol] ?? ''));
+            $jurusan = $this->normalizeJurusan((string) ($row[$jurusanCol] ?? ''));
             if (!$kelas || !$jurusan) continue;
 
             $jumlah = $jumlahCol ? (int) ($row[$jumlahCol] ?? 0) : 0;
@@ -197,6 +199,20 @@ class AdminKelasController extends Controller
             '12' => 'XII',
             default => $k,
         };
+    }
+
+    private function normalizeJurusan(string $jurusan): string
+    {
+        $value = strtoupper(trim(preg_replace('/\s+/', ' ', $jurusan)));
+        if ($value === '') {
+            return '';
+        }
+
+        if (preg_match('/^([A-Z\/-]+)\s*(\d+)$/', $value, $m)) {
+            return trim($m[1]) . ' ' . $m[2];
+        }
+
+        return $value;
     }
 
     public function downloadKelasImportTemplate()
